@@ -1,0 +1,81 @@
+import { Entity, OneToOne,PrimaryGeneratedColumn,Column,JoinColumn,OneToMany,ManyToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { User } from "./User";
+import { JobPost } from "./JobPost";
+import { Province } from "./Province";
+import { CompanyFollowed } from "./CompanyFollowed";
+
+@Entity('Companys')
+export class Company {
+  
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    provinceId!:number;
+
+    @Column()
+    userId!:number;
+
+    @Column({ type: 'varchar', length: 255 })
+    companyName!: string;
+
+    @Column({ type: 'varchar', length: 300 })
+    slug!: string;
+
+    @Column({ type: 'varchar', length: 200, nullable: true })
+    facebookUrl?: string;
+
+    @Column({ type: 'varchar', length: 200, nullable: true })
+    youtubeUrl?: string;
+
+    @Column({ type: 'varchar', length: 200, nullable: true })
+    linkedinUrl?: string;
+
+    @Column({ type: 'varchar', length: 100 })
+    companyEmail!: string;
+
+    @Column({ type: 'varchar', length: 15 })
+    companyPhone!: string;
+
+    @Column({ type: 'varchar', length: 300, nullable: true })
+    websiteUrl?: string;
+
+    @Column({ type: 'varchar', length: 30 })
+    taxCode!: string;
+
+    @Column({ type: 'date', nullable: true })
+    since?: Date;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    fieldOperation?: string;
+
+    @Column({ type: 'longtext', nullable: true })
+    description?: string;
+
+    @Column({ type: 'smallint', nullable: true })
+    employeeSize?: number;
+
+    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    updatedAt!: Date;
+
+    @OneToOne(() => User, (user) => user.employer,{onDelete: 'CASCADE'})
+    @JoinColumn({name: 'userId'})
+    user!: User;
+
+    @ManyToOne(() => Province, (province) => province.candidates, { onDelete: 'SET NULL',nullable: true })
+    @JoinColumn({ name: 'provinceId' })
+    province?: Province;
+
+    @OneToMany(() => JobPost, (jobpost) => jobpost.user)
+    job!: JobPost[];
+
+    @OneToMany(() => JobPost, jobPost => jobPost.company)
+    jobPosts?: JobPost[];
+
+    @OneToMany(() => CompanyFollowed, companyFollowed => companyFollowed.company)
+    followedCompanies!: CompanyFollowed[];
+  
+} 

@@ -1,0 +1,44 @@
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    ManyToOne,
+    JoinColumn
+  } from 'typeorm';
+  import { Resume } from './Resume';
+  
+  @Entity('Experiences')
+  export class Experience {
+  
+    @PrimaryGeneratedColumn()
+    id!: number;
+  
+    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    updatedAt!: Date;
+  
+    @Column({ type: 'varchar', length: 200, nullable: false })
+    jobName!: string;
+  
+    @Column({ type: 'varchar', length: 255, nullable: false })
+    companyName!: string;
+  
+    @Column({ type: 'date', nullable: false })
+    startDate!: Date;
+  
+    @Column({ type: 'date', nullable: false })
+    endDate!: Date;
+  
+    @Column({ type: 'varchar', length: 500, nullable: true })
+    description?: string;
+  
+    @ManyToOne(() => Resume, (resume) => resume.experiences,{onDelete:'CASCADE'})
+    @JoinColumn({ name: 'resumeId' })
+    resume!: Resume;
+
+  }
+  

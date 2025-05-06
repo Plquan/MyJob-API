@@ -8,7 +8,21 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
-    "types": ["node"]
+    "types": ["node"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@interfaces/*": ["src/interfaces/*"],
+      "@routes/*": ["src/routes/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@middlewares/*": ["src/middlewares/*"],
+      "@controllers/*": ["src/controllers/*"],
+      "@services/*": ["src/services/*"],
+      "@utils/*": ["src/utils/*"],
+      "@constants/*": ["src/constants/*"],
+    }
   },
   "include": ["./src/**/*"],
   "exclude": ["./node_modules", "./dist"]
