@@ -15,6 +15,7 @@
     "paths": {
       "@/*": ["src/*"],
       "@interfaces/*": ["src/interfaces/*"],
+      "@entiti/*": ["src/interfaces/*"],
       "@routes/*": ["src/routes/*"],
       "@helpers/*": ["src/helpers/*"],
       "@middlewares/*": ["src/middlewares/*"],
