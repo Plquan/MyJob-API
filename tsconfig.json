@@ -6,12 +6,12 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "types": ["node"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "baseUrl": "./",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "rootDir": ".",
+    "types": ["node"],
     "paths": {
       "@/*": ["src/*"],
       "@interfaces/*": ["src/interfaces/*"],
@@ -20,10 +20,11 @@
       "@middlewares/*": ["src/middlewares/*"],
       "@controllers/*": ["src/controllers/*"],
       "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"],
-      "@constants/*": ["src/constants/*"],
-    }
+      "@utils/*": ["src/utils/*"]
+    },
+    "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./node_modules", "./dist"]
+  "lib": ["es2015"],
+  "exclude": ["node_modules", "src/tests"],
+  "include": ["src/**/*.ts"]
 }

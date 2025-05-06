@@ -1,5 +1,5 @@
 import { ENV } from "@/constants/env";
-import { IJWTService } from "@/interfaces/auth/IJWTService";
+import { IJWTService } from "@/interfaces/auth/IJwtService";
 import jwt from "jsonwebtoken";
 
 
