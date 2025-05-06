@@ -5,10 +5,10 @@ const swaggerSpecs = {
     definition: {
         openapi: "3.1.0",
         info: {
-            title: "TOP-IT API",
+            title: "Myjob-API",
             version: "1.0.0",
             description:
-                "TOP-IT API is a RESTful API that provides endpoints for control TOP-IT services",
+                "Myjob-API is a RESTful API that provides endpoints for control Myjob-API services",
             license: {
                 name: "MIT",
                 url: "https://spdx.org/licenses/MIT.html",
@@ -24,7 +24,7 @@ const swaggerSpecs = {
 };
 
 const options = {
-    customSiteTitle: "TOP-IT API",
+    customSiteTitle: "MyJob-API",
 };
 
 const specs = swaggerJSDoc(swaggerSpecs);

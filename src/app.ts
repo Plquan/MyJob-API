@@ -27,7 +27,7 @@ class Application {
   start() {
     ((port = process.env.APP_PORT || 5001) => {
       this.serverInstance = this.server.app.listen(port, () =>
-        console.log(`Server is running at http://localhost:${port}`)
+        console.log(`Server is running at http://localhost:${port}/docs`)
       );
       this.server.app.use(cors(corsConfig));
       this.server.app.use(cookieParser());
