@@ -4,14 +4,14 @@ import { JobPost } from "./JobPost";
 import { Province } from "./Province";
 import { CompanyFollowed } from "./CompanyFollowed";
 
-@Entity('Companys')
+@Entity('Companies')
 export class Company {
   
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
-    provinceId!:number;
+    @Column({nullable: true})
+    provinceId?:number;
 
     @Column()
     userId!:number;
@@ -19,17 +19,8 @@ export class Company {
     @Column({ type: 'varchar', length: 255 })
     companyName!: string;
 
-    @Column({ type: 'varchar', length: 300 })
+    @Column({ type: 'varchar', length: 300,unique:true })
     slug!: string;
-
-    @Column({ type: 'varchar', length: 200, nullable: true })
-    facebookUrl?: string;
-
-    @Column({ type: 'varchar', length: 200, nullable: true })
-    youtubeUrl?: string;
-
-    @Column({ type: 'varchar', length: 200, nullable: true })
-    linkedinUrl?: string;
 
     @Column({ type: 'varchar', length: 100 })
     companyEmail!: string;
@@ -54,6 +45,12 @@ export class Company {
 
     @Column({ type: 'smallint', nullable: true })
     employeeSize?: number;
+
+    @Column({ type: 'varchar', length: 100 })
+    address!: string;
+
+
+    //
 
     @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
     createdAt!: Date;

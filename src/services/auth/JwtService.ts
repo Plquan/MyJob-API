@@ -31,6 +31,7 @@ export default class JwtService implements IJWTService {
       return false;
     }
   }
+  
   getTokenPayload(token: string) {
     return jwt.decode(token);
   }

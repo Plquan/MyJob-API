@@ -13,7 +13,8 @@ const dataSource = new DataSource({
     migrationsTableName: 'Migrations',
     migrationsRun: false,
     synchronize: false,
-    poolSize: 10
+    poolSize: 10,
+    logging: ["query", "error", "info", "warn"],
 })
 
 export default dataSource;

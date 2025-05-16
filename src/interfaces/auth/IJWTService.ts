@@ -1,6 +1,6 @@
 export interface IAccessTokenPayload {
-    userId: string;
-    username: string;
+    userId: number;
+    userName: string;
     role: string;
     roleName: string;
   }

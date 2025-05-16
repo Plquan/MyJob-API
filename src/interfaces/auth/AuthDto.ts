@@ -1,17 +1,29 @@
 import { IAccessTokenResponse } from "./IJwtService";
+import { ICompanyData } from "../company/CompanyDto";
 
-export interface IUserLoginData {
-  username: string;
+export interface ILoginData {
+  email: string;
   password: string;
   isRememberMe: boolean;
 }
 
-export interface IUserRegisterData {
-  username: string;
-  password: string;
+
+export interface ICandidateRegisterData {
+  email:string;
   fullName: string;
-  role: "3" | "4";
+  password: string;
+  companyInfo?:ICompanyData
+  groupRoleId:number;
 }
+
+export interface ICompanyRegisterData {
+  email:string;
+  fullName: string;
+  password: string;
+  companyInfo?:ICompanyData
+  groupRoleId:number;
+}
+
 
 export interface IUserLoginResponse {
   accessToken: IAccessTokenResponse;
