@@ -12,7 +12,6 @@ export interface ICandidateRegisterData {
   email:string;
   fullName: string;
   password: string;
-  companyInfo?:ICompanyData
   groupRoleId:number;
 }
 
@@ -50,3 +49,16 @@ export interface IFunctionByRole {
   displayName: string;
   functionLink: string;
 }
+
+export interface ICurrentUser {
+  id: string;
+  roleName: string;
+  role: [
+    {
+      id: number;
+      name: string;
+      displayName: string;
+    }
+  ];
+  accessToken: string;
+};

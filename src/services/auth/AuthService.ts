@@ -7,8 +7,10 @@ import { StatusCodes } from "http-status-codes";
 import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
 import IRoleService from "@/interfaces/auth/IRoleService";
-import EGroupRole from "@/constants/GroupRole";
+import EGroupRole from "@/constants/enums/GroupRole";
 import ICompanyService from "@/interfaces/company/ICompanyService";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
+import { LocalStorage } from "@/constants/LocalStorage";
 
 
 export default class AuthService implements IAuthService {
@@ -23,308 +25,468 @@ export default class AuthService implements IAuthService {
       this._context = DatabaseService;
       this._CompanyService = CompanyService
     }
-   async candidateRegister(candidateRegister: ICompanyRegisterData): Promise<IResponseBase> {
-       try {
-           if(!candidateRegister.email || !candidateRegister.fullName || !candidateRegister.password) {
-            return {
+    async candidateLogin(userLogin: ILoginData, storeAccessToken: (data: string) => void): Promise<IResponseBase> {
+    try {
+            if (!userLogin.email || !userLogin.password) {
+              return {
                 status: StatusCodes.BAD_REQUEST,
                 success: false,
-                message: "Tài khoản, mật khẩu và họ tên không được để trống",
+                message: "Tài khoản và mật khẩu không được để trống",
                 data: null,
                 error: {
                   message: "Bad Request",
-                  errorDetail: "Tài khoản, mật khẩu và họ tên không được để trống",
+                  errorDetail: "Tài khoản và mật khẩu không được để trống",
                 }
               }
-           }
+            }
 
-           const checkEmail = await this._context.UserRepo.count({
-            where: { email: candidateRegister.email }
-           })
+          const user = await this._context.UserRepo
+            .createQueryBuilder("user")
+            .leftJoinAndSelect("user.groupRole", "groupRole")
+            .where("user.email = :email", { email: userLogin.email })
+            .andWhere("groupRole.name = :name", { name: EGroupRole.CANDIDATE })
+            .getOne();
 
-           if(checkEmail){
-            return {
-                status: StatusCodes.CONFLICT,
-                success: false,
-                message: "Email đã tồn tại",
-                data: null,
-                error: {
-                  message: "Bad Request",
-                  errorDetail: "Tài khoản, mật khẩu và họ tên không được để trống",
+            if(!user){
+              return {
+                  status: StatusCodes.NOT_FOUND,
+                  success: false,
+                  message: "Tài khoản không tồn tại",
+                  data: null,
+                  error: {
+                    message: "Not Found",
+                    errorDetail: "Tài khoản không tồn tại",
+                  }
                 }
-              }
-           }     
-           const checkRole = await this._context.GroupRoleRepo.findOne({
-                where: {
-                 name: EGroupRole.CANDIDATE
-                }
-              })
-           if (!checkRole) {
+            }
+
+        const checkPass = await Extensions.comparePassword(userLogin.password, user.password);
+          if (!checkPass) {
             return {
-              status: StatusCodes.BAD_REQUEST,
+              status: StatusCodes.UNAUTHORIZED,
               success: false,
-              message: "Đăng kí tài khoản không thành công",
+              message: "Mật khẩu không chính xác",
               data: null,
               error: {
-                message: "Phân quyền không tồn tại",
-                errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
+                message: "Unauthorized",
+                errorDetail: "Mật khẩu không chính xác",
               },
             };
           }
 
-           const hashPassword = Extensions.hashPassword(candidateRegister.password);
-
-           const registerData = {
-            email: candidateRegister.email,
-            fullName: candidateRegister.fullName,
-            password: hashPassword,
-            groupRoleId: checkRole.id
-           }
-           const newUser = await this._context.UserRepo.save(registerData);
-
-           if (!newUser) {
+          if (!user.isActive) {
             return {
-              status: StatusCodes.INTERNAL_SERVER_ERROR,
+              status: StatusCodes.FORBIDDEN,
               success: false,
-              message: "Đăng kí tài khoản không thành công, vui lòng kiểm tra lại",
+              message: "Tài khoản của bạn đã bị khóa",
               data: null,
               error: {
-                message: "Đăng kí tài khoản thất bại",
-                errorDetail: "Đăng kí tài khoản không thành công, vui lòng kiểm tra lại",
+                message: "Forbidden",
+                errorDetail: "Tài khoản của bạn đã bị khóa",
               },
             };
           }
 
+          // const userRoles = await this._RoleService.getCurrentUserPermission(user.groupRoleId);
+
+          // if (!userRoles.success) {
+          //   return userRoles;
+          // }
+    
+          const tokenPayload: IAccessTokenPayload = {
+            userId: user.id,
+            userName: user.fullName,
+            role: "",
+            roleName: "",
+          };
+          const token = this._JwtService.generateAccessToken(tokenPayload);
+          storeAccessToken(token.token);
           return {
-            status: StatusCodes.CREATED,
+            status: 200,
             success: true,
-            message: "Đăng kí tài khoản thành công",
-            data:null,
+            message:"Đăng nhập thành công",
+            data: token,
             error: null,
           };
-        } catch (error:any) {
+
+          } catch (error) {
             logger.error(error?.message);
-            console.log(`Error in AuthService - method register at ${new Date().getTime()} with message ${error?.message}`);
+            console.log(`Error in AuthService - method login at ${new Date().getTime} with message ${error?.message}`);
             return {
-              status: StatusCodes.INTERNAL_SERVER_ERROR,
+              status: 500,
               success: false,
               message: "Lỗi từ phía server",
               data: null,
               error: {
                 message: "Lỗi từ phía server",
                 errorDetail: "Lỗi từ phía server",
-              },
-            };
-       }
-  }
-  async companyRegister(companyRegister: ICandidateRegisterData): Promise<IResponseBase> {
-    try {
-           if(!companyRegister.email || !companyRegister.fullName || !companyRegister.password) {
-            return {
+              }
+            }
+          }
+    }
+    async companyLogin(userLogin: ILoginData, storeAccessToken: (data: string) => void): Promise<IResponseBase> {
+        try {
+            if (!userLogin.email || !userLogin.password) {
+              return {
                 status: StatusCodes.BAD_REQUEST,
                 success: false,
-                message: "Tài khoản, mật khẩu và họ tên không được để trống",
+                message: "Tài khoản và mật khẩu không được để trống",
                 data: null,
                 error: {
                   message: "Bad Request",
-                  errorDetail: "Tài khoản, mật khẩu và họ tên không được để trống",
+                  errorDetail: "Tài khoản và mật khẩu không được để trống",
                 }
               }
-           }
+            }
 
-           const checkEmail = await this._context.UserRepo.count({
-            where: { email: companyRegister.email }
-           })
+            const user = await this._context.UserRepo.findOne({
+              where: { email: userLogin.email }
+            })
 
-           if(checkEmail){
-            return {
-                status: StatusCodes.CONFLICT,
-                success: false,
-                message: "Email đăng kí đã tồn tại",
-                data: null,
-                error: {
-                  message: "Bad Request",
-                  errorDetail: "Email đăng kí đã tồn tại",
-                }
-              }
-           }     
-
-           
-           const checkRole = await this._context.GroupRoleRepo.findOne({
-                where: {
-                 name: EGroupRole.CANDIDATE
-                }
-              })
-           if (!checkRole) {
-            return {
-              status: StatusCodes.BAD_REQUEST,
-              success: false,
-              message: "Đăng kí tài khoản nhà tuyển dụng không thành công",
-              data: null,
-              error: {
-                message: "Phân quyền không tồn tại",
-                errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
-              },
-            };
-          }
-
-           const hashPassword = Extensions.hashPassword(companyRegister.password);
-
-           const registerData = {
-            email: companyRegister.email,
-            fullName: companyRegister.fullName,
-            password: hashPassword,
-            groupRoleId: checkRole.id
-           }
-           const newUser = await this._context.UserRepo.save(registerData);
-
-           if (!newUser) {
-            return {
-              status: StatusCodes.INTERNAL_SERVER_ERROR,
-              success: false,
-              message: "Đăng kí tài khoản nhà tuyển dụng không thành công, vui lòng kiểm tra lại",
-              data: null,
-              error: {
-                message: "Đăng kí tài khoản thất bại",
-                errorDetail: "Đăng kí tài khoản không thành công, vui lòng kiểm tra lại",
-              },
-            };
-          }
-          companyRegister.companyInfo.userId = newUser.id
-          if(companyRegister.companyInfo){
-              const result =  await this._CompanyService.createCompanyInfo(companyRegister.companyInfo)
-               if(!result.success){
-                return {
-                  status: result.status,
+            if(!user){
+              return {
+                  status: StatusCodes.NOT_FOUND,
                   success: false,
-                  message: result.message,
+                  message: "Tài khoản không tồn tại",
                   data: null,
-                  error: result.error
+                  error: {
+                    message: "Not Found",
+                    errorDetail: "Tài khoản không tồn tại",
+                  }
                 }
-               }
+            }
+
+        const checkPass = await Extensions.comparePassword(userLogin.password, user.password);
+          if (!checkPass) {
+            return {
+              status: StatusCodes.UNAUTHORIZED,
+              success: false,
+              message: "Mật khẩu không chính xác",
+              data: null,
+              error: {
+                message: "Unauthorized",
+                errorDetail: "Mật khẩu không chính xác",
+              },
+            };
           }
+
+          if (!user.isActive) {
+            return {
+              status: StatusCodes.FORBIDDEN,
+              success: false,
+              message: "Tài khoản của bạn đã bị khóa",
+              data: null,
+              error: {
+                message: "Forbidden",
+                errorDetail: "Tài khoản của bạn đã bị khóa",
+              },
+            };
+          }
+
+          // const userRoles = await this._RoleService.getCurrentUserPermission(user.groupRoleId);
+
+          // if (!userRoles.success) {
+          //   return userRoles;
+          // }
+    
+          const tokenPayload: IAccessTokenPayload = {
+            userId: user.id,
+            userName: user.fullName,
+            role: "",
+            roleName: "",
+          };
+          const token = this._JwtService.generateAccessToken(tokenPayload);
+          storeAccessToken(token.token);
           return {
-            status: StatusCodes.CREATED,
+            status: 200,
             success: true,
-            message: "Đăng kí tài khoản thành công",
-            data:null,
+            message:"Đăng nhập thành công",
+            data: token,
             error: null,
           };
-        } catch (error:any) {
+
+          } catch (error) {
             logger.error(error?.message);
-            console.log(`Error in AuthService - method register at ${new Date().getTime()} with message ${error?.message}`);
+            console.log(`Error in AuthService - method login at ${new Date().getTime} with message ${error?.message}`);
             return {
-              status: StatusCodes.INTERNAL_SERVER_ERROR,
+              status: 500,
               success: false,
               message: "Lỗi từ phía server",
               data: null,
               error: {
                 message: "Lỗi từ phía server",
-                errorDetail:  error?.message || "Không rõ nguyên nhân.",
-              },
-            };
-       }
-  }
-
-    async login(userLogin: ILoginData, setAccessTokenToCookie: (data: string) => void): Promise<IResponseBase> {
-        try {
-          if (!userLogin.email || !userLogin.password) {
-            return {
-              status: StatusCodes.BAD_REQUEST,
-              success: false,
-              message: "Tài khoản và mật khẩu không được để trống",
-              data: null,
-              error: {
-                message: "Bad Request",
-                errorDetail: "Tài khoản và mật khẩu không được để trống",
+                errorDetail: "Lỗi từ phía server",
               }
             }
           }
+    }
+    async candidateRegister(candidateRegister: ICandidateRegisterData): Promise<IResponseBase> {
+        try {
+            if(!candidateRegister.email || !candidateRegister.fullName || !candidateRegister.password) {
+              return {
+                  status: StatusCodes.BAD_REQUEST,
+                  success: false,
+                  message: "Tài khoản, mật khẩu và họ tên không được để trống",
+                  data: null,
+                  error: {
+                    message: "Bad Request",
+                    errorDetail: "Tài khoản, mật khẩu và họ tên không được để trống",
+                  }
+                }
+            }
 
-          const user = await this._context.UserRepo.findOne({
-            where: { email: userLogin.email }
-           })
+            const checkEmail = await this._context.UserRepo.count({
+              where: { email: candidateRegister.email }
+            })
 
-           if(!user){
-            return {
-                status: StatusCodes.NOT_FOUND,
+            if(checkEmail){
+              return {
+                  status: StatusCodes.CONFLICT,
+                  success: false,
+                  message: "Email đã tồn tại",
+                  data: null,
+                  error: {
+                    message: "Bad Request",
+                    errorDetail: "Tài khoản, mật khẩu và họ tên không được để trống",
+                  }
+                }
+            }     
+            const checkRole = await this._context.GroupRoleRepo.findOne({
+                  where: {
+                  name: EGroupRole.CANDIDATE
+                  }
+                })
+            if (!checkRole) {
+              return {
+                status: StatusCodes.BAD_REQUEST,
                 success: false,
-                message: "Tài khoản của bạn không tồn tại trên hệ thống",
+                message: "Đăng kí tài khoản không thành công",
                 data: null,
                 error: {
-                  message: "Not Found",
-                  errorDetail: "Tài khoản của bạn không tồn tại trên hệ thống",
-                }
-              }
-           }
-
-       const checkPass = await Extensions.comparePassword(userLogin.password, user.password);
-        if (!checkPass) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Mật khẩu không chính xác",
-            data: null,
-            error: {
-              message: "Unauthorized",
-              errorDetail: "Mật khẩu không chính xác",
-            },
-          };
-        }
-
-        if (!user.isActive) {
-          return {
-            status: StatusCodes.FORBIDDEN,
-            success: false,
-            message: "Tài khoản của bạn đã bị khóa",
-            data: null,
-            error: {
-              message: "Forbidden",
-              errorDetail: "Tài khoản của bạn đã bị khóa",
-            },
-          };
-        }
-
-        const userRoles = await this._RoleService.getCurrentUserPermission(user.groupRoleId);
-
-        if (!userRoles.success) {
-          return userRoles;
-        }
-  
-        const tokenPayload: IAccessTokenPayload = {
-          userId: user.id,
-          userName: user.fullName,
-          role: userRoles.data,
-          roleName: user.groupRole.name,
-        };
-        const token = this._JwtService.generateAccessToken(tokenPayload);
-        setAccessTokenToCookie(token.token);
-        return {
-          status: 200,
-          success: true,
-          message:"Đăng nhập thành công",
-          data: token,
-          error: null,
-        };
-
-        } catch (error) {
-          logger.error(error?.message);
-          console.log(`Error in AuthService - method login at ${new Date().getTime} with message ${error?.message}`);
-          return {
-            status: 500,
-            success: false,
-            message: "Lỗi từ phía server",
-            data: null,
-            error: {
-              message: "Lỗi từ phía server",
-              errorDetail: "Lỗi từ phía server",
+                  message: "Phân quyền không tồn tại",
+                  errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
+                },
+              };
             }
-          }
+
+            const hashPassword = Extensions.hashPassword(candidateRegister.password);
+
+            const registerData = {
+              email: candidateRegister.email,
+              fullName: candidateRegister.fullName,
+              password: hashPassword,
+              isActive:true,
+              groupRoleId: checkRole.id
+            }
+            const newUser = await this._context.UserRepo.save(registerData);
+
+            if (!newUser) {
+              return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: "Đăng kí tài khoản không thành công, vui lòng kiểm tra lại",
+                data: null,
+                error: {
+                  message: "Đăng kí tài khoản thất bại",
+                  errorDetail: "Đăng kí tài khoản không thành công, vui lòng kiểm tra lại",
+                },
+              };
+            }
+
+            return {
+              status: StatusCodes.CREATED,
+              success: true,
+              message: "Đăng kí tài khoản thành công",
+              data:null,
+              error: null,
+            };
+          } catch (error:any) {
+              logger.error(error?.message);
+              console.log(`Error in AuthService - method register at ${new Date().getTime()} with message ${error?.message}`);
+              return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: "Lỗi từ phía server",
+                data: null,
+                error: {
+                  message: "Lỗi từ phía server",
+                  errorDetail: "Lỗi từ phía server",
+                },
+              };
         }
     }
-       
-    getMe(): Promise<IResponseBase> {
-        throw new Error("Method not implemented.");
+    async companyRegister(companyRegister: ICompanyRegisterData): Promise<IResponseBase> {
+      try {
+            if(!companyRegister.email || !companyRegister.fullName || !companyRegister.password) {
+              return {
+                  status: StatusCodes.BAD_REQUEST,
+                  success: false,
+                  message: "Tài khoản, mật khẩu và họ tên không được để trống",
+                  data: null,
+                  error: {
+                    message: "Bad Request",
+                    errorDetail: "Tài khoản, mật khẩu và họ tên không được để trống",
+                  }
+                }
+            }
+
+            const checkEmail = await this._context.UserRepo.count({
+              where: { email: companyRegister.email }
+            })
+
+            if(checkEmail){
+              return {
+                  status: StatusCodes.CONFLICT,
+                  success: false,
+                  message: "Email đăng kí đã tồn tại",
+                  data: null,
+                  error: {
+                    message: "Bad Request",
+                    errorDetail: "Email đăng kí đã tồn tại",
+                  }
+                }
+            }     
+
+            
+            const checkRole = await this._context.GroupRoleRepo.findOne({
+                  where: {
+                  name: EGroupRole.CANDIDATE
+                  }
+                })
+            if (!checkRole) {
+              return {
+                status: StatusCodes.BAD_REQUEST,
+                success: false,
+                message: "Đăng kí tài khoản nhà tuyển dụng không thành công",
+                data: null,
+                error: {
+                  message: "Phân quyền không tồn tại",
+                  errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
+                },
+              };
+            }
+
+            const hashPassword = Extensions.hashPassword(companyRegister.password);
+
+            const registerData = {
+              email: companyRegister.email,
+              fullName: companyRegister.fullName,
+              password: hashPassword,
+              isActive:true,
+              groupRoleId: checkRole.id
+            }
+            const newUser = await this._context.UserRepo.save(registerData);
+
+            if (!newUser) {
+              return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: "Đăng kí tài khoản nhà tuyển dụng không thành công, vui lòng kiểm tra lại",
+                data: null,
+                error: {
+                  message: "Đăng kí tài khoản thất bại",
+                  errorDetail: "Đăng kí tài khoản không thành công, vui lòng kiểm tra lại",
+                },
+              };
+            }
+            companyRegister.companyInfo.userId = newUser.id
+            if(companyRegister.companyInfo){
+                const result =  await this._CompanyService.createCompanyInfo(companyRegister.companyInfo)
+                if(!result.success){
+                  return {
+                    status: result.status,
+                    success: false,
+                    message: result.message,
+                    data: null,
+                    error: result.error
+                  }
+                }
+            }
+            return {
+              status: StatusCodes.CREATED,
+              success: true,
+              message: "Đăng kí tài khoản thành công",
+              data:null,
+              error: null,
+            };
+          } catch (error:any) {
+              logger.error(error?.message);
+              console.log(`Error in AuthService - method register at ${new Date().getTime()} with message ${error?.message}`);
+              return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: "Lỗi từ phía server",
+                data: null,
+                error: {
+                  message: "Lỗi từ phía server",
+                  errorDetail:  error?.message || "Không rõ nguyên nhân.",
+                },
+              };
+        }
+    } 
+    async getMe(): Promise<IResponseBase> {
+      try {
+        const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
+        const userId = request?.user.id;
+        if (!userId) {
+            return {
+              status: StatusCodes.UNAUTHORIZED,
+              success: false,
+              message: "Bạn không có quyền truy cập",
+              data: null,
+              error: {
+                message: "Unauthorized",
+                errorDetail: "Không tìm thấy Id người dùng",
+              },
+            };
+          }
+
+          const user = await this._context.UserRepo.createQueryBuilder("user")
+          .innerJoin("user.groupRole", "groupRole")
+          .where("user.id = :userId", { userId })
+          .select(["user", "groupRole.name", "groupRole.displayName"])
+          .getOne();
+
+          delete user?.password;
+          delete user?.isDeleted;
+          delete user?.updatedAt;
+          delete user?.createdAt;
+          delete user?.isVerified;
+
+          if (!user) {
+          return {
+            status: StatusCodes.NOT_FOUND,
+            success: false,
+            message: "Không tìm thấy thông tin người dùng",
+            data: null,
+            error: {
+              message: "Không tìm thấy thông tin người dùng",
+              errorDetail: "Không tìm thấy thông tin người dùng",
+            },
+          };
+        }
+
+        return {
+        status: StatusCodes.OK,
+        success: true,
+        data: user,
+        error: null,
+      };
+
+      } catch (error:any) {
+        logger.error(error?.message);
+      console.log(`Error in AuthService - method getMe() at ${new Date().getTime} with message ${error?.message}`);
+      return {
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: error.message,
+        data: null,
+        error: {
+          message: "Lỗi từ phía server",
+          errorDetail: "Lỗi từ phía server",
+        },
+      };
+      }
     }
-    
+      
 }

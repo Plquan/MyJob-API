@@ -2,8 +2,9 @@ import { IResponseBase } from "../base/IResponseBase";
 import { ILoginData, ICandidateRegisterData,ICompanyRegisterData } from "./AuthDto";
 
 export default interface IAuthService {
-  login(userLogin: ILoginData, setAccessTokenToCookie: (data: string) => void): Promise<IResponseBase>;
-  candidateRegister(candidateRegister: ICompanyRegisterData): Promise<IResponseBase>;
-  companyRegister(companyRegister: ICandidateRegisterData): Promise<IResponseBase>;
+  candidateLogin(userLogin: ILoginData, storeAccessToken: (data: string) => void): Promise<IResponseBase>;
+  companyLogin(userLogin: ILoginData, storeAccessToken: (data: string) => void): Promise<IResponseBase>;
+  candidateRegister(candidateRegister: ICandidateRegisterData): Promise<IResponseBase>;
+  companyRegister(companyRegister: ICompanyRegisterData): Promise<IResponseBase>;
   getMe(): Promise<IResponseBase>;
 }

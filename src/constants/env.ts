@@ -2,6 +2,7 @@ import "dotenv/config"
 
 export const ENV = {
     APP_PORT: process.env.APP_PORT || 5500,
+    AUTH_MODE: process.env.AUTH_MODE || "COOKIE",
 
     DB_HOST: process.env.DB_HOST || 'localhost',
     DB_PORT: process.env.DB_PORT || 3306,
@@ -13,7 +14,7 @@ export const ENV = {
 
     SECRET_KEY: process.env.SECRET_KEY || "secret",
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
-    ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN || "1d",
+    ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN || "3600",
     
 
 }

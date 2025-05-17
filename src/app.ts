@@ -9,6 +9,7 @@ import { corsConfig } from "@/configs/corsConfig";
 import { Environments } from "@/constants/Environment";
 import container from "./container";
 import { Server } from "./server";
+import { asyncLocalStorageMiddleware } from "@/middlewares";
 /**
  * Application class.
  * @description Handle init config and components.
@@ -32,7 +33,9 @@ class Application {
       this.server.app.use(cookieParser());
       this.server.app.use(bodyParser.json());
       this.server.app.use(bodyParser.urlencoded({ extended: true }));
+      this.server.app.use(asyncLocalStorageMiddleware());
       this.server.app.use(scopePerRequest(container));
+
       this.server.app.use("/api", loadControllers("./controllers/*.*s", { cwd: __dirname }));
 
     })();

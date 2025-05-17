@@ -1,5 +1,8 @@
+import { LocalStorage } from "@/constants/LocalStorage";
 import { ICandidateRegisterData, ICompanyRegisterData, ILoginData,  } from "@/interfaces/auth/AuthDto";
 import IAuthService from "@/interfaces/auth/IAuthService";
+import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 import { before, GET, inject, POST, PUT, route } from "awilix-express";
 import { Request, Response } from "express";
 
@@ -11,8 +14,8 @@ export class AuthController {
       }
 
       @POST()
-      @route("/login")
-      async login(req: Request, res: Response) {
+      @route("/login/candidate")
+      async candidateLogin(req: Request, res: Response) {
         const loginData: ILoginData = req.body;
         const setAccessTokenToCookie = (data: string) => {
           res.cookie("accessToken", data, {
@@ -20,7 +23,21 @@ export class AuthController {
             sameSite: "none",
           });
         };
-        const response = await this._AuthService.login(loginData, setAccessTokenToCookie);
+        const response = await this._AuthService.candidateLogin(loginData, setAccessTokenToCookie);
+        res.status(response.status).json(response);
+      }
+
+      @POST()
+      @route("/login/company")
+      async companyLogin(req: Request, res: Response) {
+        const loginData: ILoginData = req.body;
+        const setAccessTokenToCookie = (data: string) => {
+          res.cookie("accessToken", data, {
+            secure: true,
+            sameSite: "none",
+          });
+        };
+        const response = await this._AuthService.companyLogin(loginData, setAccessTokenToCookie);
         res.status(response.status).json(response);
       }
 
@@ -39,5 +56,13 @@ export class AuthController {
         const response = await this._AuthService.candidateRegister(registerData);
         res.status(response.status).json(response);
       }  
+
+      @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+      @GET()
+      @route("/get-me")
+      async getMe(req: Request, res: Response){
+      const response = await this._AuthService.getMe();
+      res.status(response.status).json(response);
+      }
        
 }
