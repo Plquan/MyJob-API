@@ -17,6 +17,7 @@ import { SavedJob } from "./SavedJob";
 import { CompanyFollowed } from "./CompanyFollowed";
 import { JobActivity } from "./JobActivity";
 import { MediaFile } from "./MediaFile";
+import { RefreshToken } from "./RefreshToken";
 @Entity({ name: 'Users' })
 export class User {
     
@@ -81,4 +82,7 @@ export class User {
     @OneToOne(() => MediaFile, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'avatarId' })
     mediaFile?: MediaFile;
+
+    @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+    refreshTokens: RefreshToken[];
 }

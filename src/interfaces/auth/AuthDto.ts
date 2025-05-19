@@ -1,4 +1,4 @@
-import { IAccessTokenResponse, IRefreshTokenResponse } from "./IJwtService";
+
 import { ICompanyData } from "../company/CompanyDto";
 
 export interface ILoginData {
@@ -24,8 +24,6 @@ export interface ICompanyRegisterData {
 }
 
 export interface IUserLoginResponse {
-  accessToken: IAccessTokenResponse;
-  refreshToken: IRefreshTokenResponse
   // userInfo: {
   //   userId: string;
   //   username: string;

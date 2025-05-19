@@ -1,6 +1,6 @@
 import { ICandidateRegisterData, ICompanyRegisterData, ILoginData, IUserLoginResponse } from "@/interfaces/auth/AuthDto";
 import IAuthService from "@/interfaces/auth/IAuthService";
-import { ITokenPayload, IJWTService } from "@/interfaces/auth/IJwtService";
+import { ITokenPayload, IJWTService, IRefreshToken } from "@/interfaces/auth/IJwtService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../database/DatabaseService";
 import { StatusCodes } from "http-status-codes";
@@ -25,7 +25,61 @@ export default class AuthService implements IAuthService {
       this._context = DatabaseService;
       this._companyService = CompanyService
     }
-    async candidateLogin(userLogin: ILoginData, setTokenToCookie: (data: string) => void): Promise<IResponseBase> {
+
+    async refreshToken(oldRefreshToken: string, setTokensToCookie: (newAccessToken: string, newRefreshToken: string) => void): Promise<IResponseBase> {
+     try {
+     const isValid = this._jwtService.verifyRefreshToken(oldRefreshToken);    
+     const payload = this._jwtService.getTokenPayload(oldRefreshToken);
+
+     if(!payload.tokenId || !payload.userId || !isValid)
+          return {
+            status: StatusCodes.UNAUTHORIZED,
+            success: false,
+            data: null,
+            error: {
+              message: "ErrorMessages.UNAUTHORIZED",
+              errorDetail: "Token không hợp lệ",
+            }, 
+        }
+        
+         const accessToken = this._jwtService.generateAccessToken(payload)
+          const refreshToken = this._jwtService.generateRefreshToken(payload)
+
+           const userRefreshToken = {
+            id:refreshToken.tokenId,
+            userId:payload.userId,
+            revoked:false,
+            token:refreshToken.token,
+            expiresAt:refreshToken.expiresAtUtc
+          }
+          await this._context.RefreshTokenRepo.delete({ id: payload.tokenId });
+          await this._context.RefreshTokenRepo.save(userRefreshToken)
+          setTokensToCookie(accessToken.token,refreshToken.token)
+
+           return {
+            status: StatusCodes.ACCEPTED,
+            success: true,
+            data: null,
+            message: "Token đã được cập nhật"
+          }
+     
+     } catch (error) {
+       logger.error(error?.message);
+            console.log(`Error in AuthService - method refreshToken at ${new Date().getTime} with message ${error?.message}`);
+            return {
+              status: StatusCodes.INTERNAL_SERVER_ERROR,
+              success: false,
+              message: "Lỗi từ phía server",
+              data: null,
+              error: {
+                message: "Lỗi từ phía server",
+                errorDetail: error.message,
+              }
+            }
+        }
+    }
+
+    async candidateLogin(userLogin: ILoginData, setTokensToCookie: (accessToken: string, refreshToken: string) => void): Promise<IResponseBase> {
     try {
           if (!userLogin.email || !userLogin.password) {
             return {
@@ -100,14 +154,20 @@ export default class AuthService implements IAuthService {
           
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
           const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
-          setTokenToCookie(accessToken.token)
-           
-           
+          const userRefreshToken = {
+            id:refreshToken.tokenId,
+            userId:user.id,
+            revoked:false,
+            token:refreshToken.token,
+            expiresAt:refreshToken.expiresAtUtc
+          }
+          await this._context.RefreshTokenRepo.save(userRefreshToken)
+          setTokensToCookie(accessToken.token,refreshToken.token)              
           return {
             status: 200,
             success: true,
             message:"Đăng nhập thành công",
-            data: accessToken,
+            data: null,
             error: null,
           };
 
@@ -126,7 +186,8 @@ export default class AuthService implements IAuthService {
             }
           }
     }
-    async companyLogin(userLogin: ILoginData, setTokenToCookie: (data: string) => void): Promise<IResponseBase> {
+
+    async companyLogin(userLogin: ILoginData,setTokensToCookie: (accessToken: string, refreshToken: string) => void): Promise<IResponseBase> {
         try {
             if (!userLogin.email || !userLogin.password) {
               return {
@@ -194,15 +255,24 @@ export default class AuthService implements IAuthService {
             role: userRoles.data,
             roleName: user.groupRole.name,
           };
+
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
           const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
-          setTokenToCookie(refreshToken.token)
+           const userRefreshToken = {
+            id:refreshToken.tokenId,
+            userId:user.id,
+            revoked:false,
+            token:refreshToken.token,
+            expiresAt:refreshToken.expiresAtUtc
+          }
+          await this._context.RefreshTokenRepo.save(userRefreshToken)
+          setTokensToCookie(accessToken.token,refreshToken.token)
            
           return {
             status: 200,
             success: true,
             message:"Đăng nhập thành công",
-            data: accessToken,
+            data: null,
             error: null,
           };
 
@@ -488,6 +558,5 @@ export default class AuthService implements IAuthService {
         },
       };
       }
-    }
-      
+    }  
 }

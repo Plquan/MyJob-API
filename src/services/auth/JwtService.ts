@@ -1,7 +1,7 @@
 import { ENV } from "@/constants/env";
-import { IJWTService, IRefreshTokenResponse, ITokenPayload } from "@/interfaces/auth/IJwtService";
+import { IJWTService, ITokenPayload, ITokenResponse } from "@/interfaces/auth/IJwtService";
 import jwt from "jsonwebtoken";
-
+import { v4 as uuidv4 } from 'uuid';
 
 export default class JwtService implements IJWTService {
   private accessTokenSecret!: string;
@@ -17,38 +17,47 @@ export default class JwtService implements IJWTService {
   }
 
 
-  generateRefreshToken(payload: ITokenPayload): IRefreshTokenResponse {
-    const token = jwt.sign({ isCredential: true, ...payload }, this.refreshTokenSecret, {
-      expiresIn: this.refreshTokenExpriedIn,
-    });
-    const expiresAt = new Date(Date.now() + this.refreshTokenExpriedIn * 1000);
-    return {
-      token,
-      expiresAt,
-      expiresAtUtc: expiresAt.toUTCString(),
-    };
-  }
+    generateRefreshToken(payload: ITokenPayload): ITokenResponse {
+      const tokenId = uuidv4();
+      payload.tokenId = tokenId
+      const token = jwt.sign({ isCredential: true, ...payload }, this.refreshTokenSecret, {
+        expiresIn: this.refreshTokenExpriedIn,
+      });
 
-  verifyRefreshToken(token: string): boolean {
-      try {
-      jwt.verify(token, this.refreshTokenSecret);
-      return true;
-    } catch {
-      return false;
+      const expiresAt = new Date(Date.now() + this.refreshTokenExpriedIn * 1000);
+
+      return {
+        tokenId,
+        token,
+        expiresAtUtc: expiresAt,
+      };
+      
     }
-  }
 
-  generateAccessToken(payload: ITokenPayload) {
-    const token = jwt.sign({ isCredential: true, ...payload }, this.accessTokenSecret, {
-      expiresIn: this.accessTokenExpriedIn,
-    });
-    const expiresAt = new Date(Date.now() + this.accessTokenExpriedIn * 1000);
-    return {
-      token,
-      expiresAt,
-      expiresAtUtc: expiresAt.toUTCString(),
-    };
-  }
+    verifyRefreshToken(token: string): boolean {
+        try {
+        jwt.verify(token, this.refreshTokenSecret);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    generateAccessToken(payload: ITokenPayload): ITokenResponse {
+      const tokenId = uuidv4();
+      payload.tokenId = tokenId
+      const token = jwt.sign({ isCredential: true, ...payload }, this.accessTokenSecret, {
+        expiresIn: this.accessTokenExpriedIn,
+      });
+
+      const expiresAt = new Date(Date.now() + this.accessTokenExpriedIn * 1000);
+
+      return {
+        tokenId,
+        token,
+        expiresAtUtc: expiresAt,
+      };
+    }
 
   verifyAccessToken(token: string): boolean {
     try {
@@ -59,8 +68,8 @@ export default class JwtService implements IJWTService {
     }
   }
   
-  getTokenPayload(token: string) {
-    return jwt.decode(token);
+  getTokenPayload(token: string):ITokenPayload {
+    return jwt.decode(token) as ITokenPayload;
   }
 
   getTokenHeader(token: string) {

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Migration1747322546490 implements MigrationInterface {
-    name = 'Migration1747322546490'
+export class Migration1747663865464 implements MigrationInterface {
+    name = 'Migration1747663865464'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`Functions\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(1000) NOT NULL, \`displayName\` varchar(1000) NOT NULL, \`description\` text NULL, \`functionLink\` varchar(255) NOT NULL, \`isDeleted\` tinyint NOT NULL DEFAULT 0, \`isActive\` tinyint NOT NULL DEFAULT 1, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
@@ -22,6 +22,7 @@ export class Migration1747322546490 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE \`Companies\` (\`id\` int NOT NULL AUTO_INCREMENT, \`provinceId\` int NULL, \`userId\` int NOT NULL, \`companyName\` varchar(255) NOT NULL, \`slug\` varchar(300) NOT NULL, \`companyEmail\` varchar(100) NOT NULL, \`companyPhone\` varchar(15) NOT NULL, \`websiteUrl\` varchar(300) NULL, \`taxCode\` varchar(30) NOT NULL, \`since\` date NULL, \`fieldOperation\` varchar(255) NULL, \`description\` longtext NULL, \`employeeSize\` smallint NULL, \`address\` varchar(100) NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE INDEX \`IDX_c19f8178a5285cd662d68d16c6\` (\`slug\`), UNIQUE INDEX \`REL_1648bd88c69276e8b978de6788\` (\`userId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Provinces\` (\`id\` int NOT NULL AUTO_INCREMENT, \`code\` int NOT NULL, \`name\` varchar(255) NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Candidates\` (\`id\` int NOT NULL AUTO_INCREMENT, \`userId\` int NOT NULL, \`provinceId\` int NULL, \`resumeId\` int NULL, \`phone\` varchar(15) NULL, \`birthday\` date NULL, \`gender\` varchar(1) NULL, \`maritalStatus\` varchar(1) NULL, \`address\` varchar(255) NULL, UNIQUE INDEX \`REL_856e32fe315596b94eacda4cd9\` (\`userId\`), UNIQUE INDEX \`REL_f6b40a306c703b95c3f3b19272\` (\`resumeId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`RefreshTokens\` (\`id\` varchar(255) NOT NULL, \`userId\` int NOT NULL, \`token\` longtext NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`expiresAt\` datetime NOT NULL, \`revoked\` tinyint NOT NULL DEFAULT 0, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Users\` (\`id\` int NOT NULL AUTO_INCREMENT, \`groupRoleId\` int NOT NULL, \`avatarId\` int NULL, \`email\` varchar(255) NOT NULL, \`fullName\` varchar(255) NOT NULL, \`password\` varchar(255) NOT NULL, \`isVerified\` tinyint NOT NULL DEFAULT 0, \`isActive\` tinyint NOT NULL DEFAULT 0, \`isDeleted\` tinyint NOT NULL DEFAULT 0, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE INDEX \`IDX_3c3ab3f49a87e6ddb607f3c494\` (\`email\`), UNIQUE INDEX \`REL_1886ae00e56f2bfcb9c6146d33\` (\`avatarId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
         await queryRunner.query(`ALTER TABLE \`Permissions\` ADD CONSTRAINT \`FK_0f8fb9bcde11ec6ab9303d1ca96\` FOREIGN KEY (\`functionId\`) REFERENCES \`Functions\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Permissions\` ADD CONSTRAINT \`FK_065962231b13dbaf2e803eb2b9d\` FOREIGN KEY (\`groupRoleId\`) REFERENCES \`GroupRoles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -50,6 +51,7 @@ export class Migration1747322546490 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`Candidates\` ADD CONSTRAINT \`FK_856e32fe315596b94eacda4cd91\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Candidates\` ADD CONSTRAINT \`FK_212686509ef67780a05c65c22c1\` FOREIGN KEY (\`provinceId\`) REFERENCES \`Provinces\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Candidates\` ADD CONSTRAINT \`FK_f6b40a306c703b95c3f3b192728\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` ADD CONSTRAINT \`FK_6dfd786f75cfe054e9ae3a45f5e\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Users\` ADD CONSTRAINT \`FK_fce2a8b62c947f5d4c6dbfac75e\` FOREIGN KEY (\`groupRoleId\`) REFERENCES \`GroupRoles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Users\` ADD CONSTRAINT \`FK_1886ae00e56f2bfcb9c6146d33c\` FOREIGN KEY (\`avatarId\`) REFERENCES \`MediaFile\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
     }
@@ -57,6 +59,7 @@ export class Migration1747322546490 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE \`Users\` DROP FOREIGN KEY \`FK_1886ae00e56f2bfcb9c6146d33c\``);
         await queryRunner.query(`ALTER TABLE \`Users\` DROP FOREIGN KEY \`FK_fce2a8b62c947f5d4c6dbfac75e\``);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` DROP FOREIGN KEY \`FK_6dfd786f75cfe054e9ae3a45f5e\``);
         await queryRunner.query(`ALTER TABLE \`Candidates\` DROP FOREIGN KEY \`FK_f6b40a306c703b95c3f3b192728\``);
         await queryRunner.query(`ALTER TABLE \`Candidates\` DROP FOREIGN KEY \`FK_212686509ef67780a05c65c22c1\``);
         await queryRunner.query(`ALTER TABLE \`Candidates\` DROP FOREIGN KEY \`FK_856e32fe315596b94eacda4cd91\``);
@@ -87,6 +90,7 @@ export class Migration1747322546490 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX \`REL_1886ae00e56f2bfcb9c6146d33\` ON \`Users\``);
         await queryRunner.query(`DROP INDEX \`IDX_3c3ab3f49a87e6ddb607f3c494\` ON \`Users\``);
         await queryRunner.query(`DROP TABLE \`Users\``);
+        await queryRunner.query(`DROP TABLE \`RefreshTokens\``);
         await queryRunner.query(`DROP INDEX \`REL_f6b40a306c703b95c3f3b19272\` ON \`Candidates\``);
         await queryRunner.query(`DROP INDEX \`REL_856e32fe315596b94eacda4cd9\` ON \`Candidates\``);
         await queryRunner.query(`DROP TABLE \`Candidates\``);

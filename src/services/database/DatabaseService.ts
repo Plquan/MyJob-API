@@ -24,6 +24,7 @@ import { Language } from "@/entity/Language";
 
 import dataSource from "@/ormconfig";
 import "reflect-metadata";
+import { RefreshToken } from "@/entity/RefreshToken";
 
 class DatabaseService {
   private _dataSource: DataSource;
@@ -47,6 +48,7 @@ class DatabaseService {
   public JobActivityRepo: Repository<JobActivity>;
   public JobPostRepo: Repository<JobPost>;
   public LanguageRepo: Repository<Language>;
+  public RefreshTokenRepo: Repository<RefreshToken>
 
   constructor() {
     this._dataSource = dataSource;
@@ -70,6 +72,7 @@ class DatabaseService {
     this.JobActivityRepo = this._dataSource.getRepository(JobActivity);
     this.JobPostRepo = this._dataSource.getRepository(JobPost);
     this.LanguageRepo = this._dataSource.getRepository(Language);
+    this.RefreshTokenRepo = this._dataSource.getRepository(RefreshToken);
 
     this._dataSource
       .initialize()

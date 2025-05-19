@@ -1,25 +1,27 @@
 export interface ITokenPayload {
     userId: number;
+    tokenId?:string,
     userName: string;
     role: string;
     roleName: string;
   }
-  export interface IAccessTokenResponse {
+  export interface ITokenResponse {
+    tokenId:string
+    token: string
+    expiresAtUtc: Date
+  }
+  export interface IRefreshToken {
+    id: string;
     token: string;
     expiresAt: Date;
-    expiresAtUtc: string;
+    revoked: boolean;
   }
 
-export interface IRefreshTokenResponse {
-  token: string;
-  expiresAt: Date;
-  expiresAtUtc: string;
-}
   export interface IJWTService {
-    generateAccessToken(payload: ITokenPayload): IAccessTokenResponse
-    generateRefreshToken(payload: ITokenPayload):IRefreshTokenResponse
+    generateAccessToken(payload: ITokenPayload): ITokenResponse
+    generateRefreshToken(payload: ITokenPayload):ITokenResponse
     verifyAccessToken(token: string): boolean
     verifyRefreshToken(token: string): boolean
-    getTokenPayload(token: string): any
+    getTokenPayload(token: string): ITokenPayload
     getTokenHeader(token: string): any
   }
