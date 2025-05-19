@@ -1,6 +1,5 @@
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import IProvinceService from "@/interfaces/province/IProvinceService";
-import { IProvinceData } from "@/interfaces/province/ProvinceDto";
 import DatabaseService from "../database/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import logger from "@/helpers/logger";

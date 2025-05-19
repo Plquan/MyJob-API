@@ -5,6 +5,7 @@ import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
 import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 import { before, GET, inject, POST, PUT, route } from "awilix-express";
 import { Request, Response } from "express";
+import { ENV } from "@/constants/env";
 
 @route('/auth')
 export class AuthController {
@@ -17,13 +18,16 @@ export class AuthController {
       @route("/login/candidate")
       async candidateLogin(req: Request, res: Response) {
         const loginData: ILoginData = req.body;
-        const setAccessTokenToCookie = (data: string) => {
-          res.cookie("accessToken", data, {
-            secure: true,
-            sameSite: "none",
-          });
+        const setTokenToCookie = (data: string) => {
+          res.cookie("refreshToken", data, {
+          secure: true,
+          sameSite: "none",
+          httpOnly: true,
+          maxAge: Number(ENV.ACCESS_TOKEN_EXPIRES_IN) * 1000, 
+        });
+
         };
-        const response = await this._AuthService.candidateLogin(loginData, setAccessTokenToCookie);
+        const response = await this._AuthService.candidateLogin(loginData, setTokenToCookie);
         res.status(response.status).json(response);
       }
 
@@ -31,13 +35,13 @@ export class AuthController {
       @route("/login/company")
       async companyLogin(req: Request, res: Response) {
         const loginData: ILoginData = req.body;
-        const setAccessTokenToCookie = (data: string) => {
-          res.cookie("accessToken", data, {
+        const setTokenToCookie = (data: string) => {
+          res.cookie("refreshToken", data, {
             secure: true,
             sameSite: "none",
           });
         };
-        const response = await this._AuthService.companyLogin(loginData, setAccessTokenToCookie);
+        const response = await this._AuthService.companyLogin(loginData, setTokenToCookie);
         res.status(response.status).json(response);
       }
 

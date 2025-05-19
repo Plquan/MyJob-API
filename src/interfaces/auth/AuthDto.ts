@@ -1,4 +1,4 @@
-import { IAccessTokenResponse } from "./IJwtService";
+import { IAccessTokenResponse, IRefreshTokenResponse } from "./IJwtService";
 import { ICompanyData } from "../company/CompanyDto";
 
 export interface ILoginData {
@@ -23,19 +23,19 @@ export interface ICompanyRegisterData {
   groupRoleId:number;
 }
 
-
 export interface IUserLoginResponse {
   accessToken: IAccessTokenResponse;
-  userInfo: {
-    userId: string;
-    username: string;
-    fullName: string;
-    role: {
-      roleName: string;
-      displayName: string;
-    };
-  };
-  permissions: IFunctionByRole[];
+  refreshToken: IRefreshTokenResponse
+  // userInfo: {
+  //   userId: string;
+  //   username: string;
+  //   fullName: string;
+  //   role: {
+  //     roleName: string;
+  //     displayName: string;
+  //   };
+  // };
+  // permissions: IFunctionByRole[];
 }
 
 export interface IUserRegisterResponse {

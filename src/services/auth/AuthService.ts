@@ -1,6 +1,6 @@
-import { ICandidateRegisterData, ICompanyRegisterData, ILoginData } from "@/interfaces/auth/AuthDto";
+import { ICandidateRegisterData, ICompanyRegisterData, ILoginData, IUserLoginResponse } from "@/interfaces/auth/AuthDto";
 import IAuthService from "@/interfaces/auth/IAuthService";
-import { IAccessTokenPayload, IJWTService } from "@/interfaces/auth/IJwtService";
+import { ITokenPayload, IJWTService } from "@/interfaces/auth/IJwtService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../database/DatabaseService";
 import { StatusCodes } from "http-status-codes";
@@ -14,31 +14,31 @@ import { LocalStorage } from "@/constants/LocalStorage";
 
 
 export default class AuthService implements IAuthService {
-    private readonly _JwtService: IJWTService
+    private readonly _jwtService: IJWTService
     private readonly _context: DatabaseService
-    private readonly _RoleService: IRoleService
-    private readonly _CompanyService: ICompanyService
+    private readonly _roleService: IRoleService
+    private readonly _companyService: ICompanyService
 
     constructor(JwtService: IJWTService, RoleService: IRoleService, DatabaseService: DatabaseService, CompanyService:ICompanyService) {
-      this._JwtService = JwtService;
-      this._RoleService = RoleService;
+      this._jwtService = JwtService;
+      this._roleService = RoleService;
       this._context = DatabaseService;
-      this._CompanyService = CompanyService
+      this._companyService = CompanyService
     }
-    async candidateLogin(userLogin: ILoginData, storeAccessToken: (data: string) => void): Promise<IResponseBase> {
+    async candidateLogin(userLogin: ILoginData, setTokenToCookie: (data: string) => void): Promise<IResponseBase> {
     try {
-            if (!userLogin.email || !userLogin.password) {
-              return {
-                status: StatusCodes.BAD_REQUEST,
-                success: false,
-                message: "Tài khoản và mật khẩu không được để trống",
-                data: null,
-                error: {
-                  message: "Bad Request",
-                  errorDetail: "Tài khoản và mật khẩu không được để trống",
-                }
+          if (!userLogin.email || !userLogin.password) {
+            return {
+              status: StatusCodes.BAD_REQUEST,
+              success: false,
+              message: "Tài khoản và mật khẩu không được để trống",
+              data: null,
+              error: {
+                message: "Bad Request",
+                errorDetail: "Tài khoản và mật khẩu không được để trống",
               }
             }
+          }
 
           const user = await this._context.UserRepo
             .createQueryBuilder("user")
@@ -87,25 +87,27 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          // const userRoles = await this._RoleService.getCurrentUserPermission(user.groupRoleId);
-
-          // if (!userRoles.success) {
-          //   return userRoles;
-          // }
-    
-          const tokenPayload: IAccessTokenPayload = {
+          const userRoles = await this._roleService.getCurrentUserPermission(user.groupRoleId);
+          if (!userRoles.success) {
+            return userRoles;
+          }
+          const tokenPayload: ITokenPayload = {
             userId: user.id,
             userName: user.fullName,
-            role: "",
-            roleName: "",
+            role: userRoles.data,
+            roleName: user.groupRole.name,
           };
-          const token = this._JwtService.generateAccessToken(tokenPayload);
-          storeAccessToken(token.token);
+          
+          const accessToken = this._jwtService.generateAccessToken(tokenPayload)
+          const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
+          setTokenToCookie(accessToken.token)
+           
+           
           return {
             status: 200,
             success: true,
             message:"Đăng nhập thành công",
-            data: token,
+            data: accessToken,
             error: null,
           };
 
@@ -124,7 +126,7 @@ export default class AuthService implements IAuthService {
             }
           }
     }
-    async companyLogin(userLogin: ILoginData, storeAccessToken: (data: string) => void): Promise<IResponseBase> {
+    async companyLogin(userLogin: ILoginData, setTokenToCookie: (data: string) => void): Promise<IResponseBase> {
         try {
             if (!userLogin.email || !userLogin.password) {
               return {
@@ -138,9 +140,9 @@ export default class AuthService implements IAuthService {
                 }
               }
             }
-
             const user = await this._context.UserRepo.findOne({
-              where: { email: userLogin.email }
+              where: { email: userLogin.email },
+              relations: ['groupRole']  
             })
 
             if(!user){
@@ -155,21 +157,19 @@ export default class AuthService implements IAuthService {
                   }
                 }
             }
-
-        const checkPass = await Extensions.comparePassword(userLogin.password, user.password);
-          if (!checkPass) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Mật khẩu không chính xác",
-              data: null,
-              error: {
-                message: "Unauthorized",
-                errorDetail: "Mật khẩu không chính xác",
-              },
-            };
-          }
-
+          const checkPass = await Extensions.comparePassword(userLogin.password, user.password);
+            if (!checkPass) {
+              return {
+                status: StatusCodes.UNAUTHORIZED,
+                success: false,
+                message: "Mật khẩu không chính xác",
+                data: null,
+                error: {
+                  message: "Unauthorized",
+                  errorDetail: "Mật khẩu không chính xác",
+                },
+              };
+            }
           if (!user.isActive) {
             return {
               status: StatusCodes.FORBIDDEN,
@@ -183,25 +183,26 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          // const userRoles = await this._RoleService.getCurrentUserPermission(user.groupRoleId);
-
-          // if (!userRoles.success) {
-          //   return userRoles;
-          // }
+          const userRoles = await this._roleService.getCurrentUserPermission(user.groupRoleId);
+          if (!userRoles.success) {
+            return userRoles;
+          }
     
-          const tokenPayload: IAccessTokenPayload = {
+          const tokenPayload: ITokenPayload = {
             userId: user.id,
             userName: user.fullName,
-            role: "",
-            roleName: "",
+            role: userRoles.data,
+            roleName: user.groupRole.name,
           };
-          const token = this._JwtService.generateAccessToken(tokenPayload);
-          storeAccessToken(token.token);
+          const accessToken = this._jwtService.generateAccessToken(tokenPayload)
+          const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
+          setTokenToCookie(refreshToken.token)
+           
           return {
             status: 200,
             success: true,
             message:"Đăng nhập thành công",
-            data: token,
+            data: accessToken,
             error: null,
           };
 
@@ -215,7 +216,7 @@ export default class AuthService implements IAuthService {
               data: null,
               error: {
                 message: "Lỗi từ phía server",
-                errorDetail: "Lỗi từ phía server",
+                errorDetail: error.message,
               }
             }
           }
@@ -391,7 +392,7 @@ export default class AuthService implements IAuthService {
             }
             companyRegister.companyInfo.userId = newUser.id
             if(companyRegister.companyInfo){
-                const result =  await this._CompanyService.createCompanyInfo(companyRegister.companyInfo)
+                const result =  await this._companyService.createCompanyInfo(companyRegister.companyInfo)
                 if(!result.success){
                   return {
                     status: result.status,

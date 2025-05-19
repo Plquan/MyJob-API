@@ -52,6 +52,7 @@ function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
       role: payload?.role,
       accessToken: accessToken,
     };
+    console.log(req.user)
     next();
   };
 }
