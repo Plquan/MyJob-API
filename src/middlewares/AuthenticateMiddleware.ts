@@ -7,8 +7,8 @@ import { StatusCodes } from "http-status-codes";
 function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
     let accessToken = "";
+    
        const cookies = req.cookies;
-        if (!cookies || !cookies["accessToken"]) return
         accessToken = cookies["accessToken"];
 
       if (!accessToken) {
@@ -48,6 +48,7 @@ function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
       role: payload?.role,
       accessToken: accessToken,
     };
+    console.log(req.user)
     next();
   };
 }

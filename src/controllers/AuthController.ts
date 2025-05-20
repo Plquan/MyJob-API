@@ -43,14 +43,14 @@ export class AuthController {
           res.cookie("accessToken", accessToken, {
             secure: true,
             sameSite: "none",
-            httpOnly: true,
+            httpOnly: false,
             maxAge: Number(ENV.ACCESS_TOKEN_EXPIRES_IN) * 1000,
           });
 
           res.cookie("refreshToken", refreshToken, {
             secure: true,
             sameSite: "none",
-            httpOnly: false,
+            httpOnly: true,
             maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
           });
         };
@@ -84,20 +84,20 @@ export class AuthController {
 
       @POST()
       @route("/refresh-token")
-      async refeshToken(req:Request,res:Response){
+      async refreshToken(req:Request,res:Response){
         const token = req.cookies['refreshToken'];
           const setTokensToCookie = (accessToken: string, refreshToken: string) => {
           res.cookie("accessToken", accessToken, {
             secure: true,
             sameSite: "none",
-            httpOnly: true,
+            httpOnly: false,
             maxAge: Number(ENV.ACCESS_TOKEN_EXPIRES_IN) * 1000,
           });
 
           res.cookie("refreshToken", refreshToken, {
             secure: true,
             sameSite: "none",
-            httpOnly: false,
+            httpOnly: true,
             maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
           });
         };

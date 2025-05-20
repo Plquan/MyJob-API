@@ -41,9 +41,15 @@ export default class AuthService implements IAuthService {
               errorDetail: "Token không hợp lệ",
             }, 
         }
+         const tokenPayload: ITokenPayload = {
+            userId: payload.userId,
+            userName: payload.userName,
+            role: payload.role,
+            roleName: payload.roleName,
+          };
         
-         const accessToken = this._jwtService.generateAccessToken(payload)
-          const refreshToken = this._jwtService.generateRefreshToken(payload)
+         const accessToken = this._jwtService.generateAccessToken(tokenPayload)
+          const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
 
            const userRefreshToken = {
             id:refreshToken.tokenId,

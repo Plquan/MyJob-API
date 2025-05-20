@@ -12,8 +12,8 @@ export default class JwtService implements IJWTService {
   constructor() {
     this.accessTokenSecret = String(ENV.ACCESS_TOKEN_SECRET);
     this.accessTokenExpriedIn = Number(ENV.ACCESS_TOKEN_EXPIRES_IN);
-    this.refreshTokenSecret = String(ENV.ACCESS_TOKEN_SECRET)
-    this.refreshTokenExpriedIn = Number(ENV.ACCESS_TOKEN_EXPIRES_IN)
+    this.refreshTokenSecret = String(ENV.REFRESH_TOKEN_SECRET)
+    this.refreshTokenExpriedIn = Number(ENV.REFRESH_TOKEN_EXPIRES_IN)
   }
 
 
