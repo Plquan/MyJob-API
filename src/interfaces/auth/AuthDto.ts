@@ -1,30 +1,39 @@
-import { IAccessTokenResponse } from "./IJwtService";
 
-export interface IUserLoginData {
-  username: string;
+import { ICompanyData } from "../company/CompanyDto";
+
+export interface ILoginData {
+  email: string;
   password: string;
   isRememberMe: boolean;
 }
 
-export interface IUserRegisterData {
-  username: string;
-  password: string;
+
+export interface ICandidateRegisterData {
+  email:string;
   fullName: string;
-  role: "3" | "4";
+  password: string;
+  groupRoleId:number;
+}
+
+export interface ICompanyRegisterData {
+  email:string;
+  fullName: string;
+  password: string;
+  companyInfo?:ICompanyData
+  groupRoleId:number;
 }
 
 export interface IUserLoginResponse {
-  accessToken: IAccessTokenResponse;
-  userInfo: {
-    userId: string;
-    username: string;
-    fullName: string;
-    role: {
-      roleName: string;
-      displayName: string;
-    };
-  };
-  permissions: IFunctionByRole[];
+  // userInfo: {
+  //   userId: string;
+  //   username: string;
+  //   fullName: string;
+  //   role: {
+  //     roleName: string;
+  //     displayName: string;
+  //   };
+  // };
+  // permissions: IFunctionByRole[];
 }
 
 export interface IUserRegisterResponse {
@@ -38,3 +47,16 @@ export interface IFunctionByRole {
   displayName: string;
   functionLink: string;
 }
+
+export interface ICurrentUser {
+  id: string;
+  roleName: string;
+  role: [
+    {
+      id: number;
+      name: string;
+      displayName: string;
+    }
+  ];
+  accessToken: string;
+};

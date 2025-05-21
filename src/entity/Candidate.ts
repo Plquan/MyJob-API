@@ -13,10 +13,10 @@ export class Candidate {
     @Column()
     userId!:number;
 
-    @Column()
-    provinceId!:number;
+    @Column({nullable: true})
+    provinceId?:number;
 
-    @Column()
+    @Column({nullable:true})
     resumeId!:number;
 
     @Column({ type: 'varchar', length: 15, nullable: true })
@@ -38,9 +38,9 @@ export class Candidate {
     @JoinColumn({name: 'userId'})
     user!: User;
 
-    @ManyToOne(() => Province, (province) => province.candidates, { onDelete: 'SET NULL' })
+    @ManyToOne(() => Province, (province) => province.candidates, {nullable:true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'provinceId' })
-    province!: Province;
+    province?: Province;
 
     @OneToOne(() => Resume, resume => resume.candidate, { nullable: true,onDelete: 'SET NULL'})
     @JoinColumn({ name: 'resumeId' }) 

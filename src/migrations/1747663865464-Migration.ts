@@ -1,0 +1,121 @@
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class Migration1747663865464 implements MigrationInterface {
+    name = 'Migration1747663865464'
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`CREATE TABLE \`Functions\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(1000) NOT NULL, \`displayName\` varchar(1000) NOT NULL, \`description\` text NULL, \`functionLink\` varchar(255) NOT NULL, \`isDeleted\` tinyint NOT NULL DEFAULT 0, \`isActive\` tinyint NOT NULL DEFAULT 1, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Permissions\` (\`id\` int NOT NULL AUTO_INCREMENT, \`isDeleted\` tinyint NOT NULL DEFAULT 0, \`isActive\` tinyint NOT NULL DEFAULT 1, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`functionId\` int NULL, \`groupRoleId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`GroupRoles\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(1000) NOT NULL, \`displayName\` varchar(1000) NOT NULL, \`description\` text NULL, \`isDeleted\` tinyint NOT NULL DEFAULT 0, \`isActive\` tinyint NOT NULL DEFAULT 1, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Languages\` (\`id\` int NOT NULL AUTO_INCREMENT, \`resumeId\` int NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`language\` smallint NOT NULL, \`level\` smallint NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Experiences\` (\`id\` int NOT NULL AUTO_INCREMENT, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`jobName\` varchar(200) NOT NULL, \`companyName\` varchar(255) NOT NULL, \`startDate\` date NOT NULL, \`endDate\` date NOT NULL, \`description\` varchar(500) NULL, \`resumeId\` int NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Educations\` (\`id\` int NOT NULL AUTO_INCREMENT, \`resumeId\` int NOT NULL, \`degreeName\` varchar(200) NOT NULL, \`major\` varchar(255) NOT NULL, \`trainingPlace\` varchar(255) NOT NULL, \`startDate\` date NOT NULL, \`completedDate\` date NULL, \`description\` varchar(500) NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Certificates\` (\`id\` int NOT NULL AUTO_INCREMENT, \`resumeId\` int NOT NULL, \`name\` varchar(200) NOT NULL, \`trainingPlace\` varchar(255) NOT NULL, \`startDate\` date NOT NULL, \`expirationDate\` date NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`JobActivitys\` (\`id\` int NOT NULL AUTO_INCREMENT, \`jobPostId\` int NOT NULL, \`resumeId\` int NULL, \`userId\` int NOT NULL, \`fullName\` varchar(100) NULL, \`email\` varchar(100) NULL, \`phone\` varchar(15) NULL, \`status\` int(11) NOT NULL, \`isSentMail\` tinyint(1) NOT NULL DEFAULT 0, \`isDeleted\` tinyint(1) NOT NULL DEFAULT 0, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`AdvancedSkills\` (\`id\` int NOT NULL AUTO_INCREMENT, \`resumeId\` int NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`name\` varchar(200) NOT NULL, \`level\` smallint NOT NULL, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`MediaFile\` (\`id\` int NOT NULL AUTO_INCREMENT, \`userId\` int NOT NULL, \`public_id\` varchar(255) NOT NULL, \`format\` varchar(50) NOT NULL, \`resourceType\` varchar(50) NOT NULL, \`uploadedAt\` datetime(6) NOT NULL, \`metadata\` longtext CHARACTER SET "utf8mb4" COLLATE "utf8mb4_bin" NULL, \`version\` varchar(20) NULL, \`fileType\` varchar(50) NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Resumes\` (\`id\` int NOT NULL AUTO_INCREMENT, \`mediaFileId\` int NULL, \`title\` varchar(200) NULL, \`slug\` varchar(50) NOT NULL, \`description\` longtext NULL, \`salary_min\` decimal(12,0) NOT NULL, \`salary_max\` decimal(12,0) NOT NULL, \`position\` smallint NULL, \`typeOfWorkPlace\` smallint NULL, \`experience\` smallint NULL, \`academicLevel\` smallint NULL, \`jobType\` smallint NULL, \`is_active\` tinyint NOT NULL DEFAULT 0, \`type\` varchar(10) NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`careerId\` int NULL, \`provinceId\` int NULL, \`userId\` int NULL, UNIQUE INDEX \`IDX_56a24fac4f8419d0bfe31c1a7f\` (\`slug\`), UNIQUE INDEX \`REL_e85d31aab67c114b0a044c9e82\` (\`mediaFileId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Careers\` (\`id\` int NOT NULL AUTO_INCREMENT, \`name\` varchar(150) NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`SavedJobs\` (\`id\` int NOT NULL AUTO_INCREMENT, \`jobPostId\` int NOT NULL, \`userId\` int NOT NULL, \`create_at\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`update_at\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`JobPosts\` (\`id\` int NOT NULL AUTO_INCREMENT, \`careerId\` int NOT NULL, \`companyId\` int NOT NULL, \`provinceId\` int NOT NULL, \`userId\` int NOT NULL, \`jobName\` varchar(200) NOT NULL, \`slug\` varchar(50) NOT NULL, \`deadline\` datetime NULL, \`quantity\` int NULL, \`jobDescription\` longtext NULL, \`jobRequirement\` longtext NULL, \`benefitsEnjoyed\` longtext NULL, \`salaryMin\` decimal(12,0) NOT NULL, \`salaryMax\` decimal(12,0) NOT NULL, \`position\` smallint NOT NULL, \`typeOfWorkPlace\` smallint NOT NULL, \`experience\` smallint NOT NULL, \`academicLevel\` smallint NOT NULL, \`jobType\` smallint NOT NULL, \`isHot\` tinyint NOT NULL DEFAULT 0, \`isUrgent\` tinyint NOT NULL DEFAULT 0, \`isActive\` tinyint NOT NULL DEFAULT 0, \`contactPersonName\` varchar(100) NULL, \`contactPersonEmail\` varchar(100) NULL, \`contactPersonPhone\` varchar(15) NULL, \`views\` bigint NOT NULL DEFAULT 0, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`status\` int NOT NULL, UNIQUE INDEX \`IDX_7a9146d746a1c1093c99223d4f\` (\`slug\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`CompanyFolloweds\` (\`id\` int NOT NULL AUTO_INCREMENT, \`companyId\` int NOT NULL, \`userId\` int NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Companies\` (\`id\` int NOT NULL AUTO_INCREMENT, \`provinceId\` int NULL, \`userId\` int NOT NULL, \`companyName\` varchar(255) NOT NULL, \`slug\` varchar(300) NOT NULL, \`companyEmail\` varchar(100) NOT NULL, \`companyPhone\` varchar(15) NOT NULL, \`websiteUrl\` varchar(300) NULL, \`taxCode\` varchar(30) NOT NULL, \`since\` date NULL, \`fieldOperation\` varchar(255) NULL, \`description\` longtext NULL, \`employeeSize\` smallint NULL, \`address\` varchar(100) NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE INDEX \`IDX_c19f8178a5285cd662d68d16c6\` (\`slug\`), UNIQUE INDEX \`REL_1648bd88c69276e8b978de6788\` (\`userId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Provinces\` (\`id\` int NOT NULL AUTO_INCREMENT, \`code\` int NOT NULL, \`name\` varchar(255) NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Candidates\` (\`id\` int NOT NULL AUTO_INCREMENT, \`userId\` int NOT NULL, \`provinceId\` int NULL, \`resumeId\` int NULL, \`phone\` varchar(15) NULL, \`birthday\` date NULL, \`gender\` varchar(1) NULL, \`maritalStatus\` varchar(1) NULL, \`address\` varchar(255) NULL, UNIQUE INDEX \`REL_856e32fe315596b94eacda4cd9\` (\`userId\`), UNIQUE INDEX \`REL_f6b40a306c703b95c3f3b19272\` (\`resumeId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`RefreshTokens\` (\`id\` varchar(255) NOT NULL, \`userId\` int NOT NULL, \`token\` longtext NOT NULL, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`expiresAt\` datetime NOT NULL, \`revoked\` tinyint NOT NULL DEFAULT 0, PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Users\` (\`id\` int NOT NULL AUTO_INCREMENT, \`groupRoleId\` int NOT NULL, \`avatarId\` int NULL, \`email\` varchar(255) NOT NULL, \`fullName\` varchar(255) NOT NULL, \`password\` varchar(255) NOT NULL, \`isVerified\` tinyint NOT NULL DEFAULT 0, \`isActive\` tinyint NOT NULL DEFAULT 0, \`isDeleted\` tinyint NOT NULL DEFAULT 0, \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE INDEX \`IDX_3c3ab3f49a87e6ddb607f3c494\` (\`email\`), UNIQUE INDEX \`REL_1886ae00e56f2bfcb9c6146d33\` (\`avatarId\`), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`ALTER TABLE \`Permissions\` ADD CONSTRAINT \`FK_0f8fb9bcde11ec6ab9303d1ca96\` FOREIGN KEY (\`functionId\`) REFERENCES \`Functions\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Permissions\` ADD CONSTRAINT \`FK_065962231b13dbaf2e803eb2b9d\` FOREIGN KEY (\`groupRoleId\`) REFERENCES \`GroupRoles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Languages\` ADD CONSTRAINT \`FK_22571af437926bbdabc03d83fe7\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Experiences\` ADD CONSTRAINT \`FK_488f7a726d9d9d04801673b6f97\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Educations\` ADD CONSTRAINT \`FK_a7dcfd9deacccdff10120488d0b\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Certificates\` ADD CONSTRAINT \`FK_fbe895e25c59a60f4a3e0059519\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`JobActivitys\` ADD CONSTRAINT \`FK_a0169756a8d9a5fab1f496f3e30\` FOREIGN KEY (\`jobPostId\`) REFERENCES \`JobPosts\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`JobActivitys\` ADD CONSTRAINT \`FK_2a40b8af1b07426ed21748a01ec\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`JobActivitys\` ADD CONSTRAINT \`FK_8c43ccc80a115190c99fc3b0af1\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`AdvancedSkills\` ADD CONSTRAINT \`FK_a9e8f5e3b5859d3ab342e3fe1ac\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` ADD CONSTRAINT \`FK_c922a028bbd2ee80a48a4be46d0\` FOREIGN KEY (\`careerId\`) REFERENCES \`Careers\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` ADD CONSTRAINT \`FK_12ff639c6c0224d9a1e754bd9d4\` FOREIGN KEY (\`provinceId\`) REFERENCES \`Provinces\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` ADD CONSTRAINT \`FK_42dc6c230d10c5f918ca2f48882\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` ADD CONSTRAINT \`FK_e85d31aab67c114b0a044c9e820\` FOREIGN KEY (\`mediaFileId\`) REFERENCES \`MediaFile\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`SavedJobs\` ADD CONSTRAINT \`FK_4bb0dcabd728fa5bc1fb0d4a369\` FOREIGN KEY (\`jobPostId\`) REFERENCES \`JobPosts\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`SavedJobs\` ADD CONSTRAINT \`FK_c5acaf55152ea7ad7d37e024d02\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` ADD CONSTRAINT \`FK_74a1a3096a505c6933e9e539114\` FOREIGN KEY (\`careerId\`) REFERENCES \`Careers\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` ADD CONSTRAINT \`FK_e9a023e36b7829741668b01821a\` FOREIGN KEY (\`companyId\`) REFERENCES \`Companies\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` ADD CONSTRAINT \`FK_157ffeff115779a25e31a4f55b0\` FOREIGN KEY (\`provinceId\`) REFERENCES \`Provinces\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` ADD CONSTRAINT \`FK_74dfa9f048f0ccb66c72f5a69c5\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`CompanyFolloweds\` ADD CONSTRAINT \`FK_864a58ccd5736749eda2b8773a7\` FOREIGN KEY (\`companyId\`) REFERENCES \`Companies\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`CompanyFolloweds\` ADD CONSTRAINT \`FK_aa7c3029fcdfa296be3c4f200b5\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Companies\` ADD CONSTRAINT \`FK_1648bd88c69276e8b978de67881\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Companies\` ADD CONSTRAINT \`FK_6fe44bc9aff44691880f6a46264\` FOREIGN KEY (\`provinceId\`) REFERENCES \`Provinces\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Candidates\` ADD CONSTRAINT \`FK_856e32fe315596b94eacda4cd91\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Candidates\` ADD CONSTRAINT \`FK_212686509ef67780a05c65c22c1\` FOREIGN KEY (\`provinceId\`) REFERENCES \`Provinces\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Candidates\` ADD CONSTRAINT \`FK_f6b40a306c703b95c3f3b192728\` FOREIGN KEY (\`resumeId\`) REFERENCES \`Resumes\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` ADD CONSTRAINT \`FK_6dfd786f75cfe054e9ae3a45f5e\` FOREIGN KEY (\`userId\`) REFERENCES \`Users\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Users\` ADD CONSTRAINT \`FK_fce2a8b62c947f5d4c6dbfac75e\` FOREIGN KEY (\`groupRoleId\`) REFERENCES \`GroupRoles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Users\` ADD CONSTRAINT \`FK_1886ae00e56f2bfcb9c6146d33c\` FOREIGN KEY (\`avatarId\`) REFERENCES \`MediaFile\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE \`Users\` DROP FOREIGN KEY \`FK_1886ae00e56f2bfcb9c6146d33c\``);
+        await queryRunner.query(`ALTER TABLE \`Users\` DROP FOREIGN KEY \`FK_fce2a8b62c947f5d4c6dbfac75e\``);
+        await queryRunner.query(`ALTER TABLE \`RefreshTokens\` DROP FOREIGN KEY \`FK_6dfd786f75cfe054e9ae3a45f5e\``);
+        await queryRunner.query(`ALTER TABLE \`Candidates\` DROP FOREIGN KEY \`FK_f6b40a306c703b95c3f3b192728\``);
+        await queryRunner.query(`ALTER TABLE \`Candidates\` DROP FOREIGN KEY \`FK_212686509ef67780a05c65c22c1\``);
+        await queryRunner.query(`ALTER TABLE \`Candidates\` DROP FOREIGN KEY \`FK_856e32fe315596b94eacda4cd91\``);
+        await queryRunner.query(`ALTER TABLE \`Companies\` DROP FOREIGN KEY \`FK_6fe44bc9aff44691880f6a46264\``);
+        await queryRunner.query(`ALTER TABLE \`Companies\` DROP FOREIGN KEY \`FK_1648bd88c69276e8b978de67881\``);
+        await queryRunner.query(`ALTER TABLE \`CompanyFolloweds\` DROP FOREIGN KEY \`FK_aa7c3029fcdfa296be3c4f200b5\``);
+        await queryRunner.query(`ALTER TABLE \`CompanyFolloweds\` DROP FOREIGN KEY \`FK_864a58ccd5736749eda2b8773a7\``);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` DROP FOREIGN KEY \`FK_74dfa9f048f0ccb66c72f5a69c5\``);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` DROP FOREIGN KEY \`FK_157ffeff115779a25e31a4f55b0\``);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` DROP FOREIGN KEY \`FK_e9a023e36b7829741668b01821a\``);
+        await queryRunner.query(`ALTER TABLE \`JobPosts\` DROP FOREIGN KEY \`FK_74a1a3096a505c6933e9e539114\``);
+        await queryRunner.query(`ALTER TABLE \`SavedJobs\` DROP FOREIGN KEY \`FK_c5acaf55152ea7ad7d37e024d02\``);
+        await queryRunner.query(`ALTER TABLE \`SavedJobs\` DROP FOREIGN KEY \`FK_4bb0dcabd728fa5bc1fb0d4a369\``);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` DROP FOREIGN KEY \`FK_e85d31aab67c114b0a044c9e820\``);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` DROP FOREIGN KEY \`FK_42dc6c230d10c5f918ca2f48882\``);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` DROP FOREIGN KEY \`FK_12ff639c6c0224d9a1e754bd9d4\``);
+        await queryRunner.query(`ALTER TABLE \`Resumes\` DROP FOREIGN KEY \`FK_c922a028bbd2ee80a48a4be46d0\``);
+        await queryRunner.query(`ALTER TABLE \`AdvancedSkills\` DROP FOREIGN KEY \`FK_a9e8f5e3b5859d3ab342e3fe1ac\``);
+        await queryRunner.query(`ALTER TABLE \`JobActivitys\` DROP FOREIGN KEY \`FK_8c43ccc80a115190c99fc3b0af1\``);
+        await queryRunner.query(`ALTER TABLE \`JobActivitys\` DROP FOREIGN KEY \`FK_2a40b8af1b07426ed21748a01ec\``);
+        await queryRunner.query(`ALTER TABLE \`JobActivitys\` DROP FOREIGN KEY \`FK_a0169756a8d9a5fab1f496f3e30\``);
+        await queryRunner.query(`ALTER TABLE \`Certificates\` DROP FOREIGN KEY \`FK_fbe895e25c59a60f4a3e0059519\``);
+        await queryRunner.query(`ALTER TABLE \`Educations\` DROP FOREIGN KEY \`FK_a7dcfd9deacccdff10120488d0b\``);
+        await queryRunner.query(`ALTER TABLE \`Experiences\` DROP FOREIGN KEY \`FK_488f7a726d9d9d04801673b6f97\``);
+        await queryRunner.query(`ALTER TABLE \`Languages\` DROP FOREIGN KEY \`FK_22571af437926bbdabc03d83fe7\``);
+        await queryRunner.query(`ALTER TABLE \`Permissions\` DROP FOREIGN KEY \`FK_065962231b13dbaf2e803eb2b9d\``);
+        await queryRunner.query(`ALTER TABLE \`Permissions\` DROP FOREIGN KEY \`FK_0f8fb9bcde11ec6ab9303d1ca96\``);
+        await queryRunner.query(`DROP INDEX \`REL_1886ae00e56f2bfcb9c6146d33\` ON \`Users\``);
+        await queryRunner.query(`DROP INDEX \`IDX_3c3ab3f49a87e6ddb607f3c494\` ON \`Users\``);
+        await queryRunner.query(`DROP TABLE \`Users\``);
+        await queryRunner.query(`DROP TABLE \`RefreshTokens\``);
+        await queryRunner.query(`DROP INDEX \`REL_f6b40a306c703b95c3f3b19272\` ON \`Candidates\``);
+        await queryRunner.query(`DROP INDEX \`REL_856e32fe315596b94eacda4cd9\` ON \`Candidates\``);
+        await queryRunner.query(`DROP TABLE \`Candidates\``);
+        await queryRunner.query(`DROP TABLE \`Provinces\``);
+        await queryRunner.query(`DROP INDEX \`REL_1648bd88c69276e8b978de6788\` ON \`Companies\``);
+        await queryRunner.query(`DROP INDEX \`IDX_c19f8178a5285cd662d68d16c6\` ON \`Companies\``);
+        await queryRunner.query(`DROP TABLE \`Companies\``);
+        await queryRunner.query(`DROP TABLE \`CompanyFolloweds\``);
+        await queryRunner.query(`DROP INDEX \`IDX_7a9146d746a1c1093c99223d4f\` ON \`JobPosts\``);
+        await queryRunner.query(`DROP TABLE \`JobPosts\``);
+        await queryRunner.query(`DROP TABLE \`SavedJobs\``);
+        await queryRunner.query(`DROP TABLE \`Careers\``);
+        await queryRunner.query(`DROP INDEX \`REL_e85d31aab67c114b0a044c9e82\` ON \`Resumes\``);
+        await queryRunner.query(`DROP INDEX \`IDX_56a24fac4f8419d0bfe31c1a7f\` ON \`Resumes\``);
+        await queryRunner.query(`DROP TABLE \`Resumes\``);
+        await queryRunner.query(`DROP TABLE \`MediaFile\``);
+        await queryRunner.query(`DROP TABLE \`AdvancedSkills\``);
+        await queryRunner.query(`DROP TABLE \`JobActivitys\``);
+        await queryRunner.query(`DROP TABLE \`Certificates\``);
+        await queryRunner.query(`DROP TABLE \`Educations\``);
+        await queryRunner.query(`DROP TABLE \`Experiences\``);
+        await queryRunner.query(`DROP TABLE \`Languages\``);
+        await queryRunner.query(`DROP TABLE \`GroupRoles\``);
+        await queryRunner.query(`DROP TABLE \`Permissions\``);
+        await queryRunner.query(`DROP TABLE \`Functions\``);
+    }
+
+}
