@@ -21,13 +21,13 @@ import {
 
     @Column()
     userId!:number;
-  
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
-  
+
     @ManyToOne(() => Company, (company) => company.followedCompanies,{onDelete:'CASCADE'})
     @JoinColumn({ name: 'companyId' })
     company!: Company;

@@ -18,12 +18,12 @@ import {
     @Column()
     resumeId!:number;
   
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
-  
+
     @Column({ type: 'smallint', nullable: false })
     language!: number;
   

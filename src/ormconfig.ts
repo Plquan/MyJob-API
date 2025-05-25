@@ -2,9 +2,9 @@ import { DataSource } from "typeorm";
 import { ENV } from "./constants/env";
 
 const dataSource = new DataSource({
-    type: 'mysql',
+    type: 'postgres',
     host: ENV.DB_HOST,
-    port: Number(ENV.DB_PORT) || 3306,
+    port: Number(ENV.DB_PORT) || 5432,
     username: ENV.DB_USER,
     password: ENV.DB_PASS,
     database: ENV.DB_NAME,

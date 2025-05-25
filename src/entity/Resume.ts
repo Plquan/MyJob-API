@@ -36,7 +36,7 @@ export class Resume {
   @Column({ type: 'varchar', length: 50, unique: true })
   slug?: string;
 
-  @Column({ type: 'longtext', nullable: true })
+  @Column({ type: 'text', nullable: true })
   description?: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 0 })
@@ -66,10 +66,10 @@ export class Resume {
   @Column({ type: 'varchar', length: 10,nullable: true })
   type?: string;
 
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+  @CreateDateColumn()
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+  @UpdateDateColumn()
   updatedAt!: Date;
 
   @ManyToOne(() => Career, (career) => career.resumes)

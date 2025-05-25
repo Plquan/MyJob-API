@@ -3,7 +3,7 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../database/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import logger from "@/helpers/logger";
-import { permission } from "process";
+import { Functions } from "@/constants/Functions";
 
 export default class RoleService implements IRoleService {
     private readonly _context: DatabaseService
@@ -11,8 +11,6 @@ export default class RoleService implements IRoleService {
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
-
-
     getUserRoles(roleId: string): Promise<IResponseBase> {
         throw new Error("Method not implemented.");
     }
@@ -94,8 +92,82 @@ export default class RoleService implements IRoleService {
         }
     }
 
-    getAllGroupRoles(): Promise<IResponseBase> {
-        throw new Error("Method not implemented.");
+    async getAllGroupRoles(): Promise<IResponseBase> {
+      try {
+const roles = await this._context.GroupRoleRepo
+  .createQueryBuilder('role')
+  .leftJoin('role.permissions', 'permission')
+  .leftJoin('permission.function', 'function')
+  .where('role.isDeleted = false')
+  .andWhere('function.isDeleted = false')
+  .select([
+    'role.id AS id',
+    'role.name AS name',
+    'role.displayName AS displayName',
+    `IFNULL(
+      JSON_ARRAYAGG(
+        DISTINCT JSON_OBJECT(
+          'id', function.id,
+          'name', function.name
+        )
+      ),
+      JSON_ARRAY()
+    ) AS functions`
+  ])
+  .groupBy('role.id')
+  .getRawMany();
+
+           
+          return {
+            status: StatusCodes.ACCEPTED,
+            success:true,
+            message:"Lấy danh sách vai trò thành công",
+            data: roles         
+          }
+
+        } catch (error) {
+           logger.error(error?.message);
+            console.log(
+                `Error in AuthService - method getAllGroupRoles() at ${new Date().getTime()} with message ${error?.message}`
+            );
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: error.message,
+                data: null,
+                error: {
+                message: "Internal Server Error",
+                errorDetail: "Internal Server Error",
+                },
+            };
+        }
     }
-    
+
+    async getAllFunctions(): Promise<IResponseBase> {
+    try { 
+      return {
+
+        status: StatusCodes.ACCEPTED,
+        success: false,
+        message: "Lấy danh sách quyền thành công",
+        data: Functions,
+      }
+
+    } catch (error) {
+        logger.error(error?.message);
+            console.log(
+                `Error in RoleService - method getAllFunctions() at ${new Date().getTime()} with message ${error?.message}`
+            );
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: error?.message,
+                data: null,
+                error: {
+                message: "Internal Server Error",
+                errorDetail: "Internal Server Error",
+                },
+            }
+    } 
+  }  
 }

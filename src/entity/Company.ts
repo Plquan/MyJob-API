@@ -40,7 +40,7 @@ export class Company {
     @Column({ type: 'varchar', length: 255, nullable: true })
     fieldOperation?: string;
 
-    @Column({ type: 'longtext', nullable: true })
+    @Column({ type: 'text', nullable: true })
     description?: string;
 
     @Column({ type: 'smallint', nullable: true })
@@ -49,13 +49,10 @@ export class Company {
     @Column({ type: 'varchar', length: 100 })
     address!: string;
 
-
-    //
-
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
 
     @OneToOne(() => User, (user) => user.employer,{onDelete: 'CASCADE'})

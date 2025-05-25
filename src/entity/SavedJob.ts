@@ -22,11 +22,11 @@ import {
     @Column()
     userId!:number;
   
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    create_at!: Date;
-  
-    @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-    update_at!: Date;
+    @CreateDateColumn()
+    createdAt!: Date;
+
+    @UpdateDateColumn()
+    updatedAt!: Date;
   
     @ManyToOne(() => JobPost, jobPost => jobPost.savedJobs,{onDelete:'CASCADE'})
     @JoinColumn({ name: 'jobPostId' })

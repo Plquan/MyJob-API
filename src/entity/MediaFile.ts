@@ -28,22 +28,23 @@ import { User } from './User';
     @Column({ type: 'varchar', length: 50 })
     resourceType!: string;
   
-    @Column({ type: 'datetime', precision: 6 })
+    @Column({ type: 'timestamp' })
     uploadedAt!: Date;
   
-    @Column({ type: 'longtext', charset: 'utf8mb4', collation: 'utf8mb4_bin', nullable: true })
+    @Column({ type: 'text', nullable: true })
     metadata?: string;
-  
+
     @Column({ type: 'varchar', length: 20, nullable: true })
     version?: string;
   
     @Column({ type: 'varchar', length: 50 })
     fileType!: string;
 
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
+
   }
   

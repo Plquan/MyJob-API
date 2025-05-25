@@ -9,10 +9,10 @@ export class RefreshToken {
   @Column()
   userId!: number; 
 
-  @Column('longtext')
+  @Column('text')
   token!: string;
 
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @CreateDateColumn()
   createdAt!: Date;
 
   @Column()
