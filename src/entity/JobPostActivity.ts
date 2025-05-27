@@ -11,8 +11,8 @@ import { JobPost } from './JobPost';
 import { Resume } from './Resume';
 import { User } from './User';
   
- @Entity('JobActivitys')
-export class JobActivity {
+ @Entity('JobPostActivity')
+export class JobPostActivity {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -49,7 +49,7 @@ export class JobActivity {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => JobPost, (jobPost) => jobPost.jobActivities, { onDelete: 'CASCADE' })
+  @ManyToOne(() => JobPost, (jobPost) => jobPost.jobPostActivities, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'jobPostId' })
   jobPost!: JobPost;
 

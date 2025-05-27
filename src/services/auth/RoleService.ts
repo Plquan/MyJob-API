@@ -11,25 +11,35 @@ export default class RoleService implements IRoleService {
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
+
     getUserRoles(roleId: string): Promise<IResponseBase> {
         throw new Error("Method not implemented.");
     }
-   async getCurrentUserPermission(roleId: number): Promise<IResponseBase> {
+
+   async getCurrentUserPermission(userId: number): Promise<IResponseBase> {
         try {
-            const userPerMissions = await this._context.FunctionRepo.createQueryBuilder("function")
-            .innerJoin("function.permissions", "permission")
-            .where("permission.groupRoleId = :roleId", { roleId })
-            .andWhere("permission.isDeleted = :isDeleted", { isDeleted: false })
-            .andWhere("permission.isActive = :isActive", { isActive: true })
-            .andWhere("function.isActive = :isActive", { isActive: true })
-            .andWhere("function.isDeleted = :isDeleted", { isDeleted: false })
-            .select(["function.id", "function.name", "function.functionLink"])
-            .getMany();
+        const userPermissions = await this._context.FunctionRepo.createQueryBuilder("function")
+          .innerJoin("function.permissions", "permission")
+          .innerJoin("permission.role", "role")
+          .innerJoin("role.groupRole", "groupRole")
+          .where("groupRole.userId = :userId", { userId })
+          .andWhere("permission.isDeleted = false")
+          .andWhere("permission.isActive = true")
+          .andWhere("function.isActive = true")
+          .andWhere("function.isDeleted = false")
+          .select([
+            "function.id",
+            "function.name",
+            "function.displayName",
+            "function.functionLink"
+          ])
+          .distinct(true)
+          .getMany();
 
             return {
                 status: StatusCodes.OK,
                 success: true,
-                data: userPerMissions,
+                data: userPermissions,
                 error: null,
               };
         } catch (error) {
@@ -93,31 +103,22 @@ export default class RoleService implements IRoleService {
     }
 
     async getAllGroupRoles(): Promise<IResponseBase> {
-      try {
-const roles = await this._context.GroupRoleRepo
-  .createQueryBuilder('role')
-  .leftJoin('role.permissions', 'permission')
-  .leftJoin('permission.function', 'function')
-  .where('role.isDeleted = false')
-  .andWhere('function.isDeleted = false')
-  .select([
-    'role.id AS id',
-    'role.name AS name',
-    'role.displayName AS displayName',
-    `IFNULL(
-      JSON_ARRAYAGG(
-        DISTINCT JSON_OBJECT(
-          'id', function.id,
-          'name', function.name
-        )
-      ),
-      JSON_ARRAY()
-    ) AS functions`
-  ])
-  .groupBy('role.id')
-  .getRawMany();
+    
+    try {
+      const roles = await this._context.GroupRoleRepo
+        .createQueryBuilder('role')
+        .leftJoin('role.permissions', 'permission')
+        .leftJoin('permission.function', 'function', 'function.isDeleted = false')
+        .where('role.isDeleted = false')
+        .select([
+          'role.id AS id',
+          'role.name AS name',
+          'role.displayName AS displayName',
+          'json_agg(DISTINCT function.name) AS functionNames',
+        ])
+        .groupBy('role.id, role.name, role.displayName')
+        .getRawMany();
 
-           
           return {
             status: StatusCodes.ACCEPTED,
             success:true,
@@ -146,7 +147,6 @@ const roles = await this._context.GroupRoleRepo
     async getAllFunctions(): Promise<IResponseBase> {
     try { 
       return {
-
         status: StatusCodes.ACCEPTED,
         success: false,
         message: "Lấy danh sách quyền thành công",

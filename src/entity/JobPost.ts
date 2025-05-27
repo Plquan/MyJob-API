@@ -12,10 +12,10 @@ import { Career } from './Career';
 import { Company } from './Company';
 import { Province } from './Province';
 import { User } from './User';
-import { SavedJob } from './SavedJob';
-import { JobActivity } from './JobActivity';
+import { SavedJobPost } from './SavedJobPost';
+import { JobPostActivity } from './JobPostActivity';
   
-  @Entity({ name: 'JobPosts' }) 
+  @Entity({ name: 'JobPost' }) 
   export class JobPost {
 
     @PrimaryGeneratedColumn()
@@ -121,11 +121,11 @@ import { JobActivity } from './JobActivity';
     @JoinColumn({ name: "userId" })
     user!: User;
     
-    @OneToMany(() => SavedJob, savedJob => savedJob.jobPost)
-    savedJobs!: SavedJob[];
+    @OneToMany(() => SavedJobPost, savedJob => savedJob.jobPost)
+    savedJobPosts!: SavedJobPost[];
 
-    @OneToMany(() => JobActivity, (activity) => activity.jobPost)
-    jobActivities!: JobActivity[];
+    @OneToMany(() => JobPostActivity, (activity) => activity.jobPost)
+    jobPostActivities!: JobPostActivity[];
 
   }
   

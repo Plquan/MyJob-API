@@ -3,11 +3,11 @@ import logger from "@/helpers/logger";
 import { ENV } from "@/constants/env";
 
 import { User } from "@/entity/User";
-import { SavedJob } from "@/entity/SavedJob";
+import { SavedJobPost } from "@/entity/SavedJobPost";
 import { Resume } from "@/entity/Resume";
 import { Province } from "@/entity/Province";
 import { Permission } from "@/entity/Permission";
-import { MediaFile } from "@/entity/MediaFile";
+import { MyJobFile } from "@/entity/MyJobFile";
 import { AdvancedSkill } from "@/entity/AdvancedSkill";
 import { Candidate } from "@/entity/Candidate";
 import { Career } from "@/entity/Career";
@@ -18,7 +18,7 @@ import { Education } from "@/entity/Education";
 import { Experience } from "@/entity/Experience";
 import { Function as JobFunction } from "@/entity/Function";
 import { GroupRole } from "@/entity/GroupRole";
-import { JobActivity } from "@/entity/JobActivity";
+import { JobPostActivity } from "@/entity/JobPostActivity";
 import { JobPost } from "@/entity/JobPost";
 import { Language } from "@/entity/Language";
 
@@ -30,11 +30,11 @@ class DatabaseService {
   private _dataSource: DataSource;
 
   public UserRepo: Repository<User>;
-  public SavedJobRepo: Repository<SavedJob>;
+  public SavedJobPostRepo: Repository<SavedJobPost>;
   public ResumeRepo: Repository<Resume>;
   public ProvinceRepo: Repository<Province>;
   public PermissionRepo: Repository<Permission>;
-  public MediaFileRepo: Repository<MediaFile>;
+  public MyJobFileRepo: Repository<MyJobFile>;
   public AdvancedSkillRepo: Repository<AdvancedSkill>;
   public CandidateRepo: Repository<Candidate>;
   public CareerRepo: Repository<Career>;
@@ -45,20 +45,22 @@ class DatabaseService {
   public ExperienceRepo: Repository<Experience>;
   public FunctionRepo: Repository<JobFunction>;
   public GroupRoleRepo: Repository<GroupRole>;
-  public JobActivityRepo: Repository<JobActivity>;
+  public JobPostActivityRepo: Repository<JobPostActivity>;
   public JobPostRepo: Repository<JobPost>;
   public LanguageRepo: Repository<Language>;
   public RefreshTokenRepo: Repository<RefreshToken>
+  public 
+
 
   constructor() {
     this._dataSource = dataSource;
 
     this.UserRepo = this._dataSource.getRepository(User);
-    this.SavedJobRepo = this._dataSource.getRepository(SavedJob);
+    this.SavedJobPostRepo = this._dataSource.getRepository(SavedJobPost);
     this.ResumeRepo = this._dataSource.getRepository(Resume);
     this.ProvinceRepo = this._dataSource.getRepository(Province);
     this.PermissionRepo = this._dataSource.getRepository(Permission);
-    this.MediaFileRepo = this._dataSource.getRepository(MediaFile);
+    this.MyJobFileRepo = this._dataSource.getRepository(MyJobFile);
     this.AdvancedSkillRepo = this._dataSource.getRepository(AdvancedSkill);
     this.CandidateRepo = this._dataSource.getRepository(Candidate);
     this.CareerRepo = this._dataSource.getRepository(Career);
@@ -69,7 +71,7 @@ class DatabaseService {
     this.ExperienceRepo = this._dataSource.getRepository(Experience);
     this.FunctionRepo = this._dataSource.getRepository(JobFunction);
     this.GroupRoleRepo = this._dataSource.getRepository(GroupRole);
-    this.JobActivityRepo = this._dataSource.getRepository(JobActivity);
+    this.JobPostActivityRepo = this._dataSource.getRepository(JobPostActivity);
     this.JobPostRepo = this._dataSource.getRepository(JobPost);
     this.LanguageRepo = this._dataSource.getRepository(Language);
     this.RefreshTokenRepo = this._dataSource.getRepository(RefreshToken);

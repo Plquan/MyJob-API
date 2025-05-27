@@ -9,7 +9,7 @@ import {
 import { JobPost } from './JobPost';
 import { Resume } from './Resume';
   
-  @Entity('Careers') 
+  @Entity('Career') 
   export class Career {
 
     @PrimaryGeneratedColumn()

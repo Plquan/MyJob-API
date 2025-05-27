@@ -9,7 +9,7 @@ import {
   } from 'typeorm';
   import { Resume } from './Resume';
   
-  @Entity('Experiences')
+  @Entity('Experience')
   export class Experience {
   
     @PrimaryGeneratedColumn()

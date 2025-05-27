@@ -4,7 +4,7 @@ import { JobPost } from "./JobPost";
 import { Province } from "./Province";
 import { CompanyFollowed } from "./CompanyFollowed";
 
-@Entity('Companies')
+@Entity('Company')
 export class Company {
   
     @PrimaryGeneratedColumn()

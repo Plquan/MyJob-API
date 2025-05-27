@@ -7,10 +7,10 @@ import { StatusCodes } from "http-status-codes";
 import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
 import IRoleService from "@/interfaces/auth/IRoleService";
-import EGroupRole from "@/constants/enums/GroupRole";
 import ICompanyService from "@/interfaces/company/ICompanyService";
 import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 import { LocalStorage } from "@/constants/LocalStorage";
+import { VariableSystem } from "@/constants/VariableSystem";
 
 
 export default class AuthService implements IAuthService {
@@ -100,12 +100,10 @@ export default class AuthService implements IAuthService {
             }
           }
 
-          const user = await this._context.UserRepo
-            .createQueryBuilder("user")
-            .leftJoinAndSelect("user.groupRole", "groupRole")
-            .where("user.email = :email", { email: userLogin.email })
-            .andWhere("groupRole.name = :name", { name: EGroupRole.CANDIDATE })
-            .getOne();
+          const user = await this._context.UserRepo.findOne({
+            where: { email: userLogin.email , roleName:VariableSystem.ROLE_NAME.CANDIDATE},
+            
+          })
 
             if(!user){
               return {
@@ -147,7 +145,7 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          const userRoles = await this._roleService.getCurrentUserPermission(user.groupRoleId);
+          const userRoles = await this._roleService.getCurrentUserPermission(user.id);
           if (!userRoles.success) {
             return userRoles;
           }
@@ -155,7 +153,7 @@ export default class AuthService implements IAuthService {
             userId: user.id,
             userName: user.fullName,
             role: userRoles.data,
-            roleName: user.groupRole.name,
+            roleName: user.roleName,
           };
           
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -208,8 +206,7 @@ export default class AuthService implements IAuthService {
               }
             }
             const user = await this._context.UserRepo.findOne({
-              where: { email: userLogin.email },
-              relations: ['groupRole']  
+              where: { email: userLogin.email, roleName:VariableSystem.ROLE_NAME.EMPLOYER },
             })
 
             if(!user){
@@ -250,7 +247,7 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          const userRoles = await this._roleService.getCurrentUserPermission(user.groupRoleId);
+          const userRoles = await this._roleService.getCurrentUserPermission(user.id);
           if (!userRoles.success) {
             return userRoles;
           }
@@ -259,7 +256,7 @@ export default class AuthService implements IAuthService {
             userId: user.id,
             userName: user.fullName,
             role: userRoles.data,
-            roleName: user.groupRole.name,
+            roleName: user.roleName,
           };
 
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -328,32 +325,14 @@ export default class AuthService implements IAuthService {
                   }
                 }
             }     
-            const checkRole = await this._context.GroupRoleRepo.findOne({
-                  where: {
-                  name: EGroupRole.CANDIDATE
-                  }
-                })
-            if (!checkRole) {
-              return {
-                status: StatusCodes.BAD_REQUEST,
-                success: false,
-                message: "Đăng kí tài khoản không thành công",
-                data: null,
-                error: {
-                  message: "Phân quyền không tồn tại",
-                  errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
-                },
-              };
-            }
 
             const hashPassword = Extensions.hashPassword(candidateRegister.password);
-
             const registerData = {
               email: candidateRegister.email,
               fullName: candidateRegister.fullName,
               password: hashPassword,
               isActive:true,
-              groupRoleId: checkRole.id
+              accountType: VariableSystem.ROLE_NAME.CANDIDATE
             }
             const newUser = await this._context.UserRepo.save(registerData);
 
@@ -423,26 +402,7 @@ export default class AuthService implements IAuthService {
                   }
                 }
             }     
-
-            
-            const checkRole = await this._context.GroupRoleRepo.findOne({
-                  where: {
-                  name: EGroupRole.CANDIDATE
-                  }
-                })
-            if (!checkRole) {
-              return {
-                status: StatusCodes.BAD_REQUEST,
-                success: false,
-                message: "Đăng kí tài khoản nhà tuyển dụng không thành công",
-                data: null,
-                error: {
-                  message: "Phân quyền không tồn tại",
-                  errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
-                },
-              };
-            }
-
+          
             const hashPassword = Extensions.hashPassword(companyRegister.password);
 
             const registerData = {
@@ -450,7 +410,7 @@ export default class AuthService implements IAuthService {
               fullName: companyRegister.fullName,
               password: hashPassword,
               isActive:true,
-              groupRoleId: checkRole.id
+              accountType: VariableSystem.ROLE_NAME.EMPLOYER,
             }
             const newUser = await this._context.UserRepo.save(registerData);
 
@@ -528,7 +488,7 @@ export default class AuthService implements IAuthService {
           delete user?.isDeleted;
           delete user?.updatedAt;
           delete user?.createdAt;
-          delete user?.isVerified;
+          delete user?.isVerifyEmail;
 
           if (!user) {
           return {

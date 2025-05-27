@@ -10,7 +10,7 @@ import {
   import { Company } from './Company'; 
   import { User } from './User'; 
   
-  @Entity('CompanyFolloweds')
+  @Entity('CompanyFollowed')
   export class CompanyFollowed {
   
     @PrimaryGeneratedColumn()

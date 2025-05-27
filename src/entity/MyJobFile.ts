@@ -4,14 +4,10 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    ManyToOne,
-    JoinColumn,
-    OneToOne,
   } from 'typeorm';
-import { User } from './User';
-  
-  @Entity('MediaFile')
-  export class MediaFile {
+
+  @Entity('MyJobFile')
+  export class MyJobFile {
 
     @PrimaryGeneratedColumn()
     id!: number;
@@ -20,7 +16,7 @@ import { User } from './User';
     userId!:number;
   
     @Column({ type: 'varchar', length: 255 })
-    public_id!: string;
+    publicId!: string;
   
     @Column({ type: 'varchar', length: 50 })
     format!: string;
@@ -45,6 +41,5 @@ import { User } from './User';
 
     @UpdateDateColumn()
     updatedAt!: Date;
-
   }
   

@@ -8,7 +8,7 @@ import {
     JoinColumn
   } from 'typeorm';
   import { Resume } from './Resume';
-  @Entity('Educations')
+  @Entity('Education')
   export class Education {
   
     @PrimaryGeneratedColumn()

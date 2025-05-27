@@ -1,7 +1,7 @@
 import dataSource from "../ormconfig";
 
 import { seedProvinces } from "./Province.seed";
-import { seedGroupRoles } from "./GroupRole.seed";
+import { seedDistricts } from "./District.seed";
 
 const runAllSeeds = async () => {
   try {
@@ -9,7 +9,7 @@ const runAllSeeds = async () => {
     console.log("DataSource initialized");
 
     await seedProvinces(dataSource);
-    await seedGroupRoles(dataSource);
+    await seedDistricts(dataSource);
 
     await dataSource.destroy();
     console.log("All seeds completed");

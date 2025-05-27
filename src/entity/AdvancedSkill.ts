@@ -9,7 +9,7 @@ import {
   } from 'typeorm';
   import { Resume } from './Resume'; // Giả sử bảng Resume đã được định nghĩa
   
-  @Entity('AdvancedSkills')
+  @Entity('AdvancedSkill')
   export class AdvancedSkill {
 
     @PrimaryGeneratedColumn()
