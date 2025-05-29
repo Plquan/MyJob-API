@@ -2,7 +2,7 @@ import { ICandidateRegisterData, ICompanyRegisterData, ILoginData, IUserLoginRes
 import IAuthService from "@/interfaces/auth/IAuthService";
 import { ITokenPayload, IJWTService, IRefreshToken } from "@/interfaces/auth/IJwtService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import DatabaseService from "../database/DatabaseService";
+import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
@@ -332,7 +332,7 @@ export default class AuthService implements IAuthService {
               fullName: candidateRegister.fullName,
               password: hashPassword,
               isActive:true,
-              accountType: VariableSystem.ROLE_NAME.CANDIDATE
+              roleName: VariableSystem.ROLE_NAME.CANDIDATE
             }
             const newUser = await this._context.UserRepo.save(registerData);
 
@@ -410,7 +410,7 @@ export default class AuthService implements IAuthService {
               fullName: companyRegister.fullName,
               password: hashPassword,
               isActive:true,
-              accountType: VariableSystem.ROLE_NAME.EMPLOYER,
+              roleName: VariableSystem.ROLE_NAME.EMPLOYER,
             }
             const newUser = await this._context.UserRepo.save(registerData);
 
@@ -478,35 +478,35 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          const user = await this._context.UserRepo.createQueryBuilder("user")
-          .innerJoin("user.groupRole", "groupRole")
-          .where("user.id = :userId", { userId })
-          .select(["user", "groupRole.name", "groupRole.displayName"])
-          .getOne();
+        //   const user = await this._context.UserRepo.createQueryBuilder("user")
+        //   .innerJoin("user.groupRole", "groupRole")
+        //   .where("user.id = :userId", { userId })
+        //   .select(["user", "groupRole.name", "groupRole.displayName"])
+        //   .getOne();
 
-          delete user?.password;
-          delete user?.isDeleted;
-          delete user?.updatedAt;
-          delete user?.createdAt;
-          delete user?.isVerifyEmail;
+        //   delete user?.password;
+        //   delete user?.isDeleted;
+        //   delete user?.updatedAt;
+        //   delete user?.createdAt;
+        //   delete user?.isVerifyEmail;
 
-          if (!user) {
-          return {
-            status: StatusCodes.NOT_FOUND,
-            success: false,
-            message: "Không tìm thấy thông tin người dùng",
-            data: null,
-            error: {
-              message: "Không tìm thấy thông tin người dùng",
-              errorDetail: "Không tìm thấy thông tin người dùng",
-            },
-          };
-        }
+        //   if (!user) {
+        //   return {
+        //     status: StatusCodes.NOT_FOUND,
+        //     success: false,
+        //     message: "Không tìm thấy thông tin người dùng",
+        //     data: null,
+        //     error: {
+        //       message: "Không tìm thấy thông tin người dùng",
+        //       errorDetail: "Không tìm thấy thông tin người dùng",
+        //     },
+        //   };
+        // }
 
         return {
         status: StatusCodes.OK,
         success: true,
-        data: user,
+        data: request?.user,
         error: null,
       };
 

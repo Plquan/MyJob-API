@@ -1,6 +1,6 @@
 import IRoleService from "@/interfaces/auth/IRoleService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import DatabaseService from "../database/DatabaseService";
+import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import logger from "@/helpers/logger";
 import { Functions } from "@/constants/Functions";
@@ -18,24 +18,20 @@ export default class RoleService implements IRoleService {
 
    async getCurrentUserPermission(userId: number): Promise<IResponseBase> {
         try {
-        const userPermissions = await this._context.FunctionRepo.createQueryBuilder("function")
-          .innerJoin("function.permissions", "permission")
-          .innerJoin("permission.role", "role")
-          .innerJoin("role.groupRole", "groupRole")
-          .where("groupRole.userId = :userId", { userId })
-          .andWhere("permission.isDeleted = false")
-          .andWhere("permission.isActive = true")
-          .andWhere("function.isActive = true")
-          .andWhere("function.isDeleted = false")
-          .select([
-            "function.id",
-            "function.name",
-            "function.displayName",
-            "function.functionLink"
-          ])
-          .distinct(true)
-          .getMany();
-
+          const userPermissions = await this._context.FunctionRepo.createQueryBuilder("function")
+            .distinct(true)
+            .innerJoin("function.permissions", "permission")
+            .innerJoin("permission.role", "role")
+            .innerJoin("role.groupRole", "groupRole")
+            .where("groupRole.userId = :userId", { userId })
+            .andWhere("function.isActive = :isActive", { isActive: true })
+            .andWhere("function.isDeleted = :isDeleted", { isDeleted: false })
+            .select([
+              "function.id",
+              "function.name",
+              "function.displayName",
+            ])
+            .getMany();
             return {
                 status: StatusCodes.OK,
                 success: true,
@@ -45,7 +41,7 @@ export default class RoleService implements IRoleService {
         } catch (error) {
             logger.error(error?.message);
             console.log(
-                `Error in AuthService - method getCurrentUserPermission() at ${new Date().getTime()} with message ${error?.message}`
+                `Error in RoleService - method getCurrentUserPermission() at ${new Date().getTime()} with message ${error?.message}`
             );
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -61,11 +57,7 @@ export default class RoleService implements IRoleService {
     }
     async getGroupRole(roleName: string): Promise<IResponseBase> {
         try {
-            const groupRole = await this._context.GroupRoleRepo.findOne({
-                where: {
-                 name: roleName
-                }
-              })
+            const groupRole = await this._context.GroupRoleRepo.find()
               if (!groupRole) {
                 return {
                   status: StatusCodes.NOT_FOUND,
@@ -102,8 +94,7 @@ export default class RoleService implements IRoleService {
         }
     }
 
-    async getAllGroupRoles(): Promise<IResponseBase> {
-    
+    async getAllGroupRoles(): Promise<IResponseBase> {   
     try {
       const roles = await this._context.GroupRoleRepo
         .createQueryBuilder('role')

@@ -49,7 +49,7 @@ class DatabaseService {
   public JobPostRepo: Repository<JobPost>;
   public LanguageRepo: Repository<Language>;
   public RefreshTokenRepo: Repository<RefreshToken>
-  public 
+
 
 
   constructor() {

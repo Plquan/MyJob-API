@@ -2,9 +2,10 @@ import { asClass, createContainer, InjectionMode } from "awilix";
 import JwtService from "./services/auth/JwtService";
 import AuthService from "./services/auth/AuthService";
 import RoleService from "./services/auth/RoleService";
-import CompanyService from "./services/company/CompanyService";
-import DatabaseService from "./services/database/DatabaseService";
-import ProvinceService from "./services/province/ProvinceService";
+import CompanyService from "./services/manager/CompanyService";
+import DatabaseService from "./services/common/DatabaseService";
+import ProvinceService from "./services/manager/ProvinceService";
+import UserService from "./services/manager/UserService";
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -17,6 +18,7 @@ const container = createContainer({
     RoleService: asClass(RoleService).scoped(),
     CompanyService: asClass(CompanyService).scoped(),
     ProvinceService:asClass(ProvinceService).scoped(),
+    UserService:asClass(UserService).scoped()
 
   });
 container.resolve("JwtService");
