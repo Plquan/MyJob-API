@@ -96,7 +96,7 @@ export default class RoleService implements IRoleService {
 
     async getAllGroupRoles(): Promise<IResponseBase> {   
     try {
-      const roles = await this._context.GroupRoleRepo
+       const roles = await this._context.GroupRoleRepo
         .createQueryBuilder('role')
         .leftJoin('role.permissions', 'permission')
         .leftJoin('permission.function', 'function', 'function.isDeleted = false')

@@ -1,5 +1,5 @@
 import { ErrorMessages } from "@/constants/ErrorMessages";
-import { IJWTService } from "@/interfaces/auth/IJwtService";
+import { IJWTService, ITokenPayload } from "@/interfaces/auth/IJwtService";
 import "dotenv/config";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { StatusCodes } from "http-status-codes";
@@ -25,7 +25,7 @@ function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
         return
       }
 
-    const payload: any = JwtService.getTokenPayload(accessToken);
+    const payload: ITokenPayload = JwtService.getTokenPayload(accessToken);
     const isValid: boolean = JwtService.verifyAccessToken(accessToken);
 
     if (!isValid) {
@@ -43,9 +43,11 @@ function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
     }
 
     req.user = {
-      id: payload?.userId || payload?.userid,
+      id: payload?.userId,
+      fullName: payload?.fullName,
+      isSuperUser: payload?.isSuperUser,
       roleName: payload?.roleName,
-      role: payload?.role,
+      function: [],
       accessToken: accessToken,
     };
     console.log(req.user)

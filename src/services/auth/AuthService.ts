@@ -43,9 +43,11 @@ export default class AuthService implements IAuthService {
         }
          const tokenPayload: ITokenPayload = {
             userId: payload.userId,
-            userName: payload.userName,
-            role: payload.role,
+            fullName: payload.fullName,
             roleName: payload.roleName,
+            isStaff: payload.isStaff,
+            isSuperUser: payload.isSuperUser
+          
           };
         
          const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -84,7 +86,6 @@ export default class AuthService implements IAuthService {
             }
         }
     }
-
     async candidateLogin(userLogin: ILoginData, setTokensToCookie: (accessToken: string, refreshToken: string) => void): Promise<IResponseBase> {
     try {
           if (!userLogin.email || !userLogin.password) {
@@ -151,9 +152,10 @@ export default class AuthService implements IAuthService {
           }
           const tokenPayload: ITokenPayload = {
             userId: user.id,
-            userName: user.fullName,
-            role: userRoles.data,
+            fullName: user.fullName,
             roleName: user.roleName,
+            isStaff: user.isStaff,
+            isSuperUser: user.isSuperUser
           };
           
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -190,7 +192,6 @@ export default class AuthService implements IAuthService {
             }
           }
     }
-
     async companyLogin(userLogin: ILoginData,setTokensToCookie: (accessToken: string, refreshToken: string) => void): Promise<IResponseBase> {
         try {
             if (!userLogin.email || !userLogin.password) {
@@ -254,9 +255,10 @@ export default class AuthService implements IAuthService {
     
           const tokenPayload: ITokenPayload = {
             userId: user.id,
-            userName: user.fullName,
-            role: userRoles.data,
+            fullName: user.fullName,
             roleName: user.roleName,
+            isStaff: user.isStaff,
+            isSuperUser: user.isSuperUser
           };
 
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -478,30 +480,33 @@ export default class AuthService implements IAuthService {
             };
           }
 
-        //   const user = await this._context.UserRepo.createQueryBuilder("user")
-        //   .innerJoin("user.groupRole", "groupRole")
-        //   .where("user.id = :userId", { userId })
-        //   .select(["user", "groupRole.name", "groupRole.displayName"])
-        //   .getOne();
+        const user = await this._context.UserRepo.createQueryBuilder("user")
+          .leftJoinAndSelect("user.myJobFile", "myJobFile") 
+          .where("user.id = :userId", { userId })
+          .select([
+            "user.id",
+            "user.fullName",
+            "user.email",
+            "user.isStaff",
+            "user.roleName",
+            "myJobFile.url as avatar",
+          ])
+          .getOne();
 
-        //   delete user?.password;
-        //   delete user?.isDeleted;
-        //   delete user?.updatedAt;
-        //   delete user?.createdAt;
-        //   delete user?.isVerifyEmail;
+          console.log(user)
 
-        //   if (!user) {
-        //   return {
-        //     status: StatusCodes.NOT_FOUND,
-        //     success: false,
-        //     message: "Không tìm thấy thông tin người dùng",
-        //     data: null,
-        //     error: {
-        //       message: "Không tìm thấy thông tin người dùng",
-        //       errorDetail: "Không tìm thấy thông tin người dùng",
-        //     },
-        //   };
-        // }
+          if (!user) {
+          return {
+            status: StatusCodes.NOT_FOUND,
+            success: false,
+            message: "Không tìm thấy thông tin người dùng",
+            data: user,
+            error: {
+              message: "Không tìm thấy thông tin người dùng",
+              errorDetail: "Không tìm thấy thông tin người dùng",
+            },
+          };
+        }
 
         return {
         status: StatusCodes.OK,
