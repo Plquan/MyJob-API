@@ -94,21 +94,15 @@ export default class RoleService implements IRoleService {
         }
     }
 
-    async getAllGroupRoles(): Promise<IResponseBase> {   
+    async getAllRoles(): Promise<IResponseBase> {   
     try {
-       const roles = await this._context.GroupRoleRepo
-        .createQueryBuilder('role')
-        .leftJoin('role.permissions', 'permission')
-        .leftJoin('permission.function', 'function', 'function.isDeleted = false')
-        .where('role.isDeleted = false')
-        .select([
-          'role.id AS id',
-          'role.name AS name',
-          'role.displayName AS displayName',
-          'json_agg(DISTINCT function.name) AS functionNames',
-        ])
-        .groupBy('role.id, role.name, role.displayName')
-        .getRawMany();
+          const roles = await this._context.RoleRepo.find({
+            where: {
+              isActive: true,
+              isDeleted: false,
+            },
+            select: ["id", "name"],
+          });
 
           return {
             status: StatusCodes.ACCEPTED,
@@ -120,7 +114,7 @@ export default class RoleService implements IRoleService {
         } catch (error) {
            logger.error(error?.message);
             console.log(
-                `Error in AuthService - method getAllGroupRoles() at ${new Date().getTime()} with message ${error?.message}`
+                `Error in RoleService - method getAllRoles() at ${new Date().getTime()} with message ${error?.message}`
             );
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,

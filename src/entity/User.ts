@@ -42,9 +42,6 @@ export class User {
     isActive!: boolean;
 
     @Column({type: 'boolean',default: false})
-    isDeleted!: boolean;
-
-    @Column({type: 'boolean',default: false})
     isSuperUser!: boolean;
 
     @Column({type: 'boolean',default: false})
@@ -82,7 +79,7 @@ export class User {
 
     @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'avatarId' })
-    myJobFile?: MyJobFile;
+    avatar?: MyJobFile;
 
     @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
     refreshTokens: RefreshToken[];

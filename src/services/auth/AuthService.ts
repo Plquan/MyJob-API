@@ -8,7 +8,7 @@ import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
 import IRoleService from "@/interfaces/auth/IRoleService";
 import ICompanyService from "@/interfaces/company/ICompanyService";
-import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
+import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";
 import { VariableSystem } from "@/constants/VariableSystem";
 
@@ -25,7 +25,7 @@ export default class AuthService implements IAuthService {
       this._context = DatabaseService;
       this._companyService = CompanyService
     }
-
+    
     async refreshToken(oldRefreshToken: string, setTokensToCookie: (newAccessToken: string, newRefreshToken: string) => void): Promise<IResponseBase> {
      try {
      const isValid = this._jwtService.verifyRefreshToken(oldRefreshToken);    
@@ -481,7 +481,7 @@ export default class AuthService implements IAuthService {
           }
 
         const user = await this._context.UserRepo.createQueryBuilder("user")
-          .leftJoinAndSelect("user.myJobFile", "myJobFile") 
+          .leftJoinAndSelect("user.avatar", "avatar") 
           .where("user.id = :userId", { userId })
           .select([
             "user.id",
@@ -489,11 +489,9 @@ export default class AuthService implements IAuthService {
             "user.email",
             "user.isStaff",
             "user.roleName",
-            "myJobFile.url as avatar",
+            "avatar.url as avatar",
           ])
           .getOne();
-
-          console.log(user)
 
           if (!user) {
           return {

@@ -50,7 +50,6 @@ function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
       function: [],
       accessToken: accessToken,
     };
-    console.log(req.user)
     next();
   };
 }

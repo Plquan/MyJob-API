@@ -1,31 +1,48 @@
 import cloudinary from '@/ultils/Cloudinary';
-import DatabaseService from './DatabaseService';
-import { MyJobFile } from '@/entity/MyJobFile';
+import { v4 as uuidv4 } from 'uuid';
+import streamifier from 'streamifier';
+import type { UploadApiResponse } from 'cloudinary';
 
 export class CloudinaryService {
-  private readonly _context: DatabaseService;
+  static async uploadImage(
+    file: Express.Multer.File,
+    folder: string,
+    publicId?: string
+  ): Promise<UploadApiResponse> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          public_id: publicId || uuidv4(),
+        },
+        (error, result) => {
+          if (error) {
+            console.error('[Cloudinary Upload Error]', error);
+            return reject(error);
+          }
+          return resolve(result as UploadApiResponse);
+        }
+      );
 
-  constructor(databaseService: DatabaseService) {
-    this._context = databaseService;
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
   }
 
-  async uploadImage(filePath: string, userId: number, fileType: string): Promise<MyJobFile> {
-    try {
-      const uploadResponse = await cloudinary.uploader.upload(filePath, {
-        folder: 'myjob',
+  static async deleteImage(publicId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, (error, result) => {
+        if (error) {
+          console.error('[Cloudinary Delete Error]', error);
+          return reject(error);
+        }
+        if (result.result !== 'ok') {
+          return reject(new Error(`Delete failed: ${result.result}`));
+        }
+        resolve();
       });
-
-      const newFile = new MyJobFile();
-      newFile.userId = userId;
-      newFile.url = uploadResponse.secure_url;
-      newFile.fileType = fileType;
-
-      return await this._context.MyJobFileRepo.save(newFile);
-    } catch (error) {
-      console.error('Cloudinary upload failed:', error);
-      throw error;
-    }
+    });
   }
 }
 
 export default CloudinaryService;
+

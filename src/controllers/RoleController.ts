@@ -18,9 +18,9 @@ export class RoleController {
     }
 
     @GET()
-    @route("/get-groupRoles")
-    async getAllGroupRoles(req: Request, res: Response) {
-       const response = await this._roleService.getAllGroupRoles()
+    @route("/get-roles")
+    async getAllRoles(req: Request, res: Response) {
+       const response = await this._roleService.getAllRoles()
        return res.status(response.status).json(response) 
     }
 

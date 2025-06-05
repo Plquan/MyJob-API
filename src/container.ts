@@ -6,6 +6,7 @@ import CompanyService from "./services/manager/CompanyService";
 import DatabaseService from "./services/common/DatabaseService";
 import ProvinceService from "./services/manager/ProvinceService";
 import UserService from "./services/manager/UserService";
+import AccountService from "./services/manager/AccountService";
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -18,7 +19,8 @@ const container = createContainer({
     RoleService: asClass(RoleService).scoped(),
     CompanyService: asClass(CompanyService).scoped(),
     ProvinceService:asClass(ProvinceService).scoped(),
-    UserService:asClass(UserService).scoped()
+    UserService:asClass(UserService).scoped(),
+    AccountService:asClass(AccountService).scoped(),
 
   });
 container.resolve("JwtService");

@@ -1,30 +1,31 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-  } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { User } from './User';
 
-  @Entity('MyJobFile')
-  export class MyJobFile {
+@Entity('MyJobFile')
+export class MyJobFile {
 
-    @PrimaryGeneratedColumn()
-    id!: number;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-    @Column()
-    userId!:number;
+  @Column()
+  userId!:number;
 
-    @Column({ type: 'varchar', length: 512 })
-    url!: string;
+  @Column({ type: 'varchar', length: 255 })
+  publicId!: string;
 
-    @Column({ type: 'varchar', length: 50 })
-    fileType!: string;
+  @Column({ type: 'varchar', length: 255 })
+  url!: string; 
 
-    @CreateDateColumn()
-    createdAt!: Date;
+  @Column({ type: 'varchar', length: 50 })
+  fileType!: string;
 
-    @UpdateDateColumn()
-    updatedAt!: Date;
-  }
-  
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+
+  @OneToOne(() => User, (user) => user.avatar)
+  @JoinColumn({ name: 'userId' }) 
+  user?: User;
+}

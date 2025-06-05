@@ -14,27 +14,21 @@ export default class UserService implements IUserService {
     async getAllUsers(): Promise<IResponseBase> {
        try {
             const users = await this._context.UserRepo.createQueryBuilder("user")
-            .leftJoin("user.myJobFile", "myJobFile")
-            .leftJoin("user.groupRole", "groupRole")
-            .leftJoin("groupRole.role", "role")
+            .leftJoin("user.avatar", "avatar")
             .select([
                 'user.id AS "id"',
                 'user.email AS "email"',
                 'user.fullName AS "fullName"',
                 'user.isVerifyEmail AS "isVerifyEmail"',
                 'user.isActive AS "isActive"',
-                'user.isDeleted AS "isDeleted"',
                 'user.isSuperUser AS "isSuperUser"',     
                 'user.isStaff AS "isStaff"',       
                 'user.roleName AS "roleName"',
                 'user.createdAt AS "createdAt"',
                 'user.updatedAt AS "updatedAt"',
                 'user.avatarId AS "avatarId"',
-                'myJobFile.url AS "avatar"',
-                'json_agg(role.name) AS "groupRoles"',
+                'avatar.url AS "avatar"',
             ])
-            .groupBy('user.id')
-            .addGroupBy('myJobFile.url')
             .getRawMany();
             return {
                 status: 200,
@@ -59,27 +53,31 @@ export default class UserService implements IUserService {
     }  
     async getUserById(userId: number): Promise<IResponseBase> {
         try {
-            const user = await this._context.UserRepo.createQueryBuilder("user")
+           const user = await this._context.UserRepo.createQueryBuilder("user")
+                .leftJoin("user.avatar", "myJobFile")
                 .leftJoin("user.groupRole", "groupRole")
                 .leftJoin("groupRole.role", "role")
                 .select([
-                    "user.id",
-                    "user.email",
-                    "user.fullName",
-                    "user.avatarId",
-                    "user.isActive",
-                    "user.isVerifyEmail",
-                    "user.isDeleted",
-                    "user.isSuperUser",
-                    "user.isStaff",
-                    "user.roleName",
-                    "user.createdAt",
-                    "user.updatedAt",
+                    'user.id AS "id"',
+                    'user.email AS "email"',
+                    'user.fullName AS "fullName"',
+                    'user.isVerifyEmail AS "isVerifyEmail"',
+                    'user.isActive AS "isActive"',
+                    'user.isDeleted AS "isDeleted"',
+                    'user.isSuperUser AS "isSuperUser"',     
+                    'user.isStaff AS "isStaff"',       
+                    'user.roleName AS "roleName"',
+                    'user.createdAt AS "createdAt"',
+                    'user.updatedAt AS "updatedAt"',
+                    'user.avatarId AS "avatarId"',
+                    'myJobFile.url AS "avatar"',
+                    'json_agg(role.name) AS "groupRoles"',
                 ])
-                .addSelect("json_agg(role.name)", "roleNames")
                 .where("user.id = :id", { id: userId })
-                .groupBy("user.id")
+                .groupBy('user.id')
+                .addGroupBy('myJobFile.url')
                 .getRawOne();
+
 
             return {
                 status: 200,

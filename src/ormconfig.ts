@@ -14,7 +14,7 @@ const dataSource = new DataSource({
     migrationsRun: false,
     synchronize: false,
     poolSize: 10,
-    logging: ["query", "error", "info", "warn"],
+    // logging: ["query", "error", "info", "warn"],
 })
 
 export default dataSource;
