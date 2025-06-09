@@ -20,12 +20,12 @@ export default class AccountService implements IAccountService {
 
     async updateAvatar(file: Express.Multer.File): Promise<IResponseBase> {
         try {
-             const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
+            const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
             const userId = request?.user.id;
 
            if (!userId) {
             return {
-              status: 401,
+              status: StatusCodes.UNAUTHORIZED,
               success: false,
               message: "Bạn không có quyền truy cập",
               data: null,
@@ -54,9 +54,11 @@ export default class AccountService implements IAccountService {
             if (myJobFile) {
                  this._context.MyJobFileRepo.merge(myJobFile, newFile);
             }
-               await this._context.MyJobFileRepo.save(myJobFile || newFile);
-
-           
+            await this._context.MyJobFileRepo.save(myJobFile || newFile);
+            await this._context.UserRepo.update(
+                    { id: userId },
+                    { avatar: myJobFile || newFile }
+                    );
            return {
                 status: StatusCodes.OK,
                 success: true,
@@ -65,7 +67,6 @@ export default class AccountService implements IAccountService {
                 error: null
             };
            
-        
         } catch (error) {
             logger.error(error?.message);
             console.log(

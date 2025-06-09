@@ -5,9 +5,13 @@ ROLE_NAME: {
   CANDIDATE: 'CANDIDATE',
 },
 FileType: {
-    AVATAR: 'avatar',
-    DOCUMENT: 'document',
+  AVATAR: 'avatar',
+  DOCUMENT: 'document',
     // ...
+},
+Paging:{
+   PAGE:1,
+   LIMIT:10,
 }
 
 
