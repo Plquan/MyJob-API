@@ -1,38 +1,23 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./User";
-import { Permission } from "./Permission";
+import { Role } from "./Role";
 
-@Entity({ name: "GroupRoles" })
+@Entity({ name: "GroupRole" })
 export class GroupRole {
-  
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: "varchar", length: 1000})
-  name!: string;
+  @Column()
+  roleId!: number;
 
-  @Column({ type: "varchar", length: 1000})
-  displayName!: string;
+  @Column()
+  userId!:number
 
-  @Column({ type: "text", nullable: true })
-  description?: string;
+  @ManyToOne(() => User, (user) => user.groupRole)
+  @JoinColumn({ name: "userId" })
+  user!: User;
 
-  @Column({ type: "boolean", default: false })
-  isDeleted!: boolean;
-
-  @Column({ type: "boolean", default: true })
-  isActive!: boolean;
-
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
-  createdAt!: Date;
-
-  @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
-  updatedAt!: Date;
-
-  @OneToMany(() => User, (user) => user.groupRole)
-  users!: User[];
-
-  @OneToMany(() => Permission, (permission) => permission.groupRole)
-  permissions!: Permission[];
-  
+  @ManyToOne(() => Role, (role) => role.groupRole)
+  @JoinColumn({ name: "roleId" })
+  role!: Role;
 }

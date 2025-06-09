@@ -24,22 +24,26 @@ class Application {
   private initServer() {
     this.server = new Server();
   }
-  start() {
-    ((port = process.env.APP_PORT || 5001) => {
+    start() {
+      const port = process.env.APP_PORT || 5001;
       this.serverInstance = this.server.app.listen(port, () =>
         console.log(`Server is running at http://localhost:${port}`)
       );
+      // Đăng ký tất cả middleware trước
       this.server.app.use(cors(corsConfig));
       this.server.app.use(cookieParser());
       this.server.app.use(bodyParser.json());
       this.server.app.use(bodyParser.urlencoded({ extended: true }));
-      this.server.app.use(asyncLocalStorageMiddleware());
       this.server.app.use(scopePerRequest(container));
+      this.server.app.use(asyncLocalStorageMiddleware());
 
+      // Route handler
       this.server.app.use("/api", loadControllers("./controllers/*.*s", { cwd: __dirname }));
 
-    })();
-  }
+      // Sau khi đã gắn middleware xong, mới gọi listen()
+
+    }
+
   close() {
     this.serverInstance.close();
   }

@@ -9,7 +9,7 @@ import {
   } from 'typeorm';
   import { Resume } from './Resume';
   
-  @Entity('Languages')
+  @Entity('Language')
   export class Language {
   
     @PrimaryGeneratedColumn()
@@ -18,21 +18,20 @@ import {
     @Column()
     resumeId!:number;
   
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
-  
-    @Column({ type: 'smallint', nullable: false })
+
+    @Column({ type: 'smallint'})
     language!: number;
   
-    @Column({ type: 'smallint', nullable: false })
+    @Column({ type: 'smallint'})
     level!: number;  
   
     @ManyToOne(() => Resume, resume => resume.languages,{onDelete:'CASCADE'})
     @JoinColumn({ name: 'resumeId' })
     resume!: Resume;
-
   }
   

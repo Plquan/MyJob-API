@@ -3,22 +3,20 @@ import { Company } from "./Company";
 import { Candidate } from "./Candidate";
 import { JobPost } from "./JobPost";
 import { Resume } from "./Resume";
-@Entity({ name: 'Provinces' })
+import { District } from "./District";
+@Entity('Province')
 export class Province {
 
     @PrimaryGeneratedColumn()
     id!: number;
-
-    @Column({ type: "int" })
-    code!: number;
   
     @Column({ type: "varchar", length: 255,})
     name!: string;
 
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
 
     @OneToMany(() => Candidate, (candidate) => candidate.province)
@@ -32,4 +30,7 @@ export class Province {
 
     @OneToMany(() => Resume, resume => resume.province)
     resumes!: Resume[];
+
+    @OneToMany(() => District, (district) => district.province)
+    districts!: District[];
 }

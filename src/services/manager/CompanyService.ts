@@ -1,7 +1,7 @@
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import { ICompanyData } from "@/interfaces/company/CompanyDto";
 import ICompanyService from "@/interfaces/company/ICompanyService";
-import DatabaseService from "../database/DatabaseService";
+import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import slugify from "slugify";
 import logger from "@/helpers/logger";

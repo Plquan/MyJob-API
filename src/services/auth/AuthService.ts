@@ -2,15 +2,15 @@ import { ICandidateRegisterData, ICompanyRegisterData, ILoginData, IUserLoginRes
 import IAuthService from "@/interfaces/auth/IAuthService";
 import { ITokenPayload, IJWTService, IRefreshToken } from "@/interfaces/auth/IJwtService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import DatabaseService from "../database/DatabaseService";
+import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
 import IRoleService from "@/interfaces/auth/IRoleService";
-import EGroupRole from "@/constants/enums/GroupRole";
 import ICompanyService from "@/interfaces/company/ICompanyService";
-import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
+import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";
+import { VariableSystem } from "@/constants/VariableSystem";
 
 
 export default class AuthService implements IAuthService {
@@ -25,7 +25,7 @@ export default class AuthService implements IAuthService {
       this._context = DatabaseService;
       this._companyService = CompanyService
     }
-
+    
     async refreshToken(oldRefreshToken: string, setTokensToCookie: (newAccessToken: string, newRefreshToken: string) => void): Promise<IResponseBase> {
      try {
      const isValid = this._jwtService.verifyRefreshToken(oldRefreshToken);    
@@ -43,9 +43,11 @@ export default class AuthService implements IAuthService {
         }
          const tokenPayload: ITokenPayload = {
             userId: payload.userId,
-            userName: payload.userName,
-            role: payload.role,
+            fullName: payload.fullName,
             roleName: payload.roleName,
+            isStaff: payload.isStaff,
+            isSuperUser: payload.isSuperUser
+          
           };
         
          const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -84,7 +86,6 @@ export default class AuthService implements IAuthService {
             }
         }
     }
-
     async candidateLogin(userLogin: ILoginData, setTokensToCookie: (accessToken: string, refreshToken: string) => void): Promise<IResponseBase> {
     try {
           if (!userLogin.email || !userLogin.password) {
@@ -100,12 +101,10 @@ export default class AuthService implements IAuthService {
             }
           }
 
-          const user = await this._context.UserRepo
-            .createQueryBuilder("user")
-            .leftJoinAndSelect("user.groupRole", "groupRole")
-            .where("user.email = :email", { email: userLogin.email })
-            .andWhere("groupRole.name = :name", { name: EGroupRole.CANDIDATE })
-            .getOne();
+          const user = await this._context.UserRepo.findOne({
+            where: { email: userLogin.email , roleName:VariableSystem.ROLE_NAME.CANDIDATE},
+            
+          })
 
             if(!user){
               return {
@@ -147,15 +146,16 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          const userRoles = await this._roleService.getCurrentUserPermission(user.groupRoleId);
+          const userRoles = await this._roleService.getCurrentUserPermission(user.id);
           if (!userRoles.success) {
             return userRoles;
           }
           const tokenPayload: ITokenPayload = {
             userId: user.id,
-            userName: user.fullName,
-            role: userRoles.data,
-            roleName: user.groupRole.name,
+            fullName: user.fullName,
+            roleName: user.roleName,
+            isStaff: user.isStaff,
+            isSuperUser: user.isSuperUser
           };
           
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -192,7 +192,6 @@ export default class AuthService implements IAuthService {
             }
           }
     }
-
     async companyLogin(userLogin: ILoginData,setTokensToCookie: (accessToken: string, refreshToken: string) => void): Promise<IResponseBase> {
         try {
             if (!userLogin.email || !userLogin.password) {
@@ -208,8 +207,7 @@ export default class AuthService implements IAuthService {
               }
             }
             const user = await this._context.UserRepo.findOne({
-              where: { email: userLogin.email },
-              relations: ['groupRole']  
+              where: { email: userLogin.email, roleName:VariableSystem.ROLE_NAME.EMPLOYER },
             })
 
             if(!user){
@@ -250,16 +248,17 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          const userRoles = await this._roleService.getCurrentUserPermission(user.groupRoleId);
+          const userRoles = await this._roleService.getCurrentUserPermission(user.id);
           if (!userRoles.success) {
             return userRoles;
           }
     
           const tokenPayload: ITokenPayload = {
             userId: user.id,
-            userName: user.fullName,
-            role: userRoles.data,
-            roleName: user.groupRole.name,
+            fullName: user.fullName,
+            roleName: user.roleName,
+            isStaff: user.isStaff,
+            isSuperUser: user.isSuperUser
           };
 
           const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -328,32 +327,14 @@ export default class AuthService implements IAuthService {
                   }
                 }
             }     
-            const checkRole = await this._context.GroupRoleRepo.findOne({
-                  where: {
-                  name: EGroupRole.CANDIDATE
-                  }
-                })
-            if (!checkRole) {
-              return {
-                status: StatusCodes.BAD_REQUEST,
-                success: false,
-                message: "Đăng kí tài khoản không thành công",
-                data: null,
-                error: {
-                  message: "Phân quyền không tồn tại",
-                  errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
-                },
-              };
-            }
 
             const hashPassword = Extensions.hashPassword(candidateRegister.password);
-
             const registerData = {
               email: candidateRegister.email,
               fullName: candidateRegister.fullName,
               password: hashPassword,
               isActive:true,
-              groupRoleId: checkRole.id
+              roleName: VariableSystem.ROLE_NAME.CANDIDATE
             }
             const newUser = await this._context.UserRepo.save(registerData);
 
@@ -423,26 +404,7 @@ export default class AuthService implements IAuthService {
                   }
                 }
             }     
-
-            
-            const checkRole = await this._context.GroupRoleRepo.findOne({
-                  where: {
-                  name: EGroupRole.CANDIDATE
-                  }
-                })
-            if (!checkRole) {
-              return {
-                status: StatusCodes.BAD_REQUEST,
-                success: false,
-                message: "Đăng kí tài khoản nhà tuyển dụng không thành công",
-                data: null,
-                error: {
-                  message: "Phân quyền không tồn tại",
-                  errorDetail: "Phân quyền bạn chọn không tồn tại trên hệ thống",
-                },
-              };
-            }
-
+          
             const hashPassword = Extensions.hashPassword(companyRegister.password);
 
             const registerData = {
@@ -450,7 +412,7 @@ export default class AuthService implements IAuthService {
               fullName: companyRegister.fullName,
               password: hashPassword,
               isActive:true,
-              groupRoleId: checkRole.id
+              roleName: VariableSystem.ROLE_NAME.EMPLOYER,
             }
             const newUser = await this._context.UserRepo.save(registerData);
 
@@ -518,24 +480,25 @@ export default class AuthService implements IAuthService {
             };
           }
 
-          const user = await this._context.UserRepo.createQueryBuilder("user")
-          .innerJoin("user.groupRole", "groupRole")
+        const user = await this._context.UserRepo.createQueryBuilder("user")
+          .leftJoinAndSelect("user.avatar", "avatar") 
           .where("user.id = :userId", { userId })
-          .select(["user", "groupRole.name", "groupRole.displayName"])
+          .select([
+            "user.id",
+            "user.fullName",
+            "user.email",
+            "user.isStaff",
+            "user.roleName",
+            "avatar.url as avatar",
+          ])
           .getOne();
-
-          delete user?.password;
-          delete user?.isDeleted;
-          delete user?.updatedAt;
-          delete user?.createdAt;
-          delete user?.isVerified;
 
           if (!user) {
           return {
             status: StatusCodes.NOT_FOUND,
             success: false,
             message: "Không tìm thấy thông tin người dùng",
-            data: null,
+            data: user,
             error: {
               message: "Không tìm thấy thông tin người dùng",
               errorDetail: "Không tìm thấy thông tin người dùng",
@@ -546,7 +509,7 @@ export default class AuthService implements IAuthService {
         return {
         status: StatusCodes.OK,
         success: true,
-        data: user,
+        data: request?.user,
         error: null,
       };
 

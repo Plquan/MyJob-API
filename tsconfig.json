@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "rootDir": ".",
-    "types": ["node"],
+    "types": ["node", "express", "multer"],
     "paths": {
       "@/*": ["src/*"],
       "@interfaces/*": ["src/interfaces/*"],

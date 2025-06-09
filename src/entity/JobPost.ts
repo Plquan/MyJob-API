@@ -12,10 +12,10 @@ import { Career } from './Career';
 import { Company } from './Company';
 import { Province } from './Province';
 import { User } from './User';
-import { SavedJob } from './SavedJob';
-import { JobActivity } from './JobActivity';
+import { SavedJobPost } from './SavedJobPost';
+import { JobPostActivity } from './JobPostActivity';
   
-  @Entity({ name: 'JobPosts' }) 
+  @Entity({ name: 'JobPost' }) 
   export class JobPost {
 
     @PrimaryGeneratedColumn()
@@ -39,19 +39,19 @@ import { JobActivity } from './JobActivity';
     @Column({ type: 'varchar', length: 50,unique:true })
     slug!: string;
   
-    @Column({ type: 'datetime', nullable: true })
+    @Column({ type: 'timestamp', nullable: true })
     deadline?: Date;
   
     @Column({ type: 'int', nullable: true })
     quantity?: number;
   
-    @Column({ type: 'longtext', nullable: true })
+    @Column({ type: 'text', nullable: true })
     jobDescription?: string;
   
-    @Column({type: 'longtext', nullable: true })
+    @Column({type: 'text', nullable: true })
     jobRequirement?: string;
   
-    @Column({ type: 'longtext', nullable: true })
+    @Column({ type: 'text', nullable: true })
     benefitsEnjoyed?: string;
   
     @Column({ type: 'decimal', precision: 12, scale: 0})
@@ -93,15 +93,15 @@ import { JobActivity } from './JobActivity';
     @Column({ type: 'varchar', length: 15, nullable: true })
     contactPersonPhone?: string;
   
-    @Column({ type: 'bigint', default: () => 0 })
+    @Column({ type: 'bigint', default: '0' })
     views!: number;
 
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
-
+    
     @Column({type: 'int'})
     status!: number;
 
@@ -121,11 +121,11 @@ import { JobActivity } from './JobActivity';
     @JoinColumn({ name: "userId" })
     user!: User;
     
-    @OneToMany(() => SavedJob, savedJob => savedJob.jobPost)
-    savedJobs!: SavedJob[];
+    @OneToMany(() => SavedJobPost, savedJob => savedJob.jobPost)
+    savedJobPosts!: SavedJobPost[];
 
-    @OneToMany(() => JobActivity, (activity) => activity.jobPost)
-    jobActivities!: JobActivity[];
+    @OneToMany(() => JobPostActivity, (activity) => activity.jobPost)
+    jobPostActivities!: JobPostActivity[];
 
   }
   

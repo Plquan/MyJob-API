@@ -8,7 +8,7 @@ import {
     JoinColumn
   } from 'typeorm';
   import { Resume } from './Resume';
-  @Entity('Educations')
+  @Entity('Education')
   export class Education {
   
     @PrimaryGeneratedColumn()
@@ -35,10 +35,10 @@ import {
     @Column({ type: 'varchar', length: 500, nullable: true })
     description?: string;
 
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
   
     @ManyToOne(() => Resume, (resume) => resume.educations,{onDelete:'CASCADE'})

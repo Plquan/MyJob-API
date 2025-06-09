@@ -9,7 +9,7 @@ import {
 import { JobPost } from './JobPost';
 import { Resume } from './Resume';
   
-  @Entity('Careers') 
+  @Entity('Career') 
   export class Career {
 
     @PrimaryGeneratedColumn()
@@ -17,11 +17,11 @@ import { Resume } from './Resume';
      
     @Column({ type: 'varchar', length: 150 })
     name!: string;
-  
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
 
     @OneToMany(() => JobPost, jobPost => jobPost.career)

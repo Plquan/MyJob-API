@@ -1,0 +1,120 @@
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class Migration1748330191643 implements MigrationInterface {
+    name = 'Migration1748330191643'
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`CREATE TABLE "Function" ("id" SERIAL NOT NULL, "name" character varying(1000) NOT NULL, "displayName" character varying(1000) NOT NULL, "description" text, "functionLink" character varying(255) NOT NULL, "isDeleted" boolean NOT NULL DEFAULT false, "isActive" boolean NOT NULL DEFAULT true, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_1941666a1d109a6381a1fc2c5ce" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Permission" ("id" SERIAL NOT NULL, "roleId" integer NOT NULL, "functionId" integer NOT NULL, CONSTRAINT "PK_96c82eedac1e126a1aa90eb0285" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Language" ("id" SERIAL NOT NULL, "resumeId" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "language" smallint NOT NULL, "level" smallint NOT NULL, CONSTRAINT "PK_5abd0de610ce0c31b727f5547ec" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Experience" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "jobName" character varying(200) NOT NULL, "companyName" character varying(255) NOT NULL, "startDate" date NOT NULL, "endDate" date NOT NULL, "description" character varying(500), "resumeId" integer, CONSTRAINT "PK_6f59449d103b6663057b44bd49b" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Education" ("id" SERIAL NOT NULL, "resumeId" integer NOT NULL, "degreeName" character varying(200) NOT NULL, "major" character varying(255) NOT NULL, "trainingPlace" character varying(255) NOT NULL, "startDate" date NOT NULL, "completedDate" date, "description" character varying(500), "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_b5ec6bb0359d6573fe9b28f7129" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Certificate" ("id" SERIAL NOT NULL, "resumeId" integer NOT NULL, "name" character varying(200) NOT NULL, "trainingPlace" character varying(255) NOT NULL, "startDate" date NOT NULL, "expirationDate" date, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_8c14df817ac1c729821b1bc7e55" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "JobPostActivity" ("id" SERIAL NOT NULL, "jobPostId" integer NOT NULL, "resumeId" integer, "userId" integer NOT NULL, "fullName" character varying(100), "email" character varying(100), "phone" character varying(15), "status" integer NOT NULL, "isSentMail" boolean NOT NULL DEFAULT false, "isDeleted" boolean NOT NULL DEFAULT false, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_464e30e5760347cfa0ebe6f294b" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "AdvancedSkill" ("id" SERIAL NOT NULL, "resumeId" integer NOT NULL, "name" character varying(200) NOT NULL, "level" smallint NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_642ca93574fbef3ae3ea83cc031" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "MyJobFile" ("id" SERIAL NOT NULL, "userId" integer NOT NULL, "publicId" character varying(255) NOT NULL, "format" character varying(50) NOT NULL, "resourceType" character varying(50) NOT NULL, "uploadedAt" TIMESTAMP NOT NULL, "metadata" text, "version" character varying(20), "fileType" character varying(50) NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_cc27ede690e0d8b01738bacd7b1" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Resume" ("id" SERIAL NOT NULL, "candidateId" integer NOT NULL, "myJobFileId" integer, "title" character varying(200), "slug" character varying(50) NOT NULL, "description" text, "salary_min" numeric(12,0) NOT NULL, "salary_max" numeric(12,0) NOT NULL, "position" smallint, "typeOfWorkPlace" smallint, "experience" smallint, "academicLevel" smallint, "jobType" smallint, "is_active" boolean NOT NULL DEFAULT false, "type" character varying(10), "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "careerId" integer, "provinceId" integer, "userId" integer, CONSTRAINT "UQ_070a5d9af3c6c44633efbb020f5" UNIQUE ("slug"), CONSTRAINT "REL_1b2612bb2175943c82553f539a" UNIQUE ("myJobFileId"), CONSTRAINT "PK_436c1a0b41bee56e27fd7c1b3a1" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Career" ("id" SERIAL NOT NULL, "name" character varying(150) NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_3fa0044954e77a55a44cd475ea3" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "SavedJobPost" ("id" SERIAL NOT NULL, "jobPostId" integer NOT NULL, "userId" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_c3061625ba43b630f03e020d0aa" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "JobPost" ("id" SERIAL NOT NULL, "careerId" integer NOT NULL, "companyId" integer NOT NULL, "provinceId" integer NOT NULL, "userId" integer NOT NULL, "jobName" character varying(200) NOT NULL, "slug" character varying(50) NOT NULL, "deadline" TIMESTAMP, "quantity" integer, "jobDescription" text, "jobRequirement" text, "benefitsEnjoyed" text, "salaryMin" numeric(12,0) NOT NULL, "salaryMax" numeric(12,0) NOT NULL, "position" smallint NOT NULL, "typeOfWorkPlace" smallint NOT NULL, "experience" smallint NOT NULL, "academicLevel" smallint NOT NULL, "jobType" smallint NOT NULL, "isHot" boolean NOT NULL DEFAULT false, "isUrgent" boolean NOT NULL DEFAULT false, "isActive" boolean NOT NULL DEFAULT false, "contactPersonName" character varying(100), "contactPersonEmail" character varying(100), "contactPersonPhone" character varying(15), "views" bigint NOT NULL DEFAULT '0', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "status" integer NOT NULL, CONSTRAINT "UQ_ec6ae8711de17e3b82f214920cd" UNIQUE ("slug"), CONSTRAINT "PK_886770e1c9441bcc930ce8f3638" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "CompanyFollowed" ("id" SERIAL NOT NULL, "companyId" integer NOT NULL, "userId" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_2c2b85263d0c95a06d20af4f15e" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Company" ("id" SERIAL NOT NULL, "provinceId" integer, "userId" integer NOT NULL, "companyName" character varying(255) NOT NULL, "slug" character varying(300) NOT NULL, "companyEmail" character varying(100) NOT NULL, "companyPhone" character varying(15) NOT NULL, "websiteUrl" character varying(300), "taxCode" character varying(30) NOT NULL, "since" date, "fieldOperation" character varying(255), "description" text, "employeeSize" smallint, "address" character varying(100) NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_dda3bfd79b2bcfcfb0483e130a9" UNIQUE ("slug"), CONSTRAINT "REL_588758d1d2ae16fe80ba3a7777" UNIQUE ("userId"), CONSTRAINT "PK_b4993a6b3d3194767a59698298f" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "District" ("id" SERIAL NOT NULL, "provinceId" integer NOT NULL, "name" character varying(255) NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_3b21403f1d497f5985fdeb9388a" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Province" ("id" SERIAL NOT NULL, "name" character varying(255) NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_bfd94a1f97ddca1a17e68dfce96" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Candidate" ("id" SERIAL NOT NULL, "userId" integer NOT NULL, "provinceId" integer, "phone" character varying(15), "birthday" date, "gender" character varying(1), "maritalStatus" character varying(1), "address" character varying(255), CONSTRAINT "REL_1532ed5687fc8eda1e3ed829dc" UNIQUE ("userId"), CONSTRAINT "PK_a31a8947b7261f49bdd66d29004" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "RefreshToken" ("id" character varying(255) NOT NULL, "userId" integer NOT NULL, "token" text NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "expiresAt" TIMESTAMP NOT NULL, "revoked" boolean NOT NULL DEFAULT false, CONSTRAINT "PK_e5efef1572bd829464edc903d19" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "User" ("id" SERIAL NOT NULL, "avatarId" integer, "email" character varying(255) NOT NULL, "fullName" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "isVerifyEmail" boolean NOT NULL DEFAULT false, "isActive" boolean NOT NULL DEFAULT false, "isDeleted" boolean NOT NULL DEFAULT false, "isSuperUser" boolean NOT NULL DEFAULT false, "isStaff" boolean NOT NULL DEFAULT false, "roleName" character varying(10), "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_4a257d2c9837248d70640b3e36e" UNIQUE ("email"), CONSTRAINT "REL_ecd9b3ed5dd5d888d739063806" UNIQUE ("avatarId"), CONSTRAINT "PK_9862f679340fb2388436a5ab3e4" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "GroupRole" ("id" SERIAL NOT NULL, "roleId" integer NOT NULL, "userId" integer NOT NULL, CONSTRAINT "PK_d30558280b86a6af3bb4edee9cf" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Role" ("id" SERIAL NOT NULL, "name" character varying(1000) NOT NULL, "displayName" character varying(1000) NOT NULL, "description" text, "isDeleted" boolean NOT NULL DEFAULT false, "isActive" boolean NOT NULL DEFAULT true, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_9309532197a7397548e341e5536" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`ALTER TABLE "Permission" ADD CONSTRAINT "FK_e8a2dccf3798e28da508c705ecd" FOREIGN KEY ("functionId") REFERENCES "Function"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Permission" ADD CONSTRAINT "FK_01f02fb4f906d216152df403cae" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Language" ADD CONSTRAINT "FK_60e52f5af8201bd30b882eb52d3" FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Experience" ADD CONSTRAINT "FK_d5b7a2368be4ae945ce23a38665" FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Education" ADD CONSTRAINT "FK_0c2b543322e2429a05047b08daf" FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Certificate" ADD CONSTRAINT "FK_0879ce8c869efe525dfe906e1df" FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "JobPostActivity" ADD CONSTRAINT "FK_03d347e26a60371747b4a943e11" FOREIGN KEY ("jobPostId") REFERENCES "JobPost"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "JobPostActivity" ADD CONSTRAINT "FK_c975aea680c4c0fcc57e997fa3d" FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "JobPostActivity" ADD CONSTRAINT "FK_7605b4f08d7440d1268607a988c" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "AdvancedSkill" ADD CONSTRAINT "FK_c88330cc0080f2dba682510ee36" FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Resume" ADD CONSTRAINT "FK_381e60f6aee593c6bc5e8f79485" FOREIGN KEY ("careerId") REFERENCES "Career"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Resume" ADD CONSTRAINT "FK_c231fe0ab55579c85aac1084c5b" FOREIGN KEY ("provinceId") REFERENCES "Province"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Resume" ADD CONSTRAINT "FK_5435dff65d22b4069cba8b5700c" FOREIGN KEY ("candidateId") REFERENCES "Candidate"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Resume" ADD CONSTRAINT "FK_7c78c01be0fcf535cf876cd5240" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Resume" ADD CONSTRAINT "FK_1b2612bb2175943c82553f539a8" FOREIGN KEY ("myJobFileId") REFERENCES "MyJobFile"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "SavedJobPost" ADD CONSTRAINT "FK_9b331e0b20a9b7ab820612066f2" FOREIGN KEY ("jobPostId") REFERENCES "JobPost"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "SavedJobPost" ADD CONSTRAINT "FK_ec2e128a207857b69dbabed3190" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "JobPost" ADD CONSTRAINT "FK_dfb317c8487f4d0504565ef6992" FOREIGN KEY ("careerId") REFERENCES "Career"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "JobPost" ADD CONSTRAINT "FK_98033a1a4ef5d58a08e34088129" FOREIGN KEY ("companyId") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "JobPost" ADD CONSTRAINT "FK_577b0ad0d0fc4197694e55f3aeb" FOREIGN KEY ("provinceId") REFERENCES "Province"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "JobPost" ADD CONSTRAINT "FK_af3d24c358cfd55882965bebe22" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "CompanyFollowed" ADD CONSTRAINT "FK_864ce806b6c7e443e14a866c7b0" FOREIGN KEY ("companyId") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "CompanyFollowed" ADD CONSTRAINT "FK_5dcc064e994b0d5c7802bb3acd5" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Company" ADD CONSTRAINT "FK_588758d1d2ae16fe80ba3a7777f" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Company" ADD CONSTRAINT "FK_3f91e34b92e28a5a31532352bf3" FOREIGN KEY ("provinceId") REFERENCES "Province"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "District" ADD CONSTRAINT "FK_24c1d67018adecafa501fa0d653" FOREIGN KEY ("provinceId") REFERENCES "Province"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Candidate" ADD CONSTRAINT "FK_1532ed5687fc8eda1e3ed829dcc" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "Candidate" ADD CONSTRAINT "FK_ad8e348a8f48a7b001c16b6789e" FOREIGN KEY ("provinceId") REFERENCES "Province"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "RefreshToken" ADD CONSTRAINT "FK_3a4d068289fa6c2038fb2101e5b" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "User" ADD CONSTRAINT "FK_ecd9b3ed5dd5d888d739063806b" FOREIGN KEY ("avatarId") REFERENCES "MyJobFile"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "GroupRole" ADD CONSTRAINT "FK_7e4587f5b5d290f874af0ffe7d6" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "GroupRole" ADD CONSTRAINT "FK_57cd55b4a6c93f66831a0ff9512" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE "GroupRole" DROP CONSTRAINT "FK_57cd55b4a6c93f66831a0ff9512"`);
+        await queryRunner.query(`ALTER TABLE "GroupRole" DROP CONSTRAINT "FK_7e4587f5b5d290f874af0ffe7d6"`);
+        await queryRunner.query(`ALTER TABLE "User" DROP CONSTRAINT "FK_ecd9b3ed5dd5d888d739063806b"`);
+        await queryRunner.query(`ALTER TABLE "RefreshToken" DROP CONSTRAINT "FK_3a4d068289fa6c2038fb2101e5b"`);
+        await queryRunner.query(`ALTER TABLE "Candidate" DROP CONSTRAINT "FK_ad8e348a8f48a7b001c16b6789e"`);
+        await queryRunner.query(`ALTER TABLE "Candidate" DROP CONSTRAINT "FK_1532ed5687fc8eda1e3ed829dcc"`);
+        await queryRunner.query(`ALTER TABLE "District" DROP CONSTRAINT "FK_24c1d67018adecafa501fa0d653"`);
+        await queryRunner.query(`ALTER TABLE "Company" DROP CONSTRAINT "FK_3f91e34b92e28a5a31532352bf3"`);
+        await queryRunner.query(`ALTER TABLE "Company" DROP CONSTRAINT "FK_588758d1d2ae16fe80ba3a7777f"`);
+        await queryRunner.query(`ALTER TABLE "CompanyFollowed" DROP CONSTRAINT "FK_5dcc064e994b0d5c7802bb3acd5"`);
+        await queryRunner.query(`ALTER TABLE "CompanyFollowed" DROP CONSTRAINT "FK_864ce806b6c7e443e14a866c7b0"`);
+        await queryRunner.query(`ALTER TABLE "JobPost" DROP CONSTRAINT "FK_af3d24c358cfd55882965bebe22"`);
+        await queryRunner.query(`ALTER TABLE "JobPost" DROP CONSTRAINT "FK_577b0ad0d0fc4197694e55f3aeb"`);
+        await queryRunner.query(`ALTER TABLE "JobPost" DROP CONSTRAINT "FK_98033a1a4ef5d58a08e34088129"`);
+        await queryRunner.query(`ALTER TABLE "JobPost" DROP CONSTRAINT "FK_dfb317c8487f4d0504565ef6992"`);
+        await queryRunner.query(`ALTER TABLE "SavedJobPost" DROP CONSTRAINT "FK_ec2e128a207857b69dbabed3190"`);
+        await queryRunner.query(`ALTER TABLE "SavedJobPost" DROP CONSTRAINT "FK_9b331e0b20a9b7ab820612066f2"`);
+        await queryRunner.query(`ALTER TABLE "Resume" DROP CONSTRAINT "FK_1b2612bb2175943c82553f539a8"`);
+        await queryRunner.query(`ALTER TABLE "Resume" DROP CONSTRAINT "FK_7c78c01be0fcf535cf876cd5240"`);
+        await queryRunner.query(`ALTER TABLE "Resume" DROP CONSTRAINT "FK_5435dff65d22b4069cba8b5700c"`);
+        await queryRunner.query(`ALTER TABLE "Resume" DROP CONSTRAINT "FK_c231fe0ab55579c85aac1084c5b"`);
+        await queryRunner.query(`ALTER TABLE "Resume" DROP CONSTRAINT "FK_381e60f6aee593c6bc5e8f79485"`);
+        await queryRunner.query(`ALTER TABLE "AdvancedSkill" DROP CONSTRAINT "FK_c88330cc0080f2dba682510ee36"`);
+        await queryRunner.query(`ALTER TABLE "JobPostActivity" DROP CONSTRAINT "FK_7605b4f08d7440d1268607a988c"`);
+        await queryRunner.query(`ALTER TABLE "JobPostActivity" DROP CONSTRAINT "FK_c975aea680c4c0fcc57e997fa3d"`);
+        await queryRunner.query(`ALTER TABLE "JobPostActivity" DROP CONSTRAINT "FK_03d347e26a60371747b4a943e11"`);
+        await queryRunner.query(`ALTER TABLE "Certificate" DROP CONSTRAINT "FK_0879ce8c869efe525dfe906e1df"`);
+        await queryRunner.query(`ALTER TABLE "Education" DROP CONSTRAINT "FK_0c2b543322e2429a05047b08daf"`);
+        await queryRunner.query(`ALTER TABLE "Experience" DROP CONSTRAINT "FK_d5b7a2368be4ae945ce23a38665"`);
+        await queryRunner.query(`ALTER TABLE "Language" DROP CONSTRAINT "FK_60e52f5af8201bd30b882eb52d3"`);
+        await queryRunner.query(`ALTER TABLE "Permission" DROP CONSTRAINT "FK_01f02fb4f906d216152df403cae"`);
+        await queryRunner.query(`ALTER TABLE "Permission" DROP CONSTRAINT "FK_e8a2dccf3798e28da508c705ecd"`);
+        await queryRunner.query(`DROP TABLE "Role"`);
+        await queryRunner.query(`DROP TABLE "GroupRole"`);
+        await queryRunner.query(`DROP TABLE "User"`);
+        await queryRunner.query(`DROP TABLE "RefreshToken"`);
+        await queryRunner.query(`DROP TABLE "Candidate"`);
+        await queryRunner.query(`DROP TABLE "Province"`);
+        await queryRunner.query(`DROP TABLE "District"`);
+        await queryRunner.query(`DROP TABLE "Company"`);
+        await queryRunner.query(`DROP TABLE "CompanyFollowed"`);
+        await queryRunner.query(`DROP TABLE "JobPost"`);
+        await queryRunner.query(`DROP TABLE "SavedJobPost"`);
+        await queryRunner.query(`DROP TABLE "Career"`);
+        await queryRunner.query(`DROP TABLE "Resume"`);
+        await queryRunner.query(`DROP TABLE "MyJobFile"`);
+        await queryRunner.query(`DROP TABLE "AdvancedSkill"`);
+        await queryRunner.query(`DROP TABLE "JobPostActivity"`);
+        await queryRunner.query(`DROP TABLE "Certificate"`);
+        await queryRunner.query(`DROP TABLE "Education"`);
+        await queryRunner.query(`DROP TABLE "Experience"`);
+        await queryRunner.query(`DROP TABLE "Language"`);
+        await queryRunner.query(`DROP TABLE "Permission"`);
+        await queryRunner.query(`DROP TABLE "Function"`);
+    }
+
+}

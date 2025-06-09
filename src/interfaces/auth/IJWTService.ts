@@ -1,10 +1,12 @@
 export interface ITokenPayload {
     userId: number;
     tokenId?:string,
-    userName: string;
-    role: string;
+    fullName: string;
     roleName: string;
+    isStaff: boolean;
+    isSuperUser: boolean;
   }
+
   export interface ITokenResponse {
     tokenId:string
     token: string

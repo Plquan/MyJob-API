@@ -4,7 +4,6 @@ import { Entity,
          CreateDateColumn,
          UpdateDateColumn, 
          JoinColumn,
-         ManyToOne,
          OneToOne,
          OneToMany
         } from "typeorm";
@@ -13,20 +12,17 @@ import { Candidate } from "./Candidate";
 import { Company } from "./Company";
 import { JobPost } from "./JobPost";
 import { Resume } from "./Resume";
-import { SavedJob } from "./SavedJob";
+import { SavedJobPost } from "./SavedJobPost";
 import { CompanyFollowed } from "./CompanyFollowed";
-import { JobActivity } from "./JobActivity";
-import { MediaFile } from "./MediaFile";
+import { JobPostActivity } from "./JobPostActivity";
 import { RefreshToken } from "./RefreshToken";
-@Entity({ name: 'Users' })
+import { MyJobFile } from "./MyJobFile";
+@Entity({ name: 'User' })
 export class User {
     
     @PrimaryGeneratedColumn()
     id!: number;
     
-    @Column()
-    groupRoleId!:number;
-
     @Column({nullable:true})
     avatarId?:number;
 
@@ -40,23 +36,25 @@ export class User {
     password!: string;
 
     @Column({ default: false })
-    isVerified!: boolean;
+    isVerifyEmail!: boolean;
 
     @Column({type: 'boolean', default: false})
     isActive!: boolean;
 
     @Column({type: 'boolean',default: false})
-    isDeleted!: boolean;
+    isSuperUser!: boolean;
 
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @Column({type: 'boolean',default: false})
+    isStaff!: boolean;
+
+    @Column({ type: 'varchar', length: 10, nullable: true })
+    roleName!: string;
+ 
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
-
-    @ManyToOne(() => GroupRole,(groupRole) => groupRole.users)
-    @JoinColumn({ name: "groupRoleId" })
-    groupRole!: GroupRole;
 
     @OneToOne(() => Candidate, (candidate) => candidate.user)
     candidate!: Candidate;
@@ -70,19 +68,22 @@ export class User {
     @OneToMany(() => Resume, resume => resume.user)
     resumes!: Resume[];
 
-    @OneToMany(() => SavedJob, savedJob => savedJob.user)
-    savedJobs!: SavedJob[];
+    @OneToMany(() => SavedJobPost, SavedJobPost => SavedJobPost.user)
+    savedJobPosts!: SavedJobPost[];
 
     @OneToMany(() => CompanyFollowed, companyFollowed => companyFollowed.user)
     followedCompanies!: CompanyFollowed[];
 
-    @OneToMany(() => JobActivity, (activity) => activity.user)
-    jobActivities!: JobActivity[];
+    @OneToMany(() => JobPostActivity, (activity) => activity.user)
+    jobActivities!: JobPostActivity[];
 
-    @OneToOne(() => MediaFile, { nullable: true, onDelete: 'SET NULL' })
+    @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'avatarId' })
-    mediaFile?: MediaFile;
+    avatar?: MyJobFile;
 
     @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
     refreshTokens: RefreshToken[];
+
+    @OneToMany(() => GroupRole, (groupRole) => groupRole.user)
+    groupRole!: GroupRole[];
 }

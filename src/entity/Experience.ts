@@ -9,18 +9,18 @@ import {
   } from 'typeorm';
   import { Resume } from './Resume';
   
-  @Entity('Experiences')
+  @Entity('Experience')
   export class Experience {
   
     @PrimaryGeneratedColumn()
     id!: number;
   
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP"})
+    @UpdateDateColumn()
     updatedAt!: Date;
-  
+
     @Column({ type: 'varchar', length: 200, nullable: false })
     jobName!: string;
   

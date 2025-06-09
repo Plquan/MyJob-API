@@ -1,9 +1,9 @@
 import IRoleService from "@/interfaces/auth/IRoleService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import DatabaseService from "../database/DatabaseService";
+import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import logger from "@/helpers/logger";
-import { permission } from "process";
+import { Functions } from "@/constants/Functions";
 
 export default class RoleService implements IRoleService {
     private readonly _context: DatabaseService
@@ -12,32 +12,36 @@ export default class RoleService implements IRoleService {
         this._context = DatabaseService
     }
 
-
     getUserRoles(roleId: string): Promise<IResponseBase> {
         throw new Error("Method not implemented.");
     }
-   async getCurrentUserPermission(roleId: number): Promise<IResponseBase> {
+
+   async getCurrentUserPermission(userId: number): Promise<IResponseBase> {
         try {
-            const userPerMissions = await this._context.FunctionRepo.createQueryBuilder("function")
+          const userPermissions = await this._context.FunctionRepo.createQueryBuilder("function")
+            .distinct(true)
             .innerJoin("function.permissions", "permission")
-            .where("permission.groupRoleId = :roleId", { roleId })
-            .andWhere("permission.isDeleted = :isDeleted", { isDeleted: false })
-            .andWhere("permission.isActive = :isActive", { isActive: true })
+            .innerJoin("permission.role", "role")
+            .innerJoin("role.groupRole", "groupRole")
+            .where("groupRole.userId = :userId", { userId })
             .andWhere("function.isActive = :isActive", { isActive: true })
             .andWhere("function.isDeleted = :isDeleted", { isDeleted: false })
-            .select(["function.id", "function.name", "function.functionLink"])
+            .select([
+              "function.id",
+              "function.name",
+              "function.displayName",
+            ])
             .getMany();
-
             return {
                 status: StatusCodes.OK,
                 success: true,
-                data: userPerMissions,
+                data: userPermissions,
                 error: null,
               };
         } catch (error) {
             logger.error(error?.message);
             console.log(
-                `Error in AuthService - method getCurrentUserPermission() at ${new Date().getTime()} with message ${error?.message}`
+                `Error in RoleService - method getCurrentUserPermission() at ${new Date().getTime()} with message ${error?.message}`
             );
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -53,11 +57,7 @@ export default class RoleService implements IRoleService {
     }
     async getGroupRole(roleName: string): Promise<IResponseBase> {
         try {
-            const groupRole = await this._context.GroupRoleRepo.findOne({
-                where: {
-                 name: roleName
-                }
-              })
+            const groupRole = await this._context.GroupRoleRepo.find()
               if (!groupRole) {
                 return {
                   status: StatusCodes.NOT_FOUND,
@@ -94,8 +94,65 @@ export default class RoleService implements IRoleService {
         }
     }
 
-    getAllGroupRoles(): Promise<IResponseBase> {
-        throw new Error("Method not implemented.");
+    async getAllRoles(): Promise<IResponseBase> {   
+    try {
+          const roles = await this._context.RoleRepo.find({
+            where: {
+              isActive: true,
+              isDeleted: false,
+            },
+            select: ["id", "name"],
+          });
+
+          return {
+            status: StatusCodes.ACCEPTED,
+            success:true,
+            message:"Lấy danh sách vai trò thành công",
+            data: roles         
+          }
+
+        } catch (error) {
+           logger.error(error?.message);
+            console.log(
+                `Error in RoleService - method getAllRoles() at ${new Date().getTime()} with message ${error?.message}`
+            );
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: error.message,
+                data: null,
+                error: {
+                message: "Internal Server Error",
+                errorDetail: "Internal Server Error",
+                },
+            };
+        }
     }
-    
+
+    async getAllFunctions(): Promise<IResponseBase> {
+    try { 
+      return {
+        status: StatusCodes.ACCEPTED,
+        success: false,
+        message: "Lấy danh sách quyền thành công",
+        data: Functions,
+      }
+
+    } catch (error) {
+        logger.error(error?.message);
+            console.log(
+                `Error in RoleService - method getAllFunctions() at ${new Date().getTime()} with message ${error?.message}`
+            );
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: error?.message,
+                data: null,
+                error: {
+                message: "Internal Server Error",
+                errorDetail: "Internal Server Error",
+                },
+            }
+    } 
+  }  
 }

@@ -49,14 +49,10 @@ export interface IFunctionByRole {
 }
 
 export interface ICurrentUser {
-  id: string;
+  id: number;
+  fullName: string;
   roleName: string;
-  role: [
-    {
-      id: number;
-      name: string;
-      displayName: string;
-    }
-  ];
+  function: string[]
+  isSuperUser:boolean
   accessToken: string;
 };
