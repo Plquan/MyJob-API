@@ -1,5 +1,5 @@
 import { IResponseBase } from "../base/IResponseBase";
-import { ICreateRoleData, IFunction, IUpdateRoleData } from "./RoleDto";
+import { ICreateRoleData, IFunction, IUpdateRoleData, IUpdateRolePermission } from "./RoleDto";
 
 export default interface IRoleService {
   getCurrentUserPermission(roleId: number): Promise<IResponseBase>
@@ -8,5 +8,6 @@ export default interface IRoleService {
   createRole(data:ICreateRoleData):Promise<IResponseBase>
   updateRole(data: IUpdateRoleData): Promise<IResponseBase>
   deleteRole(roleId: number): Promise<IResponseBase>
-  updateRolePermissions(roleId: number, functionIds: number[]): Promise<IResponseBase>
+  updateRolePermissions(data:IUpdateRolePermission): Promise<IResponseBase>
+  getRoleById(roleId: number): Promise<IResponseBase>
 }

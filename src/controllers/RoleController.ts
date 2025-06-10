@@ -46,4 +46,11 @@ export class RoleController {
         const response = await this._roleService.deleteRole(roleId);
         return res.status(response.status).json(response);
     }
+    @POST()
+    @route("/update-role-permissions")
+    async updateRolePermissions(req: Request, res: Response) {
+        const data = req.body;
+        const response = await this._roleService.updateRolePermissions(data);
+        return res.status(response.status).json(response);
+    }
 }

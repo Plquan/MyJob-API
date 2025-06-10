@@ -3,13 +3,65 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import logger from "@/helpers/logger";
-import { ICreateRoleData, IUpdateRoleData } from "@/interfaces/role/RoleDto";
+import { ICreateRoleData, IUpdateRoleData, IUpdateRolePermission } from "@/interfaces/role/RoleDto";
+import { Permission } from "@/entity/Permission";
+import { In } from "typeorm";
 
 export default class RoleService implements IRoleService {
     private readonly _context: DatabaseService
 
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
+    }
+    async getRoleById(roleId: number): Promise<IResponseBase> {
+      try {
+          const role = await this._context.RoleRepo
+            .createQueryBuilder("role")
+            .leftJoin("role.permissions", "permission")
+            .leftJoin("permission.function", "function")
+            .select([
+              "role.id as id",
+              "role.name as name",
+              "role.description as description",
+              'json_agg(function.id) as "functionIds"'
+            ])
+            .where("role.id = :id", { id: roleId })
+            .groupBy("role.id")
+            .getRawOne();
+
+            if(!role){
+              return {
+                status: StatusCodes.BAD_REQUEST,
+                success: false,
+                message: "Vai trò không tồn tại",
+                data: null,
+                error: {
+                  message: "Vai trò không tồn tại",
+                  errorDetail: "Không tìm thấy vai trò",
+                }
+              }
+            }
+            return {
+              status: StatusCodes.OK,
+              success: true,
+              message: "Lấy thông tin vai trò thành công",
+              data: role,
+            } 
+       } catch (error) {
+          logger.error(error?.message);
+            console.error(`Error in RoleService.getRoleById at ${new Date().toISOString()}:`, error);
+
+            return {
+              status: StatusCodes.INTERNAL_SERVER_ERROR,
+              success: false,
+              message: "Lỗi hệ thống",
+              data: null,
+              error: {
+                message: "Lỗi hệ thống",
+                errorDetail: error?.message || "Unknown error"
+              }
+            }
+      }
     }
     async deleteRole(roleId: number): Promise<IResponseBase> {
       try {
@@ -41,7 +93,7 @@ export default class RoleService implements IRoleService {
               }
             };
           }
-          
+
           return {
             status: StatusCodes.OK,
             success: true,
@@ -58,7 +110,7 @@ export default class RoleService implements IRoleService {
               return {
                   status: StatusCodes.INTERNAL_SERVER_ERROR,
                   success: false,
-                  message: error?.message,
+                  message: "Internal Server Error",
                   data: null,
                   error: {
                   message: "Internal Server Error",
@@ -86,13 +138,28 @@ export default class RoleService implements IRoleService {
         }
 
         this._context.RoleRepo.merge(role, data);
-        await this._context.RoleRepo.save(role);
+        await this._context.RoleRepo.save(role)
+
+        const updatedRole = await this.getRoleById(role.id)
+
+        if(!updatedRole.success) {
+          return {
+            status: StatusCodes.BAD_REQUEST,
+            success: false,
+            message: "Cập nhật vai trò thất bại",
+            data: null,
+            error: {
+              message: "Cập nhật vai trò thất bại",
+              errorDetail: "Không tìm thấy vai trò",
+            }
+          }
+        }
 
         return {
           status: StatusCodes.OK,
           success: true,
           message: "Cập nhật vai trò thành công",
-          data: role,
+          data: updatedRole.data,
         }
 
       } catch (error) {
@@ -103,13 +170,13 @@ export default class RoleService implements IRoleService {
               return {
                   status: StatusCodes.INTERNAL_SERVER_ERROR,
                   success: false,
-                  message: error?.message,
+                  message: "Internal Server Error",
                   data: null,
                   error: {
                   message: "Internal Server Error",
                   errorDetail: "Internal Server Error",
                   },
-              }
+            }
       }
     }
     async createRole(data:ICreateRoleData): Promise<IResponseBase> {
@@ -209,7 +276,18 @@ export default class RoleService implements IRoleService {
     }
     async getAllRoles(): Promise<IResponseBase> {   
        try {
-          const roles = await this._context.RoleRepo.find()
+            const roles = await this._context.RoleRepo
+              .createQueryBuilder("role")
+              .leftJoin("role.permissions", "permission")
+              .leftJoin("permission.function", "function")
+              .select([
+                "role.id as id",
+                "role.name as name",
+                "role.description as description",
+                'json_agg(function.id) as "functionId"',    
+              ])
+              .groupBy("role.id")
+              .getRawMany();
 
           return {
             status: StatusCodes.OK,
@@ -219,51 +297,134 @@ export default class RoleService implements IRoleService {
           }
 
         } catch (error) {
-           logger.error(error?.message);
-            console.log(
-                `Error in RoleService - method getAllRoles() at ${new Date().getTime()} with message ${error?.message}`
-            )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: error.message,
-                data: null,
-                error: {
-                message: "Internal Server Error",
-                errorDetail: "Internal Server Error",
-                }
+            logger.error(error?.message);
+          console.error(`Error in RoleService.getAllRoles at ${new Date().toISOString()}:`, error);
+
+          return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            success: false,
+            message: "Lỗi hệ thống",
+            data: null,
+            error: {
+              message: "Lỗi hệ thống",
+              errorDetail: error?.message || "Unknown error"
             }
+          };
         }
     }
     async getAllFunctions(): Promise<IResponseBase> {
     try { 
+
       const functions = await this._context.FunctionRepo.find()
 
       return {
-        status: StatusCodes.ACCEPTED,
+        status: StatusCodes.OK,
         success: false,
         message: "Lấy danh sách quyền thành công",
         data: functions,
       }
 
-    } catch (error) {
-        logger.error(error?.message);
-            console.log(
-                `Error in RoleService - method getAllFunctions() at ${new Date().getTime()} with message ${error?.message}`
-            );
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: error?.message,
-                data: null,
-                error: {
-                message: "Internal Server Error",
-                errorDetail: "Internal Server Error",
-                },
+     } catch (error) {
+         logger.error(error?.message);
+          console.error(`Error in RoleService.getAllFunctions at ${new Date().toISOString()}:`, error);
+
+          return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            success: false,
+            message: "Lỗi hệ thống",
+            data: null,
+            error: {
+              message: "Lỗi hệ thống",
+              errorDetail: error?.message || "Unknown error"
             }
-    } 
+          }
+     } 
     }  
-    updateRolePermissions(roleId: number, functionIds: number[]): Promise<IResponseBase> {
-      throw new Error("Method not implemented.");
+    async updateRolePermissions(data: IUpdateRolePermission): Promise<IResponseBase> {
+      try {
+        const { roleId, functionIds } = data;
+
+        const role = await this._context.RoleRepo.findOne({ where: { id: roleId } });
+        if (!role) {
+          return {
+            status: StatusCodes.BAD_REQUEST,
+            success: false,
+            message: "Vai trò không tồn tại",
+            data: null,
+            error: {
+              message: "Vai trò không tồn tại",
+              errorDetail: "Không tìm thấy vai trò",
+            }
+          };
+        }
+
+        const currentPermissions = await this._context.PermissionRepo.find({
+          where: { roleId },
+          select: ["functionId"]
+        });
+        const currentFunctionIds = currentPermissions.map(p => p.functionId);
+
+        const functionIdsToAdd = functionIds.filter(id => !currentFunctionIds.includes(id));
+        const functionIdsToRemove = currentFunctionIds.filter(id => !functionIds.includes(id));
+
+        const dataSource = this._context.getDataSource();
+        await dataSource.transaction(async (manager) => {
+          if (functionIdsToRemove.length > 0) {
+            await manager.delete(Permission, {
+              roleId,
+              functionId: In(functionIdsToRemove),
+            });
+          }
+
+          if (functionIdsToAdd.length > 0) {
+            const newPermissions = functionIdsToAdd.map(fid => {
+              const perm = new Permission();
+              perm.roleId = roleId;
+              perm.functionId = fid;
+              return perm;
+            });
+            await manager.save(Permission, newPermissions);
+          }
+        })
+
+         const updatedRole = await this.getRoleById(data.roleId)
+
+          if(!updatedRole.success) {
+            return {
+              status: StatusCodes.BAD_REQUEST,
+              success: false,
+              message: "Cập nhật vai trò thất bại",
+              data: null,
+              error: {
+                message: "Cập nhật vai trò thất bại",
+                errorDetail: "Không tìm thấy vai trò",
+              }
+            }
+          }
+
+        return {
+          status: StatusCodes.OK,
+          success: true,
+          message: "Cập nhật quyền thành công",
+          data: updatedRole.data,
+        };
+
+        } catch (error) {
+          logger.error(error?.message);
+          console.error(`Error in RoleService.updateRolePermissions at ${new Date().toISOString()}:`, error);
+
+          return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            success: false,
+            message: "Lỗi hệ thống",
+            data: null,
+            error: {
+              message: "Lỗi hệ thống",
+              errorDetail: error?.message || "Unknown error"
+            }
+          }
+        }
     }
+
+   
 }

@@ -22,3 +22,7 @@ export interface IUpdateRoleData {
   name: string;
   description?: string;
 }
+export interface IUpdateRolePermission{
+  roleId: number;
+  functionIds: number[];
+}
