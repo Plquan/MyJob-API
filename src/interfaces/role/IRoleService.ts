@@ -10,4 +10,5 @@ export default interface IRoleService {
   deleteRole(roleId: number): Promise<IResponseBase>
   updateRolePermissions(data:IUpdateRolePermission): Promise<IResponseBase>
   getRoleById(roleId: number): Promise<IResponseBase>
+  updateUserGroupRole(userId:number,groupRole: number[]):Promise<IResponseBase>
 }

@@ -8,12 +8,16 @@ import { ICreateUser, IUpdateUser, IUserFilter } from "@/interfaces/user/UserDto
 import Extensions from "@/ultils/Extensions";
 import { User } from "@/entity/User";
 import { SelectQueryBuilder } from "typeorm";
+import IRoleService from "@/interfaces/role/IRoleService";
+import { GroupRole } from "@/entity/GroupRole";
 
 export default class UserService implements IUserService {
     private readonly _context: DatabaseService
+    private readonly _roleSerive: IRoleService;
 
-    constructor(DatabaseService: DatabaseService) {
-        this._context = DatabaseService;
+    constructor(DatabaseService: DatabaseService, RoleService: IRoleService) {
+        this._context = DatabaseService
+        this._roleSerive = RoleService;
     }
 
     async getAllUsers(filter:IUserFilter): Promise<IResponseBase> {
@@ -112,7 +116,7 @@ export default class UserService implements IUserService {
     async getUserById(userId: number): Promise<IResponseBase> {
         try {
            const user = await this._context.UserRepo.createQueryBuilder("user")
-                .leftJoin("user.avatar", "myJobFile")
+                .leftJoin("user.avatar", "avatar")
                 .leftJoin("user.groupRole", "groupRole")
                 .leftJoin("groupRole.role", "role")
                 .select([
@@ -126,12 +130,12 @@ export default class UserService implements IUserService {
                     'user.roleName AS "roleName"',
                     'user.createdAt AS "createdAt"',
                     'user.updatedAt AS "updatedAt"',
-                    'myJobFile.url AS "avatar"',
+                    'avatar.url AS "avatar"',
                     'json_agg(role.name) AS "groupRoles"',
                 ])
                 .where("user.id = :id", { id: userId })
                 .groupBy('user.id')
-                .addGroupBy('myJobFile.url')
+                .addGroupBy('avatar.url')
                 .getRawOne();
 
             return {
@@ -228,54 +232,69 @@ export default class UserService implements IUserService {
     }
 
     async updateUser(data: IUpdateUser): Promise<IResponseBase> {
+
+      const dataSource = this._context.getDataSource();
+
         try {
-            const user  = await this._context.UserRepo.findOne({
-                where: { id: data.id }
-            })
-            if (!user) {
-                return {
-                    status: StatusCodes.NOT_FOUND,
-                    success: false,
-                    message: "Người dùng không tồn tại",
-                    data: null,
-                    error: {
-                        message: "User not found",
-                        errorDetail: "User not found"
+             await dataSource.transaction(async (manager) => {
+                const userRepo = manager.getRepository(User);
+                const groupRoleRepo = manager.getRepository(GroupRole);
+
+                const user = await userRepo.findOne({ where: { id: data.id } });
+
+                if (!user) {
+                    throw {
+                        status: StatusCodes.NOT_FOUND,
+                        success: false,
+                        message: "Người dùng không tồn tại",
+                        error: {
+                            message: "User not found",
+                            errorDetail: "User not found"
+                        }
                     }
                 }
-            }
-            const updateUserData = {
-                email: data.email,
-                fullName: data.fullName,
-                isVerifyEmail: data.isVerifyEmail,
-                isActive: data.isActive,
-                isSuperUser: data.isSuperUser,
-                isStaff: data.isStaff,
-                ...(data.password && { password: data.password }) 
-            }
 
-            this._context.UserRepo.merge(user, updateUserData);
-            await this._context.UserRepo.save(user);
+                const updateUserData = {
+                    email: data.email,
+                    fullName: data.fullName,
+                    isVerifyEmail: data.isVerifyEmail,
+                    isActive: data.isActive,
+                    isSuperUser: data.isSuperUser,
+                    isStaff: data.isStaff,
+                    ...(data.password && { password: data.password })
+                };
 
-            const updatedUser = await this.getUserById(data.id);
+                userRepo.merge(user, updateUserData);
+                await userRepo.save(user);
 
-             if (!updatedUser.success || !updatedUser.data) {
+                await groupRoleRepo.delete({ userId: data.id });
+
+                if (data.groupRoles?.length > 0) {
+                    const newGroupRoles = data.groupRoles.map(roleId => ({
+                        userId: data.id,
+                        roleId
+                    }))
+                    await groupRoleRepo.save(newGroupRoles);
+                }       
+            })
+             const updatedUser = await this.getUserById(data.id)
+                if(!updatedUser.success || !updatedUser.data) {
                 return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
-                data: null,
-                error: {
-                    message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                    errorDetail: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
-                },
+                    status: StatusCodes.INTERNAL_SERVER_ERROR,
+                    success: false,
+                    message: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
+                    data: null,
+                    error: {
+                        message: ErrorMessages.INTERNAL_SERVER_ERROR,
+                        errorDetail: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
+                    }
                 }
-            }
+                }
             return {
-                status: 200,
+                status: StatusCodes.OK,
                 success: true,
                 message: "Cập nhật thông tin người dùng thành công",
-                data: user,
+                data: updatedUser.data
             };
 
         } catch (error) {
@@ -290,7 +309,7 @@ export default class UserService implements IUserService {
                 message: ErrorMessages.INTERNAL_SERVER_ERROR,
                 errorDetail: error.message,
             },
-            };
+            }
         }
     }
     

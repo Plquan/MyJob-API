@@ -6,6 +6,7 @@ import logger from "@/helpers/logger";
 import { ICreateRoleData, IUpdateRoleData, IUpdateRolePermission } from "@/interfaces/role/RoleDto";
 import { Permission } from "@/entity/Permission";
 import { In } from "typeorm";
+import { GroupRole } from "@/entity/GroupRole";
 
 export default class RoleService implements IRoleService {
     private readonly _context: DatabaseService
@@ -13,6 +14,7 @@ export default class RoleService implements IRoleService {
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
+  
     async getRoleById(roleId: number): Promise<IResponseBase> {
       try {
           const role = await this._context.RoleRepo
@@ -361,7 +363,7 @@ export default class RoleService implements IRoleService {
         const currentPermissions = await this._context.PermissionRepo.find({
           where: { roleId },
           select: ["functionId"]
-        });
+        })
         const currentFunctionIds = currentPermissions.map(p => p.functionId);
 
         const functionIdsToAdd = functionIds.filter(id => !currentFunctionIds.includes(id));
@@ -425,6 +427,52 @@ export default class RoleService implements IRoleService {
           }
         }
     }
+    async updateUserGroupRole(userId: number, groupRole: number[]): Promise<IResponseBase> {
+    try {
+      const user = await this._context.UserRepo.findOne({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return {
+          status: StatusCodes.BAD_REQUEST,
+          success: false,
+          message: "Người dùng không tồn tại",
+          data: null,
+          error: {
+            message: "Người dùng không tồn tại",
+            errorDetail: "Không tìm thấy người dùng",
+          }
+        };
+      }
+
+
+
+      return {
+        status: StatusCodes.OK,
+        success: true,
+        message: "Cập nhật nhóm quyền thành công",
+        data: user
+      };
+
+    } catch (error) {
+      logger.error(error);
+      console.error(`Error in RoleService.updateUserGroupRole at ${new Date().toISOString()}:`, error);
+
+      return {
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: "Lỗi hệ thống",
+        data: null,
+        error: {
+          message: "Lỗi hệ thống",
+          errorDetail: error?.message || "Unknown error"
+        }
+      };
+    }
+    }
+
+    
 
    
 }
