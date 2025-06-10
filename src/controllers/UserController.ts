@@ -1,9 +1,10 @@
 import IUserService from "@/interfaces/user/IUserService";
-import { DELETE, GET, POST, route } from "awilix-express";
+import { DELETE, GET, POST, PUT, route } from "awilix-express";
 import { Response,Request } from "express";
 
 @route('/user')
 export class UserController {
+    
     private readonly _userService: IUserService
 
     constructor(UserService: IUserService) {
@@ -26,14 +27,7 @@ export class UserController {
         return res.status(response.status).json(response);
     }
 
-    // @POST()
-    // @route("/update-user-avatar/:userId")
-    // async updateUserAvatar(req: Request, res: Response) {
-    //     const file = req.file;
-    //     const response = await this._userService.updateUserAvatar(file);
-    //     return res.status(response.status).json(response);
-    // }
-    @POST()
+    @PUT()
     @route("/update-user")
     async updateUser(req: Request, res: Response) {
         const data = req.body;

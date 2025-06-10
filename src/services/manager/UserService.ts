@@ -15,6 +15,7 @@ export default class UserService implements IUserService {
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService;
     }
+
     async getAllUsers(filter:IUserFilter): Promise<IResponseBase> {
        try {
             const {
@@ -65,8 +66,7 @@ export default class UserService implements IUserService {
                     users,
                     page,
                     limit,
-                    totalItem,
-                    totalPage: Math.ceil(totalItem / limit),
+                    totalItem
                 },
             };
        } catch (error) {
@@ -156,6 +156,7 @@ export default class UserService implements IUserService {
             };
         }
     }
+
     async createUser(data: ICreateUser): Promise<IResponseBase> {
         try {
            if(!data.fullName || !data.email || !data.password || !data.roleName) {
@@ -225,6 +226,7 @@ export default class UserService implements IUserService {
             }
         }
     }
+
     async updateUser(data: IUpdateUser): Promise<IResponseBase> {
         try {
             const user  = await this._context.UserRepo.findOne({
@@ -291,6 +293,7 @@ export default class UserService implements IUserService {
             };
         }
     }
+    
     async deleteUser(userId: number): Promise<IResponseBase> {
       try {
           const user = await this._context.UserRepo.findOne({
@@ -302,7 +305,7 @@ export default class UserService implements IUserService {
         return {
           status: StatusCodes.NOT_FOUND,
           success: false,
-          message: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
+          message: "Không tìm thấy thông tin người dùng",
           data: null,
           error: {
             message: ErrorMessages.NOT_FOUND,
@@ -310,7 +313,20 @@ export default class UserService implements IUserService {
           },
         };
       }
-      await this._context.UserRepo.delete(userId);
+      const result = await this._context.UserRepo.delete(userId);
+          if (result.affected === 0) {
+            return {
+              status: StatusCodes.BAD_REQUEST,
+              success: false,
+              message: "Không thể xóa người",
+              data: null,
+              error: {
+                message: "Không thể xóa",
+                errorDetail: "Không có người dùng nào bị xóa",
+              }
+            };
+          }
+
        return {
         status: StatusCodes.OK,
         success: true,

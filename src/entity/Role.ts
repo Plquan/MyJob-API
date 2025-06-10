@@ -10,17 +10,8 @@ export class Role {
   @Column({ type: "varchar", length: 1000})
   name!: string;
 
-  @Column({ type: "varchar", length: 1000})
-  displayName!: string;
-
   @Column({ type: "text", nullable: true })
   description?: string;
-
-  @Column({ type: "boolean", default: false })
-  isDeleted!: boolean;
-
-  @Column({ type: "boolean", default: true })
-  isActive!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -33,4 +24,5 @@ export class Role {
 
   @OneToMany(() => GroupRole, (groupRole) => groupRole.role)
   groupRole!: GroupRole[];
+  
 }
