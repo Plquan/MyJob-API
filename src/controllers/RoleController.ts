@@ -1,6 +1,6 @@
-import IRoleService from "@/interfaces/auth/IRoleService";
+import IRoleService from "@/interfaces/role/IRoleService";
 import { Request,Response } from "express";
-import { GET, route } from "awilix-express";
+import { DELETE, GET, POST, PUT, route } from "awilix-express";
 
 @route('/role')
 export class RoleController {
@@ -24,7 +24,33 @@ export class RoleController {
        return res.status(response.status).json(response) 
     }
 
+    @POST()
+    @route("/create-role")
+    async createRole(req: Request, res: Response) {
+        const data = req.body;
+        const response = await this._roleService.createRole(data);
+        return res.status(response.status).json(response);
+    }
 
-
-
+    @PUT()
+    @route("/update-role")
+    async updateRole(req: Request, res: Response) {
+        const data = req.body;
+        const response = await this._roleService.updateRole(data);
+        return res.status(response.status).json(response);
+    }
+    @DELETE()
+    @route("/delete-role/:roleId")
+    async deleteRole(req: Request, res: Response) {
+        const roleId = parseInt(req.params.roleId);
+        const response = await this._roleService.deleteRole(roleId);
+        return res.status(response.status).json(response);
+    }
+    @POST()
+    @route("/update-role-permissions")
+    async updateRolePermissions(req: Request, res: Response) {
+        const data = req.body;
+        const response = await this._roleService.updateRolePermissions(data);
+        return res.status(response.status).json(response);
+    }
 }

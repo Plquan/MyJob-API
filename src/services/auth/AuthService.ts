@@ -6,7 +6,7 @@ import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
-import IRoleService from "@/interfaces/auth/IRoleService";
+import IRoleService from "@/interfaces/role/IRoleService";
 import ICompanyService from "@/interfaces/company/ICompanyService";
 import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";

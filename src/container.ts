@@ -1,7 +1,7 @@
 import { asClass, createContainer, InjectionMode } from "awilix";
 import JwtService from "./services/auth/JwtService";
 import AuthService from "./services/auth/AuthService";
-import RoleService from "./services/auth/RoleService";
+import RoleService from "./services/manager/RoleService";
 import CompanyService from "./services/manager/CompanyService";
 import DatabaseService from "./services/common/DatabaseService";
 import ProvinceService from "./services/manager/ProvinceService";

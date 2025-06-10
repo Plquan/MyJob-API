@@ -10,6 +10,7 @@ import { Environments } from "@/constants/Environment";
 import container from "./container";
 import { Server } from "./server";
 import { asyncLocalStorageMiddleware } from "@/middlewares";
+import { apiLimiter } from "./middlewares/RateLimiter";
 /**
  * Application class.
  * @description Handle init config and components.
@@ -25,20 +26,19 @@ class Application {
     this.server = new Server();
   }
     start() {
-      const port = process.env.APP_PORT || 5001;
+      const port = process.env.APP_PORT || 5001
       this.serverInstance = this.server.app.listen(port, () =>
         console.log(`Server is running at http://localhost:${port}`)
-      );
-      // Đăng ký tất cả middleware trước
-      this.server.app.use(cors(corsConfig));
-      this.server.app.use(cookieParser());
-      this.server.app.use(bodyParser.json());
-      this.server.app.use(bodyParser.urlencoded({ extended: true }));
-      this.server.app.use(scopePerRequest(container));
-      this.server.app.use(asyncLocalStorageMiddleware());
+      )
+      this.server.app.use(cors(corsConfig))
+      this.server.app.use(cookieParser())
+      this.server.app.use(bodyParser.json())
+      this.server.app.use(bodyParser.urlencoded({ extended: true }))
+      this.server.app.use(scopePerRequest(container))
+      this.server.app.use(asyncLocalStorageMiddleware())
+      this.server.app.use(apiLimiter)
 
-      // Route handler
-      this.server.app.use("/api", loadControllers("./controllers/*.*s", { cwd: __dirname }));
+      this.server.app.use("/api", loadControllers("./controllers/*.*s", { cwd: __dirname }))
 
       // Sau khi đã gắn middleware xong, mới gọi listen()
 
