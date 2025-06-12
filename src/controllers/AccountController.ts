@@ -7,6 +7,7 @@ import { Request, Response } from "express";
 
 @route("/account")
 export class AccountController {
+    
     private readonly _accountService: IAccountService;
 
     constructor(AccountService: IAccountService) {

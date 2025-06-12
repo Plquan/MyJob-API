@@ -36,9 +36,6 @@ import { JobPostActivity } from './JobPostActivity';
     @Column({ type: 'varchar', length: 200 })
     jobName!: string;
   
-    @Column({ type: 'varchar', length: 50,unique:true })
-    slug!: string;
-  
     @Column({ type: 'timestamp', nullable: true })
     deadline?: Date;
   

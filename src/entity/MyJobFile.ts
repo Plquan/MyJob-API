@@ -25,7 +25,8 @@ export class MyJobFile {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToOne(() => User, (user) => user.avatar)
-  @JoinColumn({ name: 'userId' }) 
+  @OneToOne(() => User, (user) => user.avatar, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
   user?: User;
+
 }

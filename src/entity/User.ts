@@ -65,9 +65,6 @@ export class User {
     @OneToMany(() => JobPost, (jobPost) => jobPost.user)
     jobPosts!: JobPost[];
 
-    @OneToMany(() => Resume, resume => resume.user)
-    resumes!: Resume[];
-
     @OneToMany(() => SavedJobPost, SavedJobPost => SavedJobPost.user)
     savedJobPosts!: SavedJobPost[];
 

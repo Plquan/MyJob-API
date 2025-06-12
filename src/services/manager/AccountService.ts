@@ -14,6 +14,7 @@ import { console } from "inspector";
 export default class AccountService implements IAccountService {
 
     private readonly _context:DatabaseService
+
     constructor(DatabaseService:DatabaseService) {
         this._context = DatabaseService;
     }
@@ -27,13 +28,8 @@ export default class AccountService implements IAccountService {
             return {
               status: StatusCodes.UNAUTHORIZED,
               success: false,
-              message: "Bạn không có quyền truy cập",
-              data: null,
-              error: {
-                message: "Unauthorized",
-                errorDetail: "Không tìm thấy Id người dùng",
-              },
-            };
+              message: "Bạn không có quyền truy cập"
+            }
           }
             const myJobFile = await this._context.MyJobFileRepo.findOne({
             where: {
@@ -64,24 +60,18 @@ export default class AccountService implements IAccountService {
                 success: true,
                 message: "Cập nhật ảnh đại diện thành công",
                 data:newFile.url,
-                error: null
             };
            
         } catch (error) {
             logger.error(error?.message);
             console.log(
-                `Error in Accountervice - method updateAvatar at ${new Date().getTime()} with message ${error?.message}`
-            );
+                `Error in AccountService - method updateAvatar at ${new Date().getTime()} with message ${error?.message}`
+            )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-                },
-            };
+                message: "Lỗi khi cập nhật ảnh đại diện, vui lòng thử lại sau",
+            }
         }
     }
     

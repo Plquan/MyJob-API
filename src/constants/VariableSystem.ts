@@ -12,7 +12,11 @@ FileType: {
 Paging:{
    PAGE:1,
    LIMIT:10,
+},
+CV_TYPE: {
+  CV_ONLINE: "ONLINE",
+  CV_UPLOAD: "UPLOAD"
 }
 
 
-};
+}

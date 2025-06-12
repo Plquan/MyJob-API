@@ -13,6 +13,7 @@ export default class ProvinceService implements IProvinceService {
     }
 
     async getAllProvinces(): Promise<IResponseBase> {
+        
         try {
             const provinces = await this._context.ProvinceRepo.find({
             order: {
@@ -32,12 +33,7 @@ export default class ProvinceService implements IProvinceService {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
                 message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-            },
-            };
+            }
         }
     }
     

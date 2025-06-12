@@ -35,38 +35,35 @@ export class Resume {
   @Column({ type: 'varchar', length: 200, nullable: true })
   title?: string;
 
-  @Column({ type: 'varchar', length: 50, unique: true })
-  slug?: string;
-
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0 })
-  salary_min!: number;
+  @Column({ type: 'decimal', precision: 12, scale: 0,nullable: true })
+  salary_min?: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0 })
-  salary_max!: number;
-
-  @Column({ type: 'smallint', nullable: true })
-  position!: number;
+  @Column({ type: 'decimal', precision: 12, scale: 0,nullable: true })
+  salary_max?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  typeOfWorkPlace!: number;
+  position?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  experience!: number;
+  typeOfWorkPlace?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  academicLevel!: number;
+  experience?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  jobType!: number;
+  academicLevel?: number;
 
-  @Column({ type: 'boolean', default: false })
-  is_active!: boolean;
+  @Column({ type: 'smallint', nullable: true })
+  jobType?: number;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
   type?: string;
+
+  @Column({ type: 'boolean', default: false })
+  isActive!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -85,10 +82,6 @@ export class Resume {
   @ManyToOne(() => Candidate, candidate => candidate.resumes, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'candidateId' })
   candidate!: Candidate;
-
-  @ManyToOne(() => User, user => user.resumes)
-  @JoinColumn({ name: 'userId' })
-  user!: User;
 
   @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'myJobFileId' })
