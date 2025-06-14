@@ -16,7 +16,6 @@ export default class JwtService implements IJWTService {
     this.refreshTokenExpriedIn = Number(ENV.REFRESH_TOKEN_EXPIRES_IN)
   }
 
-
     generateRefreshToken(payload: ITokenPayload): ITokenResponse {
       const tokenId = uuidv4();
       payload.tokenId = tokenId

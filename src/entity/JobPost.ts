@@ -110,7 +110,7 @@ import { JobPostActivity } from './JobPostActivity';
     @JoinColumn({ name: 'companyId' })
     company!: Company;
   
-    @ManyToOne(() => Province, province => province.jobPosts, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Province, { onDelete: 'CASCADE' })
     @JoinColumn({ name: "provinceId" })
     province!: Province;
       

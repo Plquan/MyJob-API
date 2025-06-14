@@ -11,19 +11,36 @@ export default class ProvinceService implements IProvinceService {
      constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
+    async getDistrictsByProvince(provinceId: number): Promise<IResponseBase> {
+        try {
+            const districts = await this._context.DistrictRepo.find({
+                where: {provinceId}
+            })
+            return {
+            status: StatusCodes.OK,
+            success: true,
+            message: "Lấy danh sách quận huyện thành công",
+            data: districts,
+        }
+        } catch (error) {
+            logger.error(error?.message);
+            console.log(`Error in ProvinceService - method getDistrictsByProvince() at ${new Date().getTime()} with message ${error?.message}`);
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: "Lỗi khi lấy danh sách quận huyện, vui lòng thử lại sau",
+            }
+        }
+    }
 
     async getAllProvinces(): Promise<IResponseBase> {
         
         try {
-            const provinces = await this._context.ProvinceRepo.find({
-            order: {
-            createdAt: "DESC",
-            },
-        })
+           const provinces = await this._context.ProvinceRepo.find({ relations: ['districts'] })
         return {
             status: StatusCodes.OK,
             success: true,
-            message: "Get all Provinces successfully",
+            message: "Lấy danh sách tỉnh thành công",
             data: provinces,
         }
         } catch (error) {
@@ -32,7 +49,7 @@ export default class ProvinceService implements IProvinceService {
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
+                message: "Lỗi khi lấy danh sách tỉnh, vui lòng thử lại sau",
             }
         }
     }

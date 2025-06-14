@@ -1,6 +1,6 @@
 import ICandidateService from "@/interfaces/candidate/ICandidateService";
 import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
-import { before, GET, inject, route } from "awilix-express";
+import { before, GET, inject, POST, PUT, route } from "awilix-express";
 import { Request, Response } from "express";
 
 @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
@@ -14,8 +14,25 @@ export class CandidateController {
 
     @GET()
     @route("/get-candidate-online-resume")
+    
     async getCandidateOnlineResume (req: Request, res: Response){
-        const response = await this._candidateService.getCandidateOnlineResume()
+        const response = await this._candidateService.getOnlineResume()
+        return res.status(response.status).json(response)
+    }
+
+    @PUT()
+    @route("/update-profile")
+    async updateProfile(req:Request, res: Response){
+        const data = req.body
+        const response = await this._candidateService.updateProfile(data)
+        return res.status(response.status).json(response)
+    }
+
+    @PUT()
+    @route("/update-online-resume")
+    async updateOnlineResume(req:Request, res: Response){
+        const data = req.body
+        const response = await this._candidateService.updateOnlineResume(data)
         return res.status(response.status).json(response)
     }
 

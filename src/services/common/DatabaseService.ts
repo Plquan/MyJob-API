@@ -26,6 +26,7 @@ import dataSource from "@/ormconfig";
 import "reflect-metadata";
 import { RefreshToken } from "@/entity/RefreshToken";
 import { Role } from "@/entity/Role";
+import { District } from "@/entity/District";
 
 class DatabaseService {
   private _dataSource: DataSource;
@@ -51,8 +52,7 @@ class DatabaseService {
   public LanguageRepo: Repository<Language>;
   public RefreshTokenRepo: Repository<RefreshToken>
   public RoleRepo: Repository<Role>;
-
-
+  public DistrictRepo: Repository<District>
 
   constructor() {
     this._dataSource = dataSource;
@@ -78,6 +78,8 @@ class DatabaseService {
     this.LanguageRepo = this._dataSource.getRepository(Language);
     this.RefreshTokenRepo = this._dataSource.getRepository(RefreshToken);
     this.RoleRepo = this._dataSource.getRepository(Role);
+    this.DistrictRepo = this._dataSource.getRepository(District);
+
 
     this._dataSource
       .initialize()

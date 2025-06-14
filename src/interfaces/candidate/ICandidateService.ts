@@ -1,7 +1,10 @@
 import { User } from "@/entity/User";
 import { IResponseBase } from "../base/IResponseBase";
 import { EntityManager } from "typeorm";
+import { ICandidateData, IResumeData } from "./CandidateDto";
  export default interface ICandidateService {
-    getCandidateOnlineResume(): Promise<IResponseBase>
-    createCandidateProfile(data:User,manager: EntityManager):Promise<IResponseBase>
+    getOnlineResume(): Promise<IResponseBase>
+    createProfile(data:User,manager: EntityManager):Promise<IResponseBase>
+    updateProfile(data: ICandidateData):Promise<IResponseBase>
+    updateOnlineResume(data: IResumeData):Promise<IResponseBase>
  }

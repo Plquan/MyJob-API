@@ -96,7 +96,7 @@ export default class AuthService implements IAuthService {
               return {
                   status: StatusCodes.NOT_FOUND,
                   success: false,
-                  message: ErrorMessages.NOT_FOUND,
+                  message: "Không tìm thấy tài khoản",
                 }
             }
 
@@ -138,7 +138,8 @@ export default class AuthService implements IAuthService {
           setTokensToCookie(accessToken.token,refreshToken.token)              
           return {
             status: 200,
-            success: true
+            success: true,
+            message:"Đăng nhập thành công"
           }
 
           } catch (error) {
@@ -147,7 +148,7 @@ export default class AuthService implements IAuthService {
             return {
               status: 500,
               success: false,
-              message: ErrorMessages.INTERNAL_SERVER_ERROR
+              message: "Lỗi hệ thống, vui lòng thử lại sau"
             }
           }
     }
@@ -256,7 +257,7 @@ export default class AuthService implements IAuthService {
               roleName: VariableSystem.ROLE_NAME.CANDIDATE,
             }))
 
-            const profileResult = await this._candidateService.createCandidateProfile(newUser, manager)
+            const profileResult = await this._candidateService.createProfile(newUser, manager)
             if (!profileResult.success) {
                 throw new Error(profileResult.message)
               }

@@ -27,26 +27,26 @@ export default class UserService implements IUserService {
                    limit = 10
                 } = filter;
 
-            let query = await this._context.UserRepo.createQueryBuilder("user")
-            .leftJoin("user.avatar", "avatar")
-            .leftJoin("user.groupRole", "groupRole")
-            .leftJoin("groupRole.role", "role")
-            .select([
-                'user.id AS "id"',
-                'user.email AS "email"',
-                'user.fullName AS "fullName"',
-                'user.isVerifyEmail AS "isVerifyEmail"',
-                'user.isActive AS "isActive"',
-                'user.isSuperUser AS "isSuperUser"',     
-                'user.isStaff AS "isStaff"',       
-                'user.roleName AS "roleName"',
-                'user.createdAt AS "createdAt"',
-                'user.updatedAt AS "updatedAt"',
-                'avatar.url AS "avatar"',
-                'json_agg(role.id) AS "groupRoles"',
-            ])
-            .groupBy('user.id')
-            .addGroupBy('avatar.url')
+            let query = this._context.UserRepo.createQueryBuilder("user")
+                .leftJoin("user.avatar", "avatar")
+                .leftJoin("user.groupRole", "groupRole")
+                .leftJoin("groupRole.role", "role")
+                .select([
+                    'user.id AS "id"',
+                    'user.email AS "email"',
+                    'user.fullName AS "fullName"',
+                    'user.isVerifyEmail AS "isVerifyEmail"',
+                    'user.isActive AS "isActive"',
+                    'user.isSuperUser AS "isSuperUser"',
+                    'user.isStaff AS "isStaff"',
+                    'user.roleName AS "roleName"',
+                    'user.createdAt AS "createdAt"',
+                    'user.updatedAt AS "updatedAt"',
+                    'avatar.url AS "avatar"',
+                    'json_agg(role.id) AS "groupRoles"',
+                ])
+                .groupBy('user.id')
+                .addGroupBy('avatar.url')
             
             let countQuery = this._context.UserRepo.createQueryBuilder("user")
             .leftJoin("user.avatar", "avatar")

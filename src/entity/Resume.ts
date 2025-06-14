@@ -38,11 +38,11 @@ export class Resume {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0,nullable: true })
-  salary_min?: number;
+  @Column({ type: 'decimal', precision: 15, scale: 0,nullable: true })
+  salaryMin?: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0,nullable: true })
-  salary_max?: number;
+  @Column({ type: 'decimal', precision: 15, scale: 0,nullable: true })
+  salaryMax?: number;
 
   @Column({ type: 'smallint', nullable: true })
   position?: number;
@@ -75,7 +75,7 @@ export class Resume {
   @JoinColumn({ name: 'careerId' })
   career!: Career;
 
-  @ManyToOne(() => Province, (province) => province.resumes, { nullable: true })
+  @ManyToOne(() => Province, { nullable: true })
   @JoinColumn({ name: 'provinceId' })
   province?: Province;
 

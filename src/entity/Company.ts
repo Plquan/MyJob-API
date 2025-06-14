@@ -56,7 +56,7 @@ export class Company {
     @JoinColumn({name: 'userId'})
     user!: User;
 
-    @ManyToOne(() => Province, (province) => province.candidates, { onDelete: 'SET NULL',nullable: true })
+    @ManyToOne(() => Province, { onDelete: 'SET NULL',nullable: true })
     @JoinColumn({ name: 'provinceId' })
     province?: Province;
 
