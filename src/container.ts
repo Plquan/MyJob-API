@@ -8,10 +8,11 @@ import ProvinceService from "./services/manager/ProvinceService";
 import UserService from "./services/manager/UserService";
 import AccountService from "./services/manager/AccountService";
 import CandidateService from "./services/manager/CandidateService";
+import CareerService from "./services/manager/CareerService";
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
-  });
+  })
 
   container.register({
     DatabaseService: asClass(DatabaseService).singleton(),
@@ -23,10 +24,11 @@ const container = createContainer({
     UserService:asClass(UserService).scoped(),
     AccountService:asClass(AccountService).scoped(),
     CandidateService: asClass(CandidateService).scoped(),
+    CareerService: asClass(CareerService).scoped()
 
-  });
-container.resolve("JwtService");
-container.resolve("DatabaseService");
+  })
+container.resolve("JwtService")
+container.resolve("DatabaseService")
 
 
 

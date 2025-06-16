@@ -30,6 +30,12 @@ export class Resume {
   candidateId!: number;
 
   @Column({ nullable: true })
+  careerId?:number
+
+  @Column({ nullable: true })
+  provinceId?:number
+
+  @Column({ nullable: true })
   myJobFileId?: number;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
@@ -71,11 +77,11 @@ export class Resume {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => Career, (career) => career.resumes)
+  @ManyToOne(() => Career, (career) => career.resumes, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'careerId' })
-  career!: Career;
+  career?: Career;
 
-  @ManyToOne(() => Province, { nullable: true })
+  @ManyToOne(() => Province, { nullable: true , onDelete: 'SET NULL' })
   @JoinColumn({ name: 'provinceId' })
   province?: Province;
 

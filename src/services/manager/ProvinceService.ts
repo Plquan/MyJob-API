@@ -33,10 +33,9 @@ export default class ProvinceService implements IProvinceService {
         }
     }
 
-    async getAllProvinces(): Promise<IResponseBase> {
-        
+    async getAllProvinces(): Promise<IResponseBase> {     
         try {
-           const provinces = await this._context.ProvinceRepo.find({ relations: ['districts'] })
+        const provinces = await this._context.ProvinceRepo.find({ relations: ['districts'] })
         return {
             status: StatusCodes.OK,
             success: true,

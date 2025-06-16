@@ -14,8 +14,7 @@ export default class CompanyService implements ICompanyService{
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
-
-
+    
     async createCompanyInfo(data: ICompanyData): Promise<IResponseBase> {
         try {
             if(!data.companyName || !data.companyEmail || !data.companyPhone || !data.fieldOperation || !data.provinceId
@@ -31,9 +30,9 @@ export default class CompanyService implements ICompanyService{
             await this._context.CompanyRepo.save(companyInfo);
 
              return {
-                    status:StatusCodes.CREATED,
-                    success:true,
-                    message:"Create company profile success"
+                status:StatusCodes.CREATED,
+                success:true,
+                message:"Create company profile success"
              }
 
         } catch (error) {

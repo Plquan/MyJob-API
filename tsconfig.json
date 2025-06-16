@@ -15,12 +15,14 @@
     "paths": {
       "@/*": ["src/*"],
       "@interfaces/*": ["src/interfaces/*"],
+      "@entity/*": ["src/entity/*"],
       "@routes/*": ["src/routes/*"],
       "@helpers/*": ["src/helpers/*"],
       "@middlewares/*": ["src/middlewares/*"],
       "@controllers/*": ["src/controllers/*"],
       "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"]
+      "@utils/*": ["src/utils/*"],
+      "@seeds/*": ["src/seeds/*"]
     },
     "typeRoots": ["node_modules/@types", "src/types"]
   },

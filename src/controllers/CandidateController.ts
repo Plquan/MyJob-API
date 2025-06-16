@@ -12,13 +12,7 @@ export class CandidateController {
         this._candidateService = CandidateService
     }
 
-    @GET()
-    @route("/get-candidate-online-resume")
-    
-    async getCandidateOnlineResume (req: Request, res: Response){
-        const response = await this._candidateService.getOnlineResume()
-        return res.status(response.status).json(response)
-    }
+
 
     @PUT()
     @route("/update-profile")
@@ -28,12 +22,6 @@ export class CandidateController {
         return res.status(response.status).json(response)
     }
 
-    @PUT()
-    @route("/update-online-resume")
-    async updateOnlineResume(req:Request, res: Response){
-        const data = req.body
-        const response = await this._candidateService.updateOnlineResume(data)
-        return res.status(response.status).json(response)
-    }
+   
 
 }
