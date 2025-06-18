@@ -11,6 +11,8 @@ import CandidateService from "./services/manager/CandidateService";
 import CareerService from "./services/manager/CareerService";
 import ResumeService from "./services/manager/ResumeService";
 import CertificateService from "./services/manager/CertificateService";
+import { Experience } from "./entity/Experience";
+import ExperienceService from "./services/manager/ExperienceService";
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -29,6 +31,7 @@ const container = createContainer({
     CareerService: asClass(CareerService).scoped(),
     ResumeService: asClass(ResumeService).scoped(),
     CertificateService: asClass(CertificateService).scoped(),
+    ExperienceService: asClass(ExperienceService).scoped()
 
   })
     container.resolve("JwtService")

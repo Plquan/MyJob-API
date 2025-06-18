@@ -3,7 +3,6 @@ import { ICompanyData } from "@/interfaces/company/CompanyDto";
 import ICompanyService from "@/interfaces/company/ICompanyService";
 import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
-import slugify from "slugify";
 import logger from "@/helpers/logger";
 import { ErrorMessages } from "@/constants/ErrorMessages";
 
@@ -18,14 +17,14 @@ export default class CompanyService implements ICompanyService{
     async createCompanyInfo(data: ICompanyData): Promise<IResponseBase> {
         try {
             if(!data.companyName || !data.companyEmail || !data.companyPhone || !data.fieldOperation || !data.provinceId
-                ||!data.since || !data.taxCode || !data.address || !data.fieldOperation
-              ) {
+                ||!data.since || !data.taxCode || !data.address || !data.fieldOperation) {
                 return {
                     status:StatusCodes.BAD_REQUEST,
                     success:false,
                     message:"Missing required fields"
                 }
             }
+
             const companyInfo = await this._context.CompanyRepo.create(data)
             await this._context.CompanyRepo.save(companyInfo);
 

@@ -18,30 +18,29 @@ export default class CertificateService implements ICertificateService {
 
     async getAllCertificates(): Promise<IResponseBase> {
       try {
-        const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
-        const userId = request?.user?.id;
+          const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
+          const userId = request?.user?.id;
 
-        if (!userId) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Bạn không có quyền truy cập",
-          }
-        } 
-         const certificates = await this._context.CertificateRepo.find({
-          where:{resume:{
-            candidate:{
-              userId
+          if (!userId) {
+            return {
+              status: StatusCodes.UNAUTHORIZED,
+              success: false,
+              message: "Bạn không có quyền truy cập",
             }
-          }}
-         })
+          } 
+
+          const certificates = await this._context.CertificateRepo.find({
+            where:{resume:{ candidate:{ userId } }},
+            order: { createdAt: 'DESC' }
+          })
+
            return {
               status: StatusCodes.OK,
               message:"Lấy danh sách thành công",
               success: true,
               data: certificates         
             }
-        } catch (error) {
+          } catch (error) {
             logger.error(error?.message);
           console.error(
             `Error in CertificateService - method getAllCertificates() at ${new Date().toISOString()} with message: ${error?.message}`
@@ -63,15 +62,15 @@ export default class CertificateService implements ICertificateService {
             status: StatusCodes.UNAUTHORIZED,
             success: false,
             message: "Bạn không có quyền truy cập",
-          };
+          }
         } 
 
-        if (!data.name || !data.trainingPlace) {
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                success: false,
-                message: "Tên chứng chỉ và nơi đào tạo không được để trống",
-            }
+        if(!data.name || !data.trainingPlace || !data.startDate){
+          return {
+            message: "Vui lòng kiểm tra lại dữ liệu của bạn",
+            success: false,
+            status: StatusCodes.BAD_REQUEST,
+          }
         }
 
         if (data.expirationDate && data.startDate > data.expirationDate) {
@@ -100,7 +99,7 @@ export default class CertificateService implements ICertificateService {
         await this._context.CertificateRepo.save(newCertificate)
             return {
                 status: StatusCodes.CREATED,
-                message:"Cập nhật thành công",
+                message:"Thêm chứng chỉ thành công",
                 success: true,
                 data: newCertificate         
             }
@@ -119,6 +118,7 @@ export default class CertificateService implements ICertificateService {
     }
     async updateCertificate(data: IUpdateCertificateData): Promise<IResponseBase> {
        try {
+        
         if(!data.name || !data.trainingPlace || !data.id || !data.startDate){
           return {
             message: "Vui lòng kiểm tra lại dữ liệu của bạn",
@@ -197,5 +197,4 @@ export default class CertificateService implements ICertificateService {
           }
         }
     }
-    
 }
