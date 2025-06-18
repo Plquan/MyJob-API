@@ -34,18 +34,8 @@ export default class ResumeService implements IResumeService {
           where: {
             type: VariableSystem.CV_TYPE.CV_ONLINE,
             candidate: { userId },
-          },
-          relations: [
-            'candidate',
-            'candidate.province', 
-            'candidate.district', 
-            'educations',
-            'certificates',
-            'experiences',
-            'languages',
-            'advancedSkills',
-          ],
-        });
+          }
+        })
 
         if (!onlineResume) {
           return {
@@ -54,31 +44,12 @@ export default class ResumeService implements IResumeService {
             message: "Không tìm thấy hồ sơ trực tuyến",
           };
         }
-
-        const {
-          candidate,
-          educations,
-          certificates,
-          experiences,
-          languages,
-          advancedSkills,
-          ...resumeData
-        } = onlineResume;
-
         return {
           status: StatusCodes.OK,
           success: true,
           message: "Lấy hồ sơ thành công",
-          data: {
-            resume: resumeData,
-            candidate,
-            educations,
-            certificates,
-            experiences,
-            languages,
-            advancedSkills,
-          },
-        };
+          data: onlineResume     
+          }
 
       } catch (error) {
         logger.error(error?.message);

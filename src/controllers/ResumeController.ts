@@ -5,7 +5,7 @@ import { Request, Response } from "express";
 
 @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
 @route("/resume")
-export default class ResumeController {
+export class ResumeController {
     private readonly _resumeService: IResumeService
 
     constructor(ResumeService:IResumeService){
@@ -14,7 +14,6 @@ export default class ResumeController {
 
     @GET()
     @route("/get-online-resume")
-    
     async getCandidateOnlineResume (req: Request, res: Response){
         const response = await this._resumeService.getOnlineResume()
         return res.status(response.status).json(response)
@@ -27,4 +26,5 @@ export default class ResumeController {
         const response = await this._resumeService.updateOnlineResume(data)
         return res.status(response.status).json(response)
     }
+
 }

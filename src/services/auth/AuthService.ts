@@ -38,7 +38,6 @@ export default class AuthService implements IAuthService {
             status: StatusCodes.UNAUTHORIZED,
             success: false,
             message:"Token không hợp lệ",
-            data: null
         }
          const tokenPayload: ITokenPayload = {
             userId: payload.userId,
@@ -70,7 +69,7 @@ export default class AuthService implements IAuthService {
      
      } catch (error) {
           logger.error(error?.message);
-            console.log(`Error in AuthService - method refreshToken at ${new Date().getTime} with message ${error?.message}`);
+            console.log(`Error in AuthService - method refreshToken at ${new Date().getTime()} with message ${error?.message}`);
             return {
               status: StatusCodes.INTERNAL_SERVER_ERROR,
               success: false,

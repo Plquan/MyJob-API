@@ -9,6 +9,8 @@ import UserService from "./services/manager/UserService";
 import AccountService from "./services/manager/AccountService";
 import CandidateService from "./services/manager/CandidateService";
 import CareerService from "./services/manager/CareerService";
+import ResumeService from "./services/manager/ResumeService";
+import CertificateService from "./services/manager/CertificateService";
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -24,12 +26,12 @@ const container = createContainer({
     UserService:asClass(UserService).scoped(),
     AccountService:asClass(AccountService).scoped(),
     CandidateService: asClass(CandidateService).scoped(),
-    CareerService: asClass(CareerService).scoped()
+    CareerService: asClass(CareerService).scoped(),
+    ResumeService: asClass(ResumeService).scoped(),
+    CertificateService: asClass(CertificateService).scoped(),
 
   })
-container.resolve("JwtService")
-container.resolve("DatabaseService")
-
-
+    container.resolve("JwtService")
+    container.resolve("DatabaseService")
 
   export default container;

@@ -12,7 +12,12 @@ export class CandidateController {
         this._candidateService = CandidateService
     }
 
-
+    @GET()
+    @route("/get-profile")
+    async getProfile(req:Request, res: Response){
+        const response = await this._candidateService.getProfile()
+        return res.status(response.status).json(response)
+    }
 
     @PUT()
     @route("/update-profile")
