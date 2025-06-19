@@ -7,6 +7,7 @@ import logger from "@/helpers/logger";
 import { RequestStorage } from "@/middlewares";
 import { StatusCodes } from "http-status-codes";
 import { ICreateCertificateData, IUpdateCertificateData } from "@/interfaces/certificate/CertificateDto";
+import { VariableSystem } from "@/constants/VariableSystem";
 
 export default class ExperienceService implements IExperienceService {
 
@@ -72,15 +73,32 @@ export default class ExperienceService implements IExperienceService {
                 status: StatusCodes.BAD_REQUEST,
             }
           }
+           
+          const onlineResume = await this._context.ResumeRepo.findOne({
+            where: {
+              type: VariableSystem.CV_TYPE.CV_ONLINE,
+              candidate: { userId },
+            }
+          })
+
+          if(!onlineResume){
+            return {
+              status: StatusCodes.NOT_FOUND,
+              success: false,
+              message: "Không tìm thấy hồ sơ online của bạn",
+            }
+         }
+
+          data.resumeId = onlineResume.id
           
           const newExperience = this._context.ExperienceRepo.create(data)
-          await this._context.CertificateRepo.save(newExperience)
+          await this._context.ExperienceRepo.save(newExperience)
 
            return {
-                status: StatusCodes.CREATED,
-                message:"Thêm kinh nghiệm thành công",
-                success: true,
-                data: newExperience         
+              status: StatusCodes.CREATED,
+              message:"Thêm kinh nghiệm thành công",
+              success: true,
+              data: newExperience         
             }
 
         } catch (error) {
@@ -129,11 +147,11 @@ export default class ExperienceService implements IExperienceService {
           }
           
           this._context.ExperienceRepo.merge(experience,data)
-          await this._context.CertificateRepo.save(experience)
+          await this._context.ExperienceRepo.save(experience)
 
         return {
             status: StatusCodes.CREATED,
-            message:"Thêm kinh nghiệm thành công",
+            message:"cập nhật kinh nghiệm thành công",
             success: true,
             data: experience         
         }
@@ -141,12 +159,12 @@ export default class ExperienceService implements IExperienceService {
         } catch (error) {
             logger.error(error?.message);
             console.error(
-                `Error in ExperienceService - method createExperience() at ${new Date().toISOString()} with message: ${error?.message}`
+                `Error in ExperienceService - method updateExperience() at ${new Date().toISOString()} with message: ${error?.message}`
             )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
+                message: "Lỗi cập nhật kinh nghiệm, vui lòng thử lại sau",
             }
         }
     }
@@ -182,15 +200,15 @@ export default class ExperienceService implements IExperienceService {
             data: experienceId
           }        
         } catch (error) {
-             logger.error(error?.message);
-            console.error(
-                `Error in ExperienceService - method deleteExperience() at ${new Date().toISOString()} with message: ${error?.message}`
-            )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
-            }
+          logger.error(error?.message);
+          console.error(
+              `Error in ExperienceService - method deleteExperience() at ${new Date().toISOString()} with message: ${error?.message}`
+          )
+          return {
+              status: StatusCodes.INTERNAL_SERVER_ERROR,
+              success: false,
+              message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
+          }
         }
     }
     

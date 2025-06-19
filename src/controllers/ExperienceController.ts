@@ -1,7 +1,9 @@
 import IExperienceService from "@/interfaces/experience/IExperienceService"
-import { DELETE, GET, POST, PUT, route } from "awilix-express"
+import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware"
+import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request, Response } from "express"
 
+@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
 @route("/experience")
 export class ExperienceController {
 

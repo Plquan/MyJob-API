@@ -14,6 +14,9 @@ import {
   
     @PrimaryGeneratedColumn()
     id!: number;
+    
+    @Column()
+    resumeId!: number
   
     @CreateDateColumn()
     createdAt!: Date;

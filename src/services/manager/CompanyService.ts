@@ -26,7 +26,7 @@ export default class CompanyService implements ICompanyService{
             }
 
             const companyInfo = await this._context.CompanyRepo.create(data)
-            await this._context.CompanyRepo.save(companyInfo);
+            await this._context.CompanyRepo.save(companyInfo)
 
              return {
                 status:StatusCodes.CREATED,

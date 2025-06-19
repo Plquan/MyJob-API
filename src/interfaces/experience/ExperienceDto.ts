@@ -1,4 +1,5 @@
 export interface ICreateExperienceData {
+    resumeId:number,
     jobName: string
     companyName: string
     startDate: Date
