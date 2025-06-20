@@ -18,8 +18,8 @@ import { Experience } from './Experience';
 import { Education } from './Education';
 import { Certificate } from './Certificate';
 import { JobPostActivity } from './JobPostActivity';
-import { AdvancedSkill } from './AdvancedSkill';
 import { MyJobFile } from './MyJobFile';
+import { Skill } from './Skill';
 
 @Entity('Resume')
 export class Resume {
@@ -105,8 +105,8 @@ export class Resume {
   @OneToMany(() => Certificate, certificate => certificate.resume)
   certificates!: Certificate[];
 
-  @OneToMany(() => AdvancedSkill, advancedSkill => advancedSkill.resume)
-  advancedSkills!: AdvancedSkill[];
+  @OneToMany(() => Skill, skill => skill.resume)
+  skills!: Skill[];
 
   @OneToMany(() => JobPostActivity, activity => activity.resume)
   jobActivities!: JobPostActivity[];

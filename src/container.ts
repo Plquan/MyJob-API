@@ -14,6 +14,7 @@ import CertificateService from "./services/manager/CertificateService"
 import ExperienceService from "./services/manager/ExperienceService"
 import EducationService from "./services/manager/EducationService"
 import LanguageService from "./services/manager/LanguageService"
+import SkillService from "./services/manager/SkillService"
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -35,6 +36,7 @@ container.register({
   ExperienceService: asClass(ExperienceService).scoped(),
   EducationService: asClass(EducationService).scoped(),
   LanguageService: asClass(LanguageService).scoped(),
+  SkillService: asClass(SkillService).scoped(),
 
 })
   container.resolve("JwtService")

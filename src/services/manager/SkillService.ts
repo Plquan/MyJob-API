@@ -1,14 +1,15 @@
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import ILanguageService from "@/interfaces/language/ILanguageService";
-import { ICreateLanguageData, IUpdateLanguageData } from "@/interfaces/language/LanguageDto";
 import DatabaseService from "../common/DatabaseService";
 import { LocalStorage } from "@/constants/LocalStorage";
 import logger from "@/helpers/logger";
 import { RequestStorage } from "@/middlewares";
 import { StatusCodes } from "http-status-codes";
 import { VariableSystem } from "@/constants/VariableSystem";
+import ISkillService from "@/interfaces/skill/ISkillService";
+import { ICreateSkillData, IUpdateSkillData } from "@/interfaces/skill/SkillDto";
 
-export default class LanguageService implements ILanguageService {
+
+export default class SkillService implements ISkillService {
 
     private readonly _context: DatabaseService
 
@@ -16,7 +17,7 @@ export default class LanguageService implements ILanguageService {
         this._context = DatabaseService
     }
 
-    async getAllLanguages(): Promise<IResponseBase> {
+    async getAllSkills(): Promise<IResponseBase> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
           const userId = request?.user?.id
@@ -29,7 +30,7 @@ export default class LanguageService implements ILanguageService {
             }
           } 
 
-          const languages = await this._context.LanguageRepo.find({
+          const skills = await this._context.SkillRepo.find({
             where:{resume:{ candidate:{ userId } }},
             order: { createdAt: 'DESC' }
           })
@@ -38,21 +39,21 @@ export default class LanguageService implements ILanguageService {
               status: StatusCodes.OK,
               message:"Lấy danh sách ngôn ngữ thành công",
               success: true,
-              data: languages         
+              data: skills         
             }
           } catch (error) {
             logger.error(error?.message);
             console.error(
-                `Error in LanguageService - method getAllLanguages() at ${new Date().toISOString()} with message: ${error?.message}`
+                `Error in SkillService - method getAllSkills() at ${new Date().toISOString()} with message: ${error?.message}`
             )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: "Lỗi khi lấy danh sách ngôn ngữ, vui lòng thử lại sau",
+                message: "Lỗi lấy danh sách kĩ năng, vui lòng thử lại sau",
             }
         }
     }
-    async createLanguage(data: ICreateLanguageData): Promise<IResponseBase> {
+    async createSkill(data: ICreateSkillData): Promise<IResponseBase> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
@@ -65,7 +66,7 @@ export default class LanguageService implements ILanguageService {
             }
           } 
 
-          if(!data.language || !data.level){
+          if(!data.name || !data.level){
             return {
                 message: "Vui lòng kiểm tra lại dữ liệu của bạn",
                 success: false,
@@ -90,29 +91,29 @@ export default class LanguageService implements ILanguageService {
 
           data.resumeId = onlineResume.id
           
-          const newLanguage = this._context.LanguageRepo.create(data)
-          await this._context.LanguageRepo.save(newLanguage)
+          const newSkill = this._context.SkillRepo.create(data)
+          await this._context.SkillRepo.save(newSkill)
 
            return {
               status: StatusCodes.CREATED,
-              message:"Thêm ngôn ngữ thành công",
+              message:"Thêm kĩ năng thành công",
               success: true,
-              data: newLanguage         
+              data: newSkill         
             }
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
-                `Error in LanguageService - method createLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
+                `Error in SkillService - method createSkill() at ${new Date().toISOString()} with message: ${error?.message}`
             )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: "Lỗi thêm ngôn ngữ, vui lòng thử lại sau",
+                message: "Lỗi thêm kĩ năng, vui lòng thử lại sau",
             }
         }
     }
-    async updateLanguage(data: IUpdateLanguageData): Promise<IResponseBase> {
+    async updateSkill(data: IUpdateSkillData): Promise<IResponseBase> {
          try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
@@ -125,7 +126,7 @@ export default class LanguageService implements ILanguageService {
             }
           } 
 
-          if(!data.language || !data.level || !data.id){
+          if(!data.name || !data.level || !data.id){
             return {
                 message: "Vui lòng kiểm tra lại dữ liệu của bạn",
                 success: false,
@@ -133,44 +134,44 @@ export default class LanguageService implements ILanguageService {
             }
           }
 
-          const language = await this._context.LanguageRepo.findOne({
+          const skill = await this._context.SkillRepo.findOne({
             where:{id: data.id}
           })
 
-          if(!language){
+          if(!skill){
              return{
                 status: StatusCodes.NOT_FOUND,
                 success:false,
-                message: "Không tìm thấy kinh nghiệm"
+                message: "Không tìm thấy kĩ năng"
              }
           }
           
-          this._context.LanguageRepo.merge(language,data)
-          await this._context.LanguageRepo.save(language)
+          this._context.SkillRepo.merge(skill,data)
+          await this._context.SkillRepo.save(skill)
 
         return {
             status: StatusCodes.CREATED,
-            message:"cập nhật ngôn ngữ thành công",
+            message:"cập nhật kĩ năng thành công",
             success: true,
-            data: language         
+            data: skill         
         }
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
-                `Error in LanguageService - method updateLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
+                `Error in SkillService - method updateSkill() at ${new Date().toISOString()} with message: ${error?.message}`
             )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: "Lỗi cập nhật ngôn ngữ, vui lòng thử lại sau",
+                message: "Lỗi cập nhật kĩ năng, vui lòng thử lại sau",
             }
         }
     }
-    async deleteLanguage(languageId: number): Promise<IResponseBase> {
+    async deleteSkill(skillId: number): Promise<IResponseBase> {
          try {
             
-          if(!languageId){
+          if(!skillId){
             return {
                 message: "Vui lòng kiểm tra lại dữ liệu của bạn",
                 success: false,
@@ -178,11 +179,11 @@ export default class LanguageService implements ILanguageService {
             }
           }
 
-         const language = await this._context.LanguageRepo.findOne({
-            where:{id: languageId}
+         const Skill = await this._context.SkillRepo.findOne({
+            where:{id: skillId}
           })
 
-          if(!language){
+          if(!Skill){
              return{
                 status: StatusCodes.NOT_FOUND,
                 success:false,
@@ -190,23 +191,23 @@ export default class LanguageService implements ILanguageService {
              }
           }
 
-          await this._context.LanguageRepo.delete({id: languageId})
+          await this._context.SkillRepo.delete({id: skillId})
 
           return {
             status:StatusCodes.OK,
-            message:"Xóa ngôn ngữ thành công",
+            message:"Xóa kĩ năng thành công",
             success: true,
-            data: languageId
+            data: skillId
           }        
         } catch (error) {
           logger.error(error?.message);
           console.error(
-              `Error in LanguageService - method deleteLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
+              `Error in SkillService - method deleteSkill() at ${new Date().toISOString()} with message: ${error?.message}`
           )
           return {
               status: StatusCodes.INTERNAL_SERVER_ERROR,
               success: false,
-              message: "Lỗi xóa ngôn ngữ, vui lòng thử lại sau",
+              message: "Lỗi xóa kĩ năng, vui lòng thử lại sau",
           }
         }
     }

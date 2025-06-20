@@ -65,9 +65,9 @@ export default class ResumeService implements IResumeService {
       }
     }
     async updateOnlineResume(data: IResumeData): Promise<IResponseBase> {
-     try {
-      const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
-      const userId = request?.user?.id
+      try {
+        const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
+        const userId = request?.user?.id
 
        if (!userId) {
           return {
