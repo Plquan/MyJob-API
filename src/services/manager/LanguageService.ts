@@ -1,6 +1,6 @@
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import { ICreateExperienceData, IUpdateExperienceData } from "@/interfaces/experience/ExperienceDto";
-import IExperienceService from "@/interfaces/experience/IExperienceService";
+import ILanguageService from "@/interfaces/language/ILanguageService";
+import { ICreateLanguageData, IUpdateLanguageData } from "@/interfaces/language/LanguageDto";
 import DatabaseService from "../common/DatabaseService";
 import { LocalStorage } from "@/constants/LocalStorage";
 import logger from "@/helpers/logger";
@@ -8,51 +8,51 @@ import { RequestStorage } from "@/middlewares";
 import { StatusCodes } from "http-status-codes";
 import { VariableSystem } from "@/constants/VariableSystem";
 
-export default class ExperienceService implements IExperienceService {
+export default class LanguageService implements ILanguageService {
 
-    private readonly _context:DatabaseService
+    private readonly _context: DatabaseService
 
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
-    
-    async getAllExperiences(): Promise<IResponseBase> {
-       try {
-          const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
-          const userId = request?.user?.id;
+
+    async getAllLanguages(): Promise<IResponseBase> {
+        try {
+          const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
+          const userId = request?.user?.id
 
           if (!userId) {
             return {
               status: StatusCodes.UNAUTHORIZED,
               success: false,
-              message: "Bạn không có quyền truy cập",
+              message: "Bạn không có quyền truy cập"
             }
           } 
 
-          const experiences = await this._context.ExperienceRepo.find({
+          const languages = await this._context.LanguageRepo.find({
             where:{resume:{ candidate:{ userId } }},
             order: { createdAt: 'DESC' }
           })
 
            return {
               status: StatusCodes.OK,
-              message:"Lấy danh sách thành công",
+              message:"Lấy danh sách ngôn ngữ thành công",
               success: true,
-              data: experiences         
+              data: languages         
             }
           } catch (error) {
             logger.error(error?.message);
             console.error(
-                `Error in ExperienceService - method getAllExperiences() at ${new Date().toISOString()} with message: ${error?.message}`
+                `Error in LanguageService - method getAllLanguages() at ${new Date().toISOString()} with message: ${error?.message}`
             )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
+                message: "Lỗi khi lấy danh sách ngôn ngữ, vui lòng thử lại sau",
             }
         }
     }
-    async createExperience(data: ICreateExperienceData): Promise<IResponseBase> {
+    async createLanguage(data: ICreateLanguageData): Promise<IResponseBase> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
@@ -65,7 +65,7 @@ export default class ExperienceService implements IExperienceService {
             }
           } 
 
-          if(!data.jobName || !data.companyName || !data.startDate || !data.endDate){
+          if(!data.language || !data.level){
             return {
                 message: "Vui lòng kiểm tra lại dữ liệu của bạn",
                 success: false,
@@ -86,34 +86,34 @@ export default class ExperienceService implements IExperienceService {
               success: false,
               message: "Không tìm thấy hồ sơ online của bạn",
             }
-         }
+          }
 
           data.resumeId = onlineResume.id
           
-          const newExperience = this._context.ExperienceRepo.create(data)
-          await this._context.ExperienceRepo.save(newExperience)
+          const newLanguage = this._context.LanguageRepo.create(data)
+          await this._context.ExperienceRepo.save(newLanguage)
 
            return {
               status: StatusCodes.CREATED,
-              message:"Thêm kinh nghiệm thành công",
+              message:"Thêm ngôn ngữ thành công",
               success: true,
-              data: newExperience         
+              data: newLanguage         
             }
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
-                `Error in ExperienceService - method createExperience() at ${new Date().toISOString()} with message: ${error?.message}`
+                `Error in LanguageService - method createLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
             )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
+                message: "Lỗi thêm ngôn ngữ, vui lòng thử lại sau",
             }
         }
     }
-    async updateExperience(data: IUpdateExperienceData): Promise<IResponseBase> {
-        try {
+    async updateLanguage(data: IUpdateLanguageData): Promise<IResponseBase> {
+         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
@@ -125,7 +125,7 @@ export default class ExperienceService implements IExperienceService {
             }
           } 
 
-          if(!data.jobName || !data.companyName || !data.startDate || !data.endDate || !data.id){
+          if(!data.language || !data.level || !data.id){
             return {
                 message: "Vui lòng kiểm tra lại dữ liệu của bạn",
                 success: false,
@@ -167,10 +167,10 @@ export default class ExperienceService implements IExperienceService {
             }
         }
     }
-    async deleteExperience(experienceId: number): Promise<IResponseBase> {
-        try {
+    async deleteLanguage(languageId: number): Promise<IResponseBase> {
+         try {
             
-          if( !experienceId){
+          if(!languageId){
             return {
                 message: "Vui lòng kiểm tra lại dữ liệu của bạn",
                 success: false,
@@ -178,37 +178,37 @@ export default class ExperienceService implements IExperienceService {
             }
           }
 
-         const experience = await this._context.ExperienceRepo.findOne({
-            where:{id: experienceId}
+         const language = await this._context.LanguageRepo.findOne({
+            where:{id: languageId}
           })
 
-          if(!experience){
+          if(!language){
              return{
                 status: StatusCodes.NOT_FOUND,
                 success:false,
-                message: "Không tìm thấy kinh nghiệm"
+                message: "Không tìm thấy ngôn ngữ"
              }
           }
 
-          await this._context.ExperienceRepo.delete({id: experienceId})
+          await this._context.LanguageRepo.delete({id: languageId})
 
           return {
             status:StatusCodes.OK,
-            message:"Xóa kinh nghiệm thành công",
+            message:"Xóa ngôn ngữ thành công",
             success: true,
-            data: experienceId
+            data: languageId
           }        
         } catch (error) {
           logger.error(error?.message);
           console.error(
-              `Error in ExperienceService - method deleteExperience() at ${new Date().toISOString()} with message: ${error?.message}`
+              `Error in LanguageService - method deleteLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
           )
           return {
               status: StatusCodes.INTERNAL_SERVER_ERROR,
               success: false,
-              message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
+              message: "Lỗi xóa ngôn ngữ, vui lòng thử lại sau",
           }
         }
     }
-    
+
 }

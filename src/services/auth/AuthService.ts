@@ -73,7 +73,7 @@ export default class AuthService implements IAuthService {
             return {
               status: StatusCodes.INTERNAL_SERVER_ERROR,
               success: false,
-              message: ErrorMessages.INTERNAL_SERVER_ERROR,
+              message: "Lỗi hệ thống, vui lòng thử lại sau",
             }
         }
     }

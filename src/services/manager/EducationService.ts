@@ -99,6 +99,7 @@ export default class EducationService implements IEducationService {
             status: StatusCodes.CREATED,
             success: true,
             message: "Tạo mới thông tin học vấn thành công",
+            data: newEducation
          }
            
         } catch (error) {
@@ -181,7 +182,8 @@ export default class EducationService implements IEducationService {
           return {
             status: StatusCodes.OK,
             success: true,
-            message: "Xóa thông tin học vấn thành công"
+            message: "Xóa thông tin học vấn thành công",
+            data:educationId
           }
                       
         } catch (error) {

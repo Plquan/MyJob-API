@@ -39,7 +39,7 @@ export class ExperienceController {
     @DELETE()
     @route("/delete-experience/:experienceId")
     async deleteExperience(req: Request, res: Response){
-         const experienceId = parseInt(req.params.experienceId);
+        const experienceId = parseInt(req.params.experienceId);
         const response = await this._experienceService.deleteExperience(experienceId)
         res.status(response.status).json(response)
     }
