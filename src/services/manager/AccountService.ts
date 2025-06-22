@@ -3,13 +3,13 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import CloudinaryService from "../common/CloudinaryService";
 import logger from "@/helpers/logger";
 import { StatusCodes } from "http-status-codes";
-import { ErrorMessages } from "@/constants/ErrorMessages";
 import DatabaseService from "../common/DatabaseService";
 import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";
 import { MyJobFile } from "@/entity/MyJobFile";
 import { VariableSystem } from "@/constants/VariableSystem";
 import { console } from "inspector";
+import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType";
 
 export default class AccountService implements IAccountService {
 
@@ -37,24 +37,27 @@ export default class AccountService implements IAccountService {
                 id: userId,
                 },
             },
-            });
-            const result = await CloudinaryService.uploadImage(file,VariableSystem.FileType.AVATAR,myJobFile?.publicId??undefined);
-           
+            })
+            const result = await CloudinaryService.uploadFile(
+                file,
+                VariableSystem.FolderType.AVATAR,
+                CloudinaryResourceType.IMAGE
+            )      
             const newFile = {
-                userId,
                 publicId: result.public_id,
                 url: result.secure_url,
-                fileType: VariableSystem.FileType.AVATAR
-            } as MyJobFile;
+                fileType: VariableSystem.FolderType.AVATAR
+            } as MyJobFile
 
-            if (myJobFile) {
-                 this._context.MyJobFileRepo.merge(myJobFile, newFile);
-            }
-            await this._context.MyJobFileRepo.save(myJobFile || newFile);
+           const savedFile = await this._context.MyJobFileRepo.save(
+            myJobFile ? this._context.MyJobFileRepo.merge(myJobFile, newFile) : newFile
+            )
+
             await this._context.UserRepo.update(
-                    { id: userId },
-                    { avatar: myJobFile || newFile }
-                    );
+            { id: userId },
+            { avatar: savedFile }
+            )
+
            return {
                 status: StatusCodes.OK,
                 success: true,

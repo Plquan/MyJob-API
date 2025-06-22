@@ -292,14 +292,7 @@ export default class UserService implements IUserService {
           message: "Không tìm thấy thông tin người dùng",
         }
       }
-      const result = await this._context.UserRepo.delete(userId);
-          if (result.affected === 0) {
-            return {
-              status: StatusCodes.BAD_REQUEST,
-              success: false,
-              message: "Không thể xóa người",
-            }
-          }
+      await this._context.UserRepo.remove(user);
 
         return {
             status: StatusCodes.OK,

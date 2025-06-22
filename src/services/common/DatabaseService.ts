@@ -53,6 +53,7 @@ class DatabaseService {
   public RefreshTokenRepo: Repository<RefreshToken>
   public RoleRepo: Repository<Role>;
   public DistrictRepo: Repository<District>
+  connection: any;
 
   constructor() {
     this._dataSource = dataSource;

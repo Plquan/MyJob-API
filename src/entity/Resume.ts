@@ -89,9 +89,9 @@ export class Resume {
   @JoinColumn({ name: 'candidateId' })
   candidate!: Candidate;
 
-  @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
+  @OneToOne(() => MyJobFile, { nullable: true, cascade:true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'myJobFileId' })
-  MyJobFile?: MyJobFile;
+  myJobFile?: MyJobFile;
 
   @OneToMany(() => Language, language => language.resume)
   languages!: Language[];

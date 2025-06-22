@@ -22,6 +22,7 @@ export class AccountController {
     @route("/update-avatar")
     async updateAvatar(req: Request, res: Response) {
         const file = req.file;
+        console.log(file)
         const response = await this._accountService.updateAvatar(file);
         return res.status(response.status).json(response);
     }

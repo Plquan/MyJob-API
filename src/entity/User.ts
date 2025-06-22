@@ -74,7 +74,7 @@ export class User {
     @OneToMany(() => JobPostActivity, (activity) => activity.user)
     jobActivities!: JobPostActivity[];
 
-    @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
+    @OneToOne(() => MyJobFile, { nullable: true, cascade: true, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'avatarId' })
     avatar?: MyJobFile;
 

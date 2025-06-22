@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug with Nodemon + ts-node",
+      "runtimeExecutable": "nodemon",
+      "program": "${workspaceFolder}/src/index.ts",
+      "restart": true,
+      "args": [],
+      "runtimeArgs": ["--inspect", "--require", "ts-node/register"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

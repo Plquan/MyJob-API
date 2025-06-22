@@ -4,7 +4,7 @@ ROLE_NAME: {
   EMPLOYER: 'EMPLOYER',
   CANDIDATE: 'CANDIDATE',
 },
-FileType: {
+FolderType: {
   AVATAR: 'avatar',
   DOCUMENT: 'document',
     // ...
@@ -15,8 +15,8 @@ Paging:{
 },
 CV_TYPE: {
   CV_ONLINE: "ONLINE",
-  CV_UPLOAD: "UPLOAD"
-}
+  CV_ATTACHED: "ATTACHED"
+},
 
 
 }
