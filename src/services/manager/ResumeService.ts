@@ -1,23 +1,23 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import { IResumeData } from "@/interfaces/candidate/CandidateDto";
-import IResumeService from "@/interfaces/resume/IResumeService";
-import DatabaseService from "../common/DatabaseService";
-import { LocalStorage } from "@/constants/LocalStorage";
-import { VariableSystem } from "@/constants/VariableSystem";
-import logger from "@/helpers/logger";
-import { RequestStorage } from "@/middlewares";
-import { StatusCodes } from "http-status-codes";
-import { IUpdateAttachedResumeData, IUploadAttachedResumeData } from "@/interfaces/resume/ResumeDto";
-import CloudinaryService from "../common/CloudinaryService";
-import { MyJobFile } from "@/entity/MyJobFile";
-import { Resume } from "@/entity/Resume";
-import { Candidate } from "@/entity/Candidate";
-import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType";
+import { IResponseBase } from "@/interfaces/base/IResponseBase"
+import { IResumeData } from "@/interfaces/candidate/CandidateDto"
+import IResumeService from "@/interfaces/resume/IResumeService"
+import DatabaseService from "../common/DatabaseService"
+import { LocalStorage } from "@/constants/LocalStorage"
+import { VariableSystem } from "@/constants/VariableSystem"
+import logger from "@/helpers/logger"
+import { RequestStorage } from "@/middlewares"
+import { StatusCodes } from "http-status-codes"
+import { IUpdateAttachedResumeData, IUploadAttachedResumeData } from "@/interfaces/resume/ResumeDto"
+import CloudinaryService from "../common/CloudinaryService"
+import { MyJobFile } from "@/entity/MyJobFile"
+import { Resume } from "@/entity/Resume"
+import { Candidate } from "@/entity/Candidate"
+import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType"
 
 
 export default class ResumeService implements IResumeService {
     
-    private readonly _context:DatabaseService
+     private readonly _context:DatabaseService
 
      constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
@@ -57,17 +57,12 @@ export default class ResumeService implements IResumeService {
         }
       }
     }
-    updateAttachedResume(data: IUpdateAttachedResumeData, file: Express.Multer.File): Promise<IResponseBase> {
-      throw new Error("Method not implemented.");
-    }
-    deleteAttachedResume(attchedResumeId: number): Promise<IResponseBase> {
-      throw new Error("Method not implemented.");
-    }
-    async uploadAttachedResume(data: IUploadAttachedResumeData, file: Express.Multer.File): Promise<IResponseBase> {
+    async updateAttachedResume(data: IUpdateAttachedResumeData, file: Express.Multer.File): Promise<IResponseBase> {
+    try {
       if (
         !data.academicLevel || !data.careerId || !data.experience || !file ||
         !data.jobType || !data.position || !data.provinceId ||
-        !data.salaryMax || !data.salaryMin || !data.description
+        !data.salaryMax || !data.salaryMin || !data.description || !data.id
       ) {
         return {
           status: StatusCodes.BAD_REQUEST,
@@ -76,15 +71,126 @@ export default class ResumeService implements IResumeService {
         }
       }
 
-      const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
-      const userId = request?.user.id;
+      const attachedResume = await this._context.ResumeRepo.findOne({
+        where: { id: data.id },
+        relations: ['myJobFile'],
+      })
+
+      if (!attachedResume) {
+        return {
+          status: StatusCodes.NOT_FOUND,
+          message: "Không tìm thấy hồ sơ đính kèm",
+          success: false,
+        }
+      }
+
+      const result = await CloudinaryService.uploadFile(
+        file,
+        VariableSystem.FolderType.CV_UPLOAD,
+        CloudinaryResourceType.RAW,
+        attachedResume.myJobFile?.publicId ?? undefined
+      )
+
+      if (!result?.public_id || !result?.secure_url) {
+        return {
+          status: StatusCodes.INTERNAL_SERVER_ERROR,
+          success: false,
+          message: "Tải lên tệp thất bại",
+        }
+      }
+      const dataSource = this._context.getDataSource()
+      await dataSource.transaction(async (manager) => {
+        if (attachedResume.myJobFile) {
+          attachedResume.myJobFile.publicId = result.public_id
+          attachedResume.myJobFile.url = result.secure_url
+          await manager.save(attachedResume.myJobFile)
+        }
+
+        manager.merge(Resume, attachedResume, data)
+        await manager.save(attachedResume)
+      })
+
+      return {
+        status: StatusCodes.OK,
+        message: "Cập nhật hồ sơ thành công",
+        success: true,
+      }
+
+    } catch (error) {
+      logger.error(error?.message)
+      console.error(
+        `Error in ResumeService - method updateAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
+      )
+      return {
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: "Lỗi cập nhật hồ sơ đính kèm, vui lòng thử lại sau",
+      }
+    }
+    }
+    async deleteAttachedResume(attachedResumeId: number): Promise<IResponseBase> {
+      try {
+        if(!attachedResumeId){
+          return{
+            status: StatusCodes.BAD_REQUEST,
+            message: "Vui lòng kiểm tra lại dữ liệu của bạn",
+            success: false,
+          }
+        }
+        const attachedResume = await this._context.ResumeRepo.findOne({
+          where:{id:attachedResumeId},
+          relations:['myJobFile']
+        })
+        if(!attachedResume){
+           return{
+            status: StatusCodes.NOT_FOUND,
+            message: "Không tìm thấy hồ sơ đính kèm",
+            success: false,
+           }
+        }
+        if (attachedResume.myJobFile?.id) {
+          await this._context.MyJobFileRepo.softDelete(attachedResume.myJobFile.id)
+        }
+        await this._context.ResumeRepo.delete(attachedResumeId)
+
+        return{
+          status: StatusCodes.OK,
+            message: "Xóa hồ sơ đính kèm thành công",
+            success: true,
+        }
+        
+      } catch (error) {
+        logger.error(error?.message)
+        console.error(
+          `Error in ResumeService - method deleteAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
+        )
+        return {
+          status: StatusCodes.INTERNAL_SERVER_ERROR,
+          success: false,
+          message: "Lỗi xóa hồ sơ đính kèm, vui lòng thử lại sau",
+        }
+      }
+    }
+    async uploadAttachedResume(data: IUploadAttachedResumeData, file: Express.Multer.File): Promise<IResponseBase> {
+      if (
+        !data.academicLevel || !data.careerId || !data.experience || !file ||
+        !data.jobType || !data.position || !data.provinceId ||
+        !data.salaryMax || !data.salaryMin || !data.description ) {
+        return {
+          status: StatusCodes.BAD_REQUEST,
+          message: "Vui lòng kiểm tra lại dữ liệu của bạn",
+          success: false,
+        }
+      }
+      const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
+      const userId = request?.user.id
 
       if (!userId) {
         return {
           status: StatusCodes.UNAUTHORIZED,
           success: false,
           message: "Bạn không có quyền truy cập",
-        };
+        }
       }
 
       const queryRunner = this._context.createQueryRunner()
@@ -105,25 +211,26 @@ export default class ResumeService implements IResumeService {
           }
         }
 
-        const result = await CloudinaryService.uploadFile(
+         const result = await CloudinaryService.uploadFile(
            file,
-           VariableSystem.CV_TYPE.CV_ATTACHED,
+           VariableSystem.FolderType.CV_UPLOAD,
            CloudinaryResourceType.RAW
           )
-          
+
         if (!result?.public_id || !result?.secure_url) {
           await queryRunner.rollbackTransaction()
           return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
             success: false,
             message: "Tải lên tệp thất bại",
-          };
+          }
         }
 
         const newFile = queryRunner.manager.create(MyJobFile, {
           publicId: result.public_id,
           url: result.secure_url,
           fileType: VariableSystem.CV_TYPE.CV_ATTACHED,
+          resourceType: result.resource_type,
         })
         await queryRunner.manager.save(MyJobFile, newFile)
 
@@ -136,23 +243,36 @@ export default class ResumeService implements IResumeService {
 
         await queryRunner.commitTransaction()
 
+        const createdAttachedResume = await this.getAttachedResumeById(newAttachedResume.id)
+
+        if(!createdAttachedResume){
+          return {
+            status: StatusCodes.NOT_FOUND,
+            message: "Không tìm thấy hồ sơ đã tạo",
+            success:false
+          }
+        }
+
         return {
           status: StatusCodes.CREATED,
           message: "Thêm hồ sơ đính kèm thành công",
           success: true,
-          data: newAttachedResume
+          data: createdAttachedResume
         }
         
       } catch (error) {
-        await queryRunner.rollbackTransaction();
-        logger.error(error?.message);
+        await queryRunner.rollbackTransaction()
+        logger.error(error?.message)
+        console.error(
+          `Error in ResumeService - method uploadAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
+        )
         return {
           status: StatusCodes.INTERNAL_SERVER_ERROR,
           success: false,
           message: "Lỗi thêm hồ sơ đính kèm, vui lòng thử lại sau",
-        };
+        }
       } finally {
-        await queryRunner.release();
+        await queryRunner.release()
       }
     }
     async getAllAttachedResumes(): Promise<IResponseBase> {
@@ -283,8 +403,7 @@ export default class ResumeService implements IResumeService {
           status: StatusCodes.INTERNAL_SERVER_ERROR,
           success: false,
           message: "Lỗi cập nhật hồ sơ người dùng, vui lòng thử lại sau",
-        };
+        }
       }
     }
-    
 }

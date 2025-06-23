@@ -1,8 +1,9 @@
 import IResumeService from "@/interfaces/resume/IResumeService";
+import { IUpdateAttachedResumeData } from "@/interfaces/resume/ResumeDto";
 import { asyncLocalStorageMiddleware } from "@/middlewares";
 import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
 import { uploadAvatarMiddleware } from "@/middlewares/uploadMiddleware";
-import { GET, route, PUT, before, inject, POST } from "awilix-express";
+import { GET, route, PUT, before, inject, POST, DELETE } from "awilix-express";
 import { Request, Response } from "express";
 
 @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
@@ -58,6 +59,33 @@ export class ResumeController {
         return res.status(response.status).json(response)
     }
 
+    @PUT()
+    @route("/update-attached-resume")
+    async updateAttachedResume (req: Request, res: Response){
+         const {id,
+            title, position, academicLevel, experience,
+            careerId, provinceId, salaryMin, salaryMax,
+            typeOfWorkPlace, jobType, description,
+        } = req.body
+          const file = req.file
+          const data = {
+            id:Number(id),
+            title,
+            position: Number(position),
+            academicLevel: Number(academicLevel),
+            experience: Number(experience),
+            careerId: Number(careerId),
+            provinceId: Number(provinceId),
+            salaryMin: Number(salaryMin),
+            salaryMax: Number(salaryMax),
+            typeOfWorkPlace: Number(typeOfWorkPlace),
+            jobType: Number(jobType),
+            description,
+        } as IUpdateAttachedResumeData
+        const response = await this._resumeService.updateAttachedResume(data,file)
+        return res.status(response.status).json(response)
+    }
+
     @GET()
     @route("/get-attached-resumes")
     async getAllAttachedResumes (req: Request, res: Response){
@@ -65,4 +93,11 @@ export class ResumeController {
         return res.status(response.status).json(response)
     }
 
+    @DELETE()
+    @route("/delete-attached-resume/:attachedResumeId")
+    async deleteAttachedResume (req: Request, res: Response){
+        const attachedResumeId = parseInt(req.params.attachedResumeId)
+        const response = await this._resumeService.deleteAttachedResume(attachedResumeId)
+        return res.status(response.status).json(response)
+    }
 }

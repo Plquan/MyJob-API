@@ -2,13 +2,14 @@ import cloudinary from '../../ultils/Cloudinary';
 import streamifier from 'streamifier';
 import type { UploadApiResponse } from 'cloudinary';
 import { CloudinaryResourceType } from '@/constants/CloudinaryResourceType';
-
+import { v4 as uuidv4 } from 'uuid';
 
 export class CloudinaryService {
   static async uploadFile(
     file:Express.Multer.File,
     folder: string,
-    resourceType: CloudinaryResourceType
+    resourceType: CloudinaryResourceType,
+    publicId?: string
   ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const format = file.originalname?.split('.').pop()?.toLowerCase()
@@ -17,9 +18,10 @@ export class CloudinaryService {
           folder,
           resource_type: resourceType,
           format,
+          public_id: publicId,
+          overwrite:true,
           use_filename: true,
           unique_filename: true,
-          overwrite: false
         },
         (error, result) => {
           if (error) {
@@ -33,9 +35,9 @@ export class CloudinaryService {
     })
   }
 
-  static async deleteFile(publicId: string): Promise<void> {
+  static async deleteFile(publicId: string,resourceType:string): Promise<void> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.destroy(publicId, (error, result) => {
+      cloudinary.uploader.destroy(publicId,  { resource_type: resourceType }, (error, result) => {
         if (error) {
           console.error('Xóa ảnh cloudinary bị lỗi', error)
           return reject(error)

@@ -6,7 +6,8 @@ ROLE_NAME: {
 },
 FolderType: {
   AVATAR: 'avatar',
-  DOCUMENT: 'document',
+  CV_UPLOAD: 'cv_upload',
+
     // ...
 },
 Paging:{

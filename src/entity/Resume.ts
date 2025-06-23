@@ -85,11 +85,11 @@ export class Resume {
   @JoinColumn({ name: 'provinceId' })
   province?: Province;
 
-  @ManyToOne(() => Candidate, candidate => candidate.resumes, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Candidate, candidate => candidate.resumes,{ onDelete: 'CASCADE' })
   @JoinColumn({ name: 'candidateId' })
   candidate!: Candidate;
 
-  @OneToOne(() => MyJobFile, { nullable: true, cascade:true, onDelete: 'CASCADE' })
+  @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'myJobFileId' })
   myJobFile?: MyJobFile;
 

@@ -20,8 +20,6 @@ export interface IUpdateAttachedResumeData {
     id: number
     provinceId:number
     careerId:number
-    candidateId: number
-    myJobFileId?: number
     title?: string;
     description?: string
     salaryMin?: number
@@ -31,7 +29,6 @@ export interface IUpdateAttachedResumeData {
     experience?: number
     academicLevel?: number
     jobType?: number
-    type?: string
   }
   
   

@@ -41,13 +41,15 @@ export default class AccountService implements IAccountService {
             const result = await CloudinaryService.uploadFile(
                 file,
                 VariableSystem.FolderType.AVATAR,
-                CloudinaryResourceType.IMAGE
+                CloudinaryResourceType.IMAGE,
+                myJobFile?.publicId??undefined
             )      
             const newFile = {
                 publicId: result.public_id,
                 url: result.secure_url,
-                fileType: VariableSystem.FolderType.AVATAR
-            } as MyJobFile
+                fileType: VariableSystem.FolderType.AVATAR,
+                resourceType: result.resource_type,
+            }
 
            const savedFile = await this._context.MyJobFileRepo.save(
             myJobFile ? this._context.MyJobFileRepo.merge(myJobFile, newFile) : newFile
@@ -63,7 +65,7 @@ export default class AccountService implements IAccountService {
                 success: true,
                 message: "Cập nhật ảnh đại diện thành công",
                 data:newFile.url,
-            };
+            }
            
         } catch (error) {
             logger.error(error?.message);
