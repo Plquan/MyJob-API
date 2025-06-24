@@ -49,6 +49,7 @@ export default class AccountService implements IAccountService {
                 url: result.secure_url,
                 fileType: VariableSystem.FolderType.AVATAR,
                 resourceType: result.resource_type,
+                format: result.format
             }
 
            const savedFile = await this._context.MyJobFileRepo.save(

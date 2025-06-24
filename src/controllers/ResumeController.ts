@@ -36,52 +36,21 @@ export class ResumeController {
     @POST()
     @route("/upload-attached-resume")
     async uploadAttachedResume(req:Request, res: Response){
-        const {
-            title, position, academicLevel, experience,
-            careerId, provinceId, salaryMin, salaryMax,
-            typeOfWorkPlace, jobType, description,
-        } = req.body
-          const file = req.file
-          const data = {
-            title,
-            position: Number(position),
-            academicLevel: Number(academicLevel),
-            experience: Number(experience),
-            careerId: Number(careerId),
-            provinceId: Number(provinceId),
-            salaryMin: Number(salaryMin),
-            salaryMax: Number(salaryMax),
-            typeOfWorkPlace: Number(typeOfWorkPlace),
-            jobType: Number(jobType),
-            description,
-        }
+        const file = req.file
+        const data = JSON.parse(req.body.data)
         const response = await this._resumeService.uploadAttachedResume(data,file)
         return res.status(response.status).json(response)
     }
-
+    
+    @before([
+    uploadAvatarMiddleware,
+    asyncLocalStorageMiddleware()])
     @PUT()
     @route("/update-attached-resume")
     async updateAttachedResume (req: Request, res: Response){
-         const {id,
-            title, position, academicLevel, experience,
-            careerId, provinceId, salaryMin, salaryMax,
-            typeOfWorkPlace, jobType, description,
-        } = req.body
-          const file = req.file
-          const data = {
-            id:Number(id),
-            title,
-            position: Number(position),
-            academicLevel: Number(academicLevel),
-            experience: Number(experience),
-            careerId: Number(careerId),
-            provinceId: Number(provinceId),
-            salaryMin: Number(salaryMin),
-            salaryMax: Number(salaryMax),
-            typeOfWorkPlace: Number(typeOfWorkPlace),
-            jobType: Number(jobType),
-            description,
-        } as IUpdateAttachedResumeData
+        const file = req.file
+        console.log(req.body.data)
+        const data = JSON.parse(req.body.data)
         const response = await this._resumeService.updateAttachedResume(data,file)
         return res.status(response.status).json(response)
     }

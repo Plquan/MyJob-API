@@ -17,8 +17,11 @@ export class MyJobFile {
   @Column({ type: 'varchar', length: 50 })
   fileType!: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 20 })
   resourceType!: string;
+
+  @Column({ type: 'varchar', length: 20 })
+  format!: string;
   
   @CreateDateColumn()
   createdAt!: Date;

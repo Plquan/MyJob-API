@@ -13,6 +13,7 @@ import { MyJobFile } from "@/entity/MyJobFile"
 import { Resume } from "@/entity/Resume"
 import { Candidate } from "@/entity/Candidate"
 import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType"
+import { getFileCategory } from "@/ultils/fileUltils"
 
 
 export default class ResumeService implements IResumeService {
@@ -57,77 +58,88 @@ export default class ResumeService implements IResumeService {
         }
       }
     }
-    async updateAttachedResume(data: IUpdateAttachedResumeData, file: Express.Multer.File): Promise<IResponseBase> {
-    try {
-      if (
-        !data.academicLevel || !data.careerId || !data.experience || !file ||
-        !data.jobType || !data.position || !data.provinceId ||
-        !data.salaryMax || !data.salaryMin || !data.description || !data.id
-      ) {
-        return {
-          status: StatusCodes.BAD_REQUEST,
-          message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-          success: false,
+    async updateAttachedResume(data: IUpdateAttachedResumeData, file?: Express.Multer.File): Promise<IResponseBase> {
+      try {
+        if (
+          !data.academicLevel || !data.careerId || !data.experience ||
+          !data.jobType || !data.position || !data.provinceId ||
+          !data.salaryMax || !data.salaryMin || !data.description || !data.id
+        ) {
+          return {
+            status: StatusCodes.BAD_REQUEST,
+            message: "Vui lòng kiểm tra lại dữ liệu của bạn",
+            success: false,
+          };
         }
-      }
 
-      const attachedResume = await this._context.ResumeRepo.findOne({
-        where: { id: data.id },
-        relations: ['myJobFile'],
-      })
+        const attachedResume = await this._context.ResumeRepo.findOne({
+          where: { id: data.id },
+          relations: ['myJobFile'],
+        });
 
-      if (!attachedResume) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          message: "Không tìm thấy hồ sơ đính kèm",
-          success: false,
+        if (!attachedResume) {
+          return {
+            status: StatusCodes.NOT_FOUND,
+            message: "Không tìm thấy hồ sơ đính kèm",
+            success: false,
+          }
         }
-      }
 
-      const result = await CloudinaryService.uploadFile(
-        file,
-        VariableSystem.FolderType.CV_UPLOAD,
-        CloudinaryResourceType.RAW,
-        attachedResume.myJobFile?.publicId ?? undefined
-      )
+        const dataSource = this._context.getDataSource();
+        await dataSource.transaction(async (manager) => {
+          if (file) {
+            const result = await CloudinaryService.uploadFile(
+              file,
+              VariableSystem.FolderType.CV_UPLOAD,
+              CloudinaryResourceType.RAW,
+              attachedResume.myJobFile?.publicId ?? undefined
+            );
 
-      if (!result?.public_id || !result?.secure_url) {
+            if (!result?.public_id || !result?.secure_url) {
+              throw new Error("Tải lên tệp thất bại");
+            }
+
+            if (attachedResume.myJobFile) {
+              attachedResume.myJobFile.publicId = result.public_id;
+              attachedResume.myJobFile.url = result.secure_url;
+              await manager.save(attachedResume.myJobFile);
+            }
+          }
+
+          manager.merge(Resume, attachedResume, data);
+          await manager.save(attachedResume);
+        })
+
+        const updatedAttachedResume = await this.getAttachedResumeById(data.id)
+
+        if(!updatedAttachedResume){
+          return {
+            status: StatusCodes.NOT_FOUND,
+            message: "Không tìm thấy hồ sơ đã tạo",
+            success:false
+          }
+        }
+
+        return {
+          status: StatusCodes.OK,
+          message: "Cập nhật hồ sơ thành công",
+          success: true,
+          data: updatedAttachedResume.data
+        }
+
+      } catch (error) {
+        logger.error(error?.message);
+        console.error(
+          `Error in ResumeService - method updateAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
+        );
         return {
           status: StatusCodes.INTERNAL_SERVER_ERROR,
           success: false,
-          message: "Tải lên tệp thất bại",
-        }
-      }
-      const dataSource = this._context.getDataSource()
-      await dataSource.transaction(async (manager) => {
-        if (attachedResume.myJobFile) {
-          attachedResume.myJobFile.publicId = result.public_id
-          attachedResume.myJobFile.url = result.secure_url
-          await manager.save(attachedResume.myJobFile)
-        }
-
-        manager.merge(Resume, attachedResume, data)
-        await manager.save(attachedResume)
-      })
-
-      return {
-        status: StatusCodes.OK,
-        message: "Cập nhật hồ sơ thành công",
-        success: true,
-      }
-
-    } catch (error) {
-      logger.error(error?.message)
-      console.error(
-        `Error in ResumeService - method updateAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
-      )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi cập nhật hồ sơ đính kèm, vui lòng thử lại sau",
+          message: "Lỗi cập nhật hồ sơ đính kèm, vui lòng thử lại sau",
+        };
       }
     }
-    }
+
     async deleteAttachedResume(attachedResumeId: number): Promise<IResponseBase> {
       try {
         if(!attachedResumeId){
@@ -225,12 +237,12 @@ export default class ResumeService implements IResumeService {
             message: "Tải lên tệp thất bại",
           }
         }
-
         const newFile = queryRunner.manager.create(MyJobFile, {
           publicId: result.public_id,
           url: result.secure_url,
           fileType: VariableSystem.CV_TYPE.CV_ATTACHED,
           resourceType: result.resource_type,
+          format: getFileCategory(file),
         })
         await queryRunner.manager.save(MyJobFile, newFile)
 
@@ -257,7 +269,7 @@ export default class ResumeService implements IResumeService {
           status: StatusCodes.CREATED,
           message: "Thêm hồ sơ đính kèm thành công",
           success: true,
-          data: createdAttachedResume
+          data: createdAttachedResume.data
         }
         
       } catch (error) {
