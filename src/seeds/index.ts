@@ -3,15 +3,17 @@ import dataSource from "../ormconfig";
 import { seedProvinces } from "./Province.seed";
 import { seedDistricts } from "./District.seed";
 import { seedFunctions } from "./Function.seed";
+import { seedCareers } from "./Career.seed";
 
 const runAllSeeds = async () => {
   try {
     await dataSource.initialize();
     console.log("DataSource initialized");
 
-    await seedProvinces(dataSource);
-    await seedDistricts(dataSource);
-    await seedFunctions(dataSource);
+    await seedProvinces(dataSource)
+    await seedDistricts(dataSource)
+    await seedFunctions(dataSource)
+    await seedCareers(dataSource)
 
     await dataSource.destroy();
     console.log("All seeds completed");

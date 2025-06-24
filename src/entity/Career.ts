@@ -18,6 +18,9 @@ import { Resume } from './Resume';
     @Column({ type: 'varchar', length: 150 })
     name!: string;
 
+    @Column({ type: 'varchar', length: 50 })
+    icon!: string;
+
     @CreateDateColumn()
     createdAt!: Date;
 

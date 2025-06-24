@@ -90,7 +90,7 @@ export class AuthController {
           res.cookie("accessToken", accessToken, {
             secure: true,
             sameSite: "none",
-            httpOnly: false,
+            httpOnly: true,
             maxAge: Number(ENV.ACCESS_TOKEN_EXPIRES_IN) * 1000,
           });
 

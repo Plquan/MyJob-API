@@ -36,9 +36,6 @@ import { JobPostActivity } from './JobPostActivity';
     @Column({ type: 'varchar', length: 200 })
     jobName!: string;
   
-    @Column({ type: 'varchar', length: 50,unique:true })
-    slug!: string;
-  
     @Column({ type: 'timestamp', nullable: true })
     deadline?: Date;
   
@@ -113,7 +110,7 @@ import { JobPostActivity } from './JobPostActivity';
     @JoinColumn({ name: 'companyId' })
     company!: Company;
   
-    @ManyToOne(() => Province, province => province.jobPosts, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Province, { onDelete: 'CASCADE' })
     @JoinColumn({ name: "provinceId" })
     province!: Province;
       

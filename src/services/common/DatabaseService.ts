@@ -8,7 +8,6 @@ import { Resume } from "@/entity/Resume";
 import { Province } from "@/entity/Province";
 import { Permission } from "@/entity/Permission";
 import { MyJobFile } from "@/entity/MyJobFile";
-import { AdvancedSkill } from "@/entity/AdvancedSkill";
 import { Candidate } from "@/entity/Candidate";
 import { Career } from "@/entity/Career";
 import { Certificate } from "@/entity/Certificate";
@@ -26,6 +25,8 @@ import dataSource from "@/ormconfig";
 import "reflect-metadata";
 import { RefreshToken } from "@/entity/RefreshToken";
 import { Role } from "@/entity/Role";
+import { District } from "@/entity/District";
+import { Skill } from "@/entity/Skill";
 
 class DatabaseService {
   private _dataSource: DataSource;
@@ -36,7 +37,7 @@ class DatabaseService {
   public ProvinceRepo: Repository<Province>;
   public PermissionRepo: Repository<Permission>;
   public MyJobFileRepo: Repository<MyJobFile>;
-  public AdvancedSkillRepo: Repository<AdvancedSkill>;
+  public SkillRepo: Repository<Skill>;
   public CandidateRepo: Repository<Candidate>;
   public CareerRepo: Repository<Career>;
   public CertificateRepo: Repository<Certificate>;
@@ -51,8 +52,8 @@ class DatabaseService {
   public LanguageRepo: Repository<Language>;
   public RefreshTokenRepo: Repository<RefreshToken>
   public RoleRepo: Repository<Role>;
-
-
+  public DistrictRepo: Repository<District>
+  connection: any;
 
   constructor() {
     this._dataSource = dataSource;
@@ -63,7 +64,7 @@ class DatabaseService {
     this.ProvinceRepo = this._dataSource.getRepository(Province);
     this.PermissionRepo = this._dataSource.getRepository(Permission);
     this.MyJobFileRepo = this._dataSource.getRepository(MyJobFile);
-    this.AdvancedSkillRepo = this._dataSource.getRepository(AdvancedSkill);
+    this.SkillRepo = this._dataSource.getRepository(Skill);
     this.CandidateRepo = this._dataSource.getRepository(Candidate);
     this.CareerRepo = this._dataSource.getRepository(Career);
     this.CertificateRepo = this._dataSource.getRepository(Certificate);
@@ -78,6 +79,8 @@ class DatabaseService {
     this.LanguageRepo = this._dataSource.getRepository(Language);
     this.RefreshTokenRepo = this._dataSource.getRepository(RefreshToken);
     this.RoleRepo = this._dataSource.getRepository(Role);
+    this.DistrictRepo = this._dataSource.getRepository(District);
+
 
     this._dataSource
       .initialize()

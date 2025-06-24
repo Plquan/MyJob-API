@@ -1,14 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, DeleteDateColumn } from 'typeorm';
 import { User } from './User';
+import { Resume } from './Resume';
 
 @Entity('MyJobFile')
 export class MyJobFile {
 
   @PrimaryGeneratedColumn()
   id!: number;
-
-  @Column()
-  userId!:number;
 
   @Column({ type: 'varchar', length: 255 })
   publicId!: string;
@@ -19,13 +17,24 @@ export class MyJobFile {
   @Column({ type: 'varchar', length: 50 })
   fileType!: string;
 
+  @Column({ type: 'varchar', length: 20 })
+  resourceType!: string;
+
+  @Column({ type: 'varchar', length: 20 })
+  format!: string;
+  
   @CreateDateColumn()
   createdAt!: Date;
 
   @UpdateDateColumn()
   updatedAt!: Date;
 
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
+
   @OneToOne(() => User, (user) => user.avatar)
-  @JoinColumn({ name: 'userId' }) 
-  user?: User;
+  user?: User
+
+  @OneToOne(() => Resume, (resume) => resume.myJobFile)
+  resume?: Resume
 }

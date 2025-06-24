@@ -18,8 +18,8 @@ import { Experience } from './Experience';
 import { Education } from './Education';
 import { Certificate } from './Certificate';
 import { JobPostActivity } from './JobPostActivity';
-import { AdvancedSkill } from './AdvancedSkill';
 import { MyJobFile } from './MyJobFile';
+import { Skill } from './Skill';
 
 @Entity('Resume')
 export class Resume {
@@ -30,43 +30,46 @@ export class Resume {
   candidateId!: number;
 
   @Column({ nullable: true })
+  careerId?:number
+
+  @Column({ nullable: true })
+  provinceId?:number
+
+  @Column({ nullable: true })
   myJobFileId?: number;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
   title?: string;
 
-  @Column({ type: 'varchar', length: 50, unique: true })
-  slug?: string;
-
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0 })
-  salary_min!: number;
+  @Column({ type: 'decimal', precision: 15, scale: 0,nullable: true })
+  salaryMin?: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0 })
-  salary_max!: number;
-
-  @Column({ type: 'smallint', nullable: true })
-  position!: number;
+  @Column({ type: 'decimal', precision: 15, scale: 0,nullable: true })
+  salaryMax?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  typeOfWorkPlace!: number;
+  position?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  experience!: number;
+  typeOfWorkPlace?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  academicLevel!: number;
+  experience?: number;
 
   @Column({ type: 'smallint', nullable: true })
-  jobType!: number;
+  academicLevel?: number;
 
-  @Column({ type: 'boolean', default: false })
-  is_active!: boolean;
+  @Column({ type: 'smallint', nullable: true })
+  jobType?: number;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
   type?: string;
+
+  @Column({ type: 'boolean', default: false })
+  isActive!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -74,25 +77,21 @@ export class Resume {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => Career, (career) => career.resumes)
+  @ManyToOne(() => Career, (career) => career.resumes, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'careerId' })
-  career!: Career;
+  career?: Career;
 
-  @ManyToOne(() => Province, (province) => province.resumes, { nullable: true })
+  @ManyToOne(() => Province, { nullable: true , onDelete: 'SET NULL' })
   @JoinColumn({ name: 'provinceId' })
   province?: Province;
 
-  @ManyToOne(() => Candidate, candidate => candidate.resumes, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Candidate, candidate => candidate.resumes,{ onDelete: 'CASCADE' })
   @JoinColumn({ name: 'candidateId' })
   candidate!: Candidate;
 
-  @ManyToOne(() => User, user => user.resumes)
-  @JoinColumn({ name: 'userId' })
-  user!: User;
-
   @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'myJobFileId' })
-  MyJobFile?: MyJobFile;
+  myJobFile?: MyJobFile;
 
   @OneToMany(() => Language, language => language.resume)
   languages!: Language[];
@@ -106,8 +105,8 @@ export class Resume {
   @OneToMany(() => Certificate, certificate => certificate.resume)
   certificates!: Certificate[];
 
-  @OneToMany(() => AdvancedSkill, advancedSkill => advancedSkill.resume)
-  advancedSkills!: AdvancedSkill[];
+  @OneToMany(() => Skill, skill => skill.resume)
+  skills!: Skill[];
 
   @OneToMany(() => JobPostActivity, activity => activity.resume)
   jobActivities!: JobPostActivity[];

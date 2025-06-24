@@ -4,15 +4,20 @@ ROLE_NAME: {
   EMPLOYER: 'EMPLOYER',
   CANDIDATE: 'CANDIDATE',
 },
-FileType: {
+FolderType: {
   AVATAR: 'avatar',
-  DOCUMENT: 'document',
+  CV_UPLOAD: 'cv_upload',
+
     // ...
 },
 Paging:{
    PAGE:1,
    LIMIT:10,
+},
+CV_TYPE: {
+  CV_ONLINE: "ONLINE",
+  CV_ATTACHED: "ATTACHED"
+},
+
+
 }
-
-
-};

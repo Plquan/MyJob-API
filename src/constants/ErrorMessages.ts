@@ -5,5 +5,5 @@ const ErrorMessages = {
     FORBIDDEN: "You don't have permission to access this resource",
     NOT_FOUND: "The requested resource was not found",
     INTERNAL_SERVER_ERROR: "An error occurred while processing the request",
-};
-export { ErrorMessages };
+}
+export { ErrorMessages }

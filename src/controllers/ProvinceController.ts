@@ -12,8 +12,15 @@ export class ProvinceController {
     @GET()
     @route("/get-provinces")
     async getAllProvinces(req: Request, res: Response) {
-    const provinces = await this._provinceService.getAllProvinces();
-    return res.status(provinces.status).json(provinces);
+    const response = await this._provinceService.getAllProvinces();
+    return res.status(response.status).json(response); }
+
+    @GET()
+    @route("/get-districts/:provinceId")
+    async getDistrictsByProvince(req: Request, res: Response) {
+    const provinceId = parseInt(req.params.provinceId);
+    const response = await this._provinceService.getDistrictsByProvince(provinceId);
+    return res.status(response.status).json(response);
   }
 
 }

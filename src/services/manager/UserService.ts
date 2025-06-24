@@ -27,26 +27,26 @@ export default class UserService implements IUserService {
                    limit = 10
                 } = filter;
 
-            let query = await this._context.UserRepo.createQueryBuilder("user")
-            .leftJoin("user.avatar", "avatar")
-            .leftJoin("user.groupRole", "groupRole")
-            .leftJoin("groupRole.role", "role")
-            .select([
-                'user.id AS "id"',
-                'user.email AS "email"',
-                'user.fullName AS "fullName"',
-                'user.isVerifyEmail AS "isVerifyEmail"',
-                'user.isActive AS "isActive"',
-                'user.isSuperUser AS "isSuperUser"',     
-                'user.isStaff AS "isStaff"',       
-                'user.roleName AS "roleName"',
-                'user.createdAt AS "createdAt"',
-                'user.updatedAt AS "updatedAt"',
-                'avatar.url AS "avatar"',
-                'json_agg(role.id) AS "groupRoles"',
-            ])
-            .groupBy('user.id')
-            .addGroupBy('avatar.url')
+            let query = this._context.UserRepo.createQueryBuilder("user")
+                .leftJoin("user.avatar", "avatar")
+                .leftJoin("user.groupRole", "groupRole")
+                .leftJoin("groupRole.role", "role")
+                .select([
+                    'user.id AS "id"',
+                    'user.email AS "email"',
+                    'user.fullName AS "fullName"',
+                    'user.isVerifyEmail AS "isVerifyEmail"',
+                    'user.isActive AS "isActive"',
+                    'user.isSuperUser AS "isSuperUser"',
+                    'user.isStaff AS "isStaff"',
+                    'user.roleName AS "roleName"',
+                    'user.createdAt AS "createdAt"',
+                    'user.updatedAt AS "updatedAt"',
+                    'avatar.url AS "avatar"',
+                    'json_agg(role.id) AS "groupRoles"',
+                ])
+                .groupBy('user.id')
+                .addGroupBy('avatar.url')
             
             let countQuery = this._context.UserRepo.createQueryBuilder("user")
             .leftJoin("user.avatar", "avatar")
@@ -80,12 +80,7 @@ export default class UserService implements IUserService {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
                 message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-            },
-            };
+            }
        }
     }  
 
@@ -152,12 +147,7 @@ export default class UserService implements IUserService {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
                 message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-            },
-            };
+            }
         }
     }
 
@@ -168,11 +158,6 @@ export default class UserService implements IUserService {
                     status: StatusCodes.BAD_REQUEST,
                     success: false,
                     message: "Thông tin người dùng không hợp lệ",
-                    data: null,
-                    error: {
-                        message: "Invalid user information",
-                        errorDetail: "Full name, email, password and role name are required"
-                    }
                 }
            }
             const existingUser = await this._context.UserRepo.findOne({
@@ -184,11 +169,6 @@ export default class UserService implements IUserService {
                     status: StatusCodes.CONFLICT,
                     success: false,
                     message: "Người dùng đã tồn tại",
-                    data: null,
-                    error: {
-                        message: "User already exists",
-                        errorDetail: "A user with this email already exists"
-                    }
                 }
             }
 
@@ -221,12 +201,7 @@ export default class UserService implements IUserService {
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-            }
+                message: "Lỗi tạo người dùng không thành công, vui lòng thử lại sau",
             }
         }
     }
@@ -282,12 +257,7 @@ export default class UserService implements IUserService {
                 return {
                     status: StatusCodes.INTERNAL_SERVER_ERROR,
                     success: false,
-                    message: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
-                    data: null,
-                    error: {
-                        message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                        errorDetail: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
-                    }
+                    message: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá"
                 }
                 }
             return {
@@ -303,12 +273,7 @@ export default class UserService implements IUserService {
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-            },
+                message: "Cập nhật thông tin người dùng không thành công, vui lòng thử lại sau",
             }
         }
     }
@@ -319,52 +284,30 @@ export default class UserService implements IUserService {
         where: {
           id: userId,
         },
-      });
+      })
       if (!user) {
         return {
           status: StatusCodes.NOT_FOUND,
           success: false,
           message: "Không tìm thấy thông tin người dùng",
-          data: null,
-          error: {
-            message: ErrorMessages.NOT_FOUND,
-            errorDetail: "Không tìm thấy thông tin người dùng hoặc người dùng đã bị xoá",
-          },
-        };
+        }
       }
-      const result = await this._context.UserRepo.delete(userId);
-          if (result.affected === 0) {
-            return {
-              status: StatusCodes.BAD_REQUEST,
-              success: false,
-              message: "Không thể xóa người",
-              data: null,
-              error: {
-                message: "Không thể xóa",
-                errorDetail: "Không có người dùng nào bị xóa",
-              }
-            };
-          }
+      await this._context.UserRepo.remove(user);
 
-       return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "Xoá người dùng thành công",
-        data:userId
-      };
+        return {
+            status: StatusCodes.OK,
+            success: true,
+            message: "Xoá người dùng thành công",
+            data:userId
+        }
       } catch (error) {
-        logger.error(error?.message);
-        console.log(`Error in UserService - method deleteUser() at ${new Date().getTime()} with message ${error?.message}`);
+            logger.error(error?.message);
+            console.log(`Error in UserService - method deleteUser() at ${new Date().getTime()} with message ${error?.message}`);
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-            },
+                message: "Xóa người dùng không thành công, vui lòng thử lại sau",
             }
-      }
+       }
     }
 }

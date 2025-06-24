@@ -53,4 +53,5 @@ export class RoleController {
         const response = await this._roleService.updateRolePermissions(data);
         return res.status(response.status).json(response);
     }
+    
 }

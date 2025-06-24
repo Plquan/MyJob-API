@@ -3,17 +3,18 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import CloudinaryService from "../common/CloudinaryService";
 import logger from "@/helpers/logger";
 import { StatusCodes } from "http-status-codes";
-import { ErrorMessages } from "@/constants/ErrorMessages";
 import DatabaseService from "../common/DatabaseService";
 import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";
 import { MyJobFile } from "@/entity/MyJobFile";
 import { VariableSystem } from "@/constants/VariableSystem";
 import { console } from "inspector";
+import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType";
 
 export default class AccountService implements IAccountService {
 
     private readonly _context:DatabaseService
+
     constructor(DatabaseService:DatabaseService) {
         this._context = DatabaseService;
     }
@@ -27,13 +28,8 @@ export default class AccountService implements IAccountService {
             return {
               status: StatusCodes.UNAUTHORIZED,
               success: false,
-              message: "Bạn không có quyền truy cập",
-              data: null,
-              error: {
-                message: "Unauthorized",
-                errorDetail: "Không tìm thấy Id người dùng",
-              },
-            };
+              message: "Bạn không có quyền truy cập"
+            }
           }
             const myJobFile = await this._context.MyJobFileRepo.findOne({
             where: {
@@ -41,47 +37,47 @@ export default class AccountService implements IAccountService {
                 id: userId,
                 },
             },
-            });
-            const result = await CloudinaryService.uploadImage(file,VariableSystem.FileType.AVATAR,myJobFile?.publicId??undefined);
-           
+            })
+            const result = await CloudinaryService.uploadFile(
+                file,
+                VariableSystem.FolderType.AVATAR,
+                CloudinaryResourceType.IMAGE,
+                myJobFile?.publicId??undefined
+            )      
             const newFile = {
-                userId,
                 publicId: result.public_id,
                 url: result.secure_url,
-                fileType: VariableSystem.FileType.AVATAR
-            } as MyJobFile;
-
-            if (myJobFile) {
-                 this._context.MyJobFileRepo.merge(myJobFile, newFile);
+                fileType: VariableSystem.FolderType.AVATAR,
+                resourceType: result.resource_type,
+                format: result.format
             }
-            await this._context.MyJobFileRepo.save(myJobFile || newFile);
+
+           const savedFile = await this._context.MyJobFileRepo.save(
+            myJobFile ? this._context.MyJobFileRepo.merge(myJobFile, newFile) : newFile
+            )
+
             await this._context.UserRepo.update(
-                    { id: userId },
-                    { avatar: myJobFile || newFile }
-                    );
+            { id: userId },
+            { avatar: savedFile }
+            )
+
            return {
                 status: StatusCodes.OK,
                 success: true,
                 message: "Cập nhật ảnh đại diện thành công",
                 data:newFile.url,
-                error: null
-            };
+            }
            
         } catch (error) {
             logger.error(error?.message);
             console.log(
-                `Error in Accountervice - method updateAvatar at ${new Date().getTime()} with message ${error?.message}`
-            );
+                `Error in AccountService - method updateAvatar at ${new Date().getTime()} with message ${error?.message}`
+            )
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                data: null,
-                error: {
-                message: ErrorMessages.INTERNAL_SERVER_ERROR,
-                errorDetail: error.message,
-                },
-            };
+                message: "Lỗi khi cập nhật ảnh đại diện, vui lòng thử lại sau",
+            }
         }
     }
     

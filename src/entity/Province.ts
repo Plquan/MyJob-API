@@ -19,18 +19,6 @@ export class Province {
     @UpdateDateColumn()
     updatedAt!: Date;
 
-    @OneToMany(() => Candidate, (candidate) => candidate.province)
-    candidates!: Candidate[];
-
-    @OneToMany(() => Company, (company) => company.province)
-    employers!: Company[];
-
-    @OneToMany(() => JobPost, (jobPost) => jobPost.province)
-    jobPosts!: JobPost[];
-
-    @OneToMany(() => Resume, resume => resume.province)
-    resumes!: Resume[];
-
     @OneToMany(() => District, (district) => district.province)
     districts!: District[];
 }

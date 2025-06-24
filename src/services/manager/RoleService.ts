@@ -35,12 +35,7 @@ export default class RoleService implements IRoleService {
               return {
                 status: StatusCodes.BAD_REQUEST,
                 success: false,
-                message: "Vai trò không tồn tại",
-                data: null,
-                error: {
-                  message: "Vai trò không tồn tại",
-                  errorDetail: "Không tìm thấy vai trò",
-                }
+                message: "Vai trò không tồn tại"
               }
             }
             return {
@@ -57,11 +52,6 @@ export default class RoleService implements IRoleService {
               status: StatusCodes.INTERNAL_SERVER_ERROR,
               success: false,
               message: "Lỗi hệ thống",
-              data: null,
-              error: {
-                message: "Lỗi hệ thống",
-                errorDetail: error?.message || "Unknown error"
-              }
             }
       }
     }
@@ -73,12 +63,7 @@ export default class RoleService implements IRoleService {
             return {
               status: StatusCodes.BAD_REQUEST,
               success:false,
-              message: "Nhóm quyền không tồn tại",
-              data: null,
-              error: {
-                message: "Nhóm quyền không tồn tại",
-                errorDetail: "Không tìm thấy nhóm quyền",
-              }
+              message: "Nhóm quyền không tồn tại"
             }
           }
           const result = await this._context.RoleRepo.delete(roleId)
@@ -88,11 +73,6 @@ export default class RoleService implements IRoleService {
               status: StatusCodes.BAD_REQUEST,
               success: false,
               message: "Không thể xóa vai trò",
-              data: null,
-              error: {
-                message: "Không thể xóa",
-                errorDetail: "Không có bản ghi nào bị xóa",
-              }
             };
           }
 
@@ -102,8 +82,6 @@ export default class RoleService implements IRoleService {
             message: "Xoá nhóm quyền thành công",
             data:roleId
           }
-
-
       } catch (error) {
           logger.error(error?.message);
               console.log(
@@ -113,11 +91,6 @@ export default class RoleService implements IRoleService {
                   status: StatusCodes.INTERNAL_SERVER_ERROR,
                   success: false,
                   message: "Internal Server Error",
-                  data: null,
-                  error: {
-                  message: "Internal Server Error",
-                  errorDetail: "Internal Server Error",
-                  },
               };
       }
     }
@@ -130,12 +103,7 @@ export default class RoleService implements IRoleService {
           return {
             status: StatusCodes.BAD_REQUEST,
             success:false,
-            message: "Vai trò không tồn tại",
-            data: null,
-            error: {
-              message: "Vai trò không tồn tại",
-              errorDetail: "Không tìm thấy vai trò",
-            }
+            message: "Vai trò không tồn tại"
           }
         }
 
@@ -148,12 +116,7 @@ export default class RoleService implements IRoleService {
           return {
             status: StatusCodes.BAD_REQUEST,
             success: false,
-            message: "Cập nhật vai trò thất bại",
-            data: null,
-            error: {
-              message: "Cập nhật vai trò thất bại",
-              errorDetail: "Không tìm thấy vai trò",
-            }
+            message: "Cập nhật vai trò thất bại"
           }
         }
 
@@ -172,12 +135,7 @@ export default class RoleService implements IRoleService {
               return {
                   status: StatusCodes.INTERNAL_SERVER_ERROR,
                   success: false,
-                  message: "Internal Server Error",
-                  data: null,
-                  error: {
-                  message: "Internal Server Error",
-                  errorDetail: "Internal Server Error",
-                  },
+                  message: "Internal Server Error"
             }
       }
     }
@@ -188,11 +146,6 @@ export default class RoleService implements IRoleService {
                 status: StatusCodes.BAD_REQUEST,
                 success: false,
                 message: "Tên vai trò không được để trống",
-                data: null,
-                error: {
-                    message: "Tên vai trò không được để trống",
-                    errorDetail: "Tên vai trò không được để trống",
-                },
             };
         }
         const existingRole = await this._context.RoleRepo.findOne({
@@ -203,12 +156,7 @@ export default class RoleService implements IRoleService {
           return {
             status:StatusCodes.BAD_REQUEST,
             success:false,
-            message: "Nhóm quyền đã tồn tại",
-            data:null,
-            error: {
-                message: "Nhóm quyền đã tồn tại",
-                errorDetail: "Nhóm quyền đã tồn tại",
-            },
+            message: "Nhóm quyền đã tồn tại"
           }
         }
         const newRole = this._context.RoleRepo.create(data)
@@ -229,12 +177,7 @@ export default class RoleService implements IRoleService {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
                 message: "Internal Server Error",
-                data: null,
-                error: {
-                message: "Internal Server Error",
-                errorDetail: "Internal Server Error",
-                },
-            };
+            }
       }
     }
     async getCurrentUserPermission(userId: number): Promise<IResponseBase> {
@@ -256,8 +199,7 @@ export default class RoleService implements IRoleService {
             return {
                 status: StatusCodes.OK,
                 success: true,
-                data: userPermissions,
-                error: null,
+                data: userPermissions
               };
         } catch (error) {
             logger.error(error?.message);
@@ -267,12 +209,7 @@ export default class RoleService implements IRoleService {
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
-                message: "Internal Server Error",
-                data: null,
-                error: {
-                message: "Internal Server Error",
-                errorDetail: "Internal Server Error",
-                },
+                message: "Internal Server Error"
             }
         }
     }
@@ -306,12 +243,7 @@ export default class RoleService implements IRoleService {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
             success: false,
             message: "Lỗi hệ thống",
-            data: null,
-            error: {
-              message: "Lỗi hệ thống",
-              errorDetail: error?.message || "Unknown error"
-            }
-          };
+          }
         }
     }
     async getAllFunctions(): Promise<IResponseBase> {
@@ -328,17 +260,12 @@ export default class RoleService implements IRoleService {
 
      } catch (error) {
          logger.error(error?.message);
-          console.error(`Error in RoleService.getAllFunctions at ${new Date().toISOString()}:`, error);
+         console.log(`Error in RoleService - method getAllRoles() at ${new Date().getTime()} with message ${error?.message}`)
 
           return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
             success: false,
-            message: "Lỗi hệ thống",
-            data: null,
-            error: {
-              message: "Lỗi hệ thống",
-              errorDetail: error?.message || "Unknown error"
-            }
+            message: "Lỗi hệ thống"
           }
      } 
     }  
@@ -351,13 +278,8 @@ export default class RoleService implements IRoleService {
           return {
             status: StatusCodes.BAD_REQUEST,
             success: false,
-            message: "Vai trò không tồn tại",
-            data: null,
-            error: {
-              message: "Vai trò không tồn tại",
-              errorDetail: "Không tìm thấy vai trò",
-            }
-          };
+            message: "Vai trò không tồn tại"  
+          }
         }
 
         const currentPermissions = await this._context.PermissionRepo.find({
@@ -395,12 +317,7 @@ export default class RoleService implements IRoleService {
             return {
               status: StatusCodes.BAD_REQUEST,
               success: false,
-              message: "Cập nhật vai trò thất bại",
-              data: null,
-              error: {
-                message: "Cập nhật vai trò thất bại",
-                errorDetail: "Không tìm thấy vai trò",
-              }
+              message: "Cập nhật vai trò thất bại"
             }
           }
 
@@ -413,17 +330,11 @@ export default class RoleService implements IRoleService {
 
         } catch (error) {
           logger.error(error?.message);
-          console.error(`Error in RoleService.updateRolePermissions at ${new Date().toISOString()}:`, error);
-
+          console.log(`Error in RoleService - method updateRolePermissions() at ${new Date().getTime()} with message ${error?.message}`)
           return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
             success: false,
-            message: "Lỗi hệ thống",
-            data: null,
-            error: {
-              message: "Lỗi hệ thống",
-              errorDetail: error?.message || "Unknown error"
-            }
+            message: "Lỗi hệ thống"
           }
         }
     }
@@ -438,12 +349,7 @@ export default class RoleService implements IRoleService {
           status: StatusCodes.BAD_REQUEST,
           success: false,
           message: "Người dùng không tồn tại",
-          data: null,
-          error: {
-            message: "Người dùng không tồn tại",
-            errorDetail: "Không tìm thấy người dùng",
-          }
-        };
+        }
       }
 
 
@@ -457,22 +363,12 @@ export default class RoleService implements IRoleService {
 
     } catch (error) {
       logger.error(error);
-      console.error(`Error in RoleService.updateUserGroupRole at ${new Date().toISOString()}:`, error);
-
+      console.log(`Error in RoleService - method updateUserGroupRole() at ${new Date().getTime()} with message ${error?.message}`)
       return {
         status: StatusCodes.INTERNAL_SERVER_ERROR,
         success: false,
         message: "Lỗi hệ thống",
-        data: null,
-        error: {
-          message: "Lỗi hệ thống",
-          errorDetail: error?.message || "Unknown error"
-        }
-      };
+      }
+     }
     }
-    }
-
-    
-
-   
 }

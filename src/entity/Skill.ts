@@ -9,8 +9,8 @@ import {
   } from 'typeorm';
   import { Resume } from './Resume'; // Giả sử bảng Resume đã được định nghĩa
   
-  @Entity('AdvancedSkill')
-  export class AdvancedSkill {
+  @Entity('Skill')
+  export class Skill {
 
     @PrimaryGeneratedColumn()
     id!: number;
@@ -30,7 +30,7 @@ import {
     @UpdateDateColumn()
     updatedAt!: Date;
 
-    @ManyToOne(() => Resume, (resume) => resume.advancedSkills, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Resume, (resume) => resume.skills, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'resumeId' })
     resume!: Resume;
   }

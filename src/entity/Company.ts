@@ -19,9 +19,6 @@ export class Company {
     @Column({ type: 'varchar', length: 255 })
     companyName!: string;
 
-    @Column({ type: 'varchar', length: 300,unique:true })
-    slug!: string;
-
     @Column({ type: 'varchar', length: 100 })
     companyEmail!: string;
 
@@ -59,7 +56,7 @@ export class Company {
     @JoinColumn({name: 'userId'})
     user!: User;
 
-    @ManyToOne(() => Province, (province) => province.candidates, { onDelete: 'SET NULL',nullable: true })
+    @ManyToOne(() => Province, { onDelete: 'SET NULL',nullable: true })
     @JoinColumn({ name: 'provinceId' })
     province?: Province;
 

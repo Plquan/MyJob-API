@@ -11,6 +11,8 @@ import container from "./container";
 import { Server } from "./server";
 import { asyncLocalStorageMiddleware } from "@/middlewares";
 import { apiLimiter } from "./middlewares/RateLimiter";
+import { glob, globSync } from "fs";
+import path from "path";
 /**
  * Application class.
  * @description Handle init config and components.
@@ -27,9 +29,7 @@ class Application {
   }
     start() {
       const port = process.env.APP_PORT || 5001
-      this.serverInstance = this.server.app.listen(port, () =>
-        console.log(`Server is running at http://localhost:${port}`)
-      )
+
       this.server.app.use(cors(corsConfig))
       this.server.app.use(cookieParser())
       this.server.app.use(bodyParser.json())
@@ -40,8 +40,9 @@ class Application {
 
       this.server.app.use("/api", loadControllers("./controllers/*.*s", { cwd: __dirname }))
 
-      // Sau khi đã gắn middleware xong, mới gọi listen()
-
+      this.serverInstance = this.server.app.listen(port, () =>
+        console.log(`Server is running at http://localhost:${port}`)
+      )
     }
 
   close() {
