@@ -1,27 +1,26 @@
 import { ICandidateRegisterData, ICompanyRegisterData, ILoginData, IUserLoginResponse } from "@/interfaces/auth/AuthDto";
 import IAuthService from "@/interfaces/auth/IAuthService";
-import { ITokenPayload, IJWTService, IRefreshToken } from "@/interfaces/auth/IJwtService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/DatabaseService";
 import { StatusCodes } from "http-status-codes";
 import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
-import IRoleService from "@/interfaces/role/IRoleService";
 import ICompanyService from "@/interfaces/company/ICompanyService";
 import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";
 import { VariableSystem } from "@/constants/VariableSystem";
 import ICandidateService from "@/interfaces/candidate/ICandidateService";
-import { ErrorMessages } from "@/constants/ErrorMessages";
+import { IJwtService, ITokenPayload } from "@/interfaces/auth/IJwtService";
+
 
 
 export default class AuthService implements IAuthService {
-    private readonly _jwtService: IJWTService
+    private readonly _jwtService: IJwtService
     private readonly _context: DatabaseService
     private readonly _candidateService: ICandidateService
     private readonly _companyService: ICompanyService
 
-    constructor(JwtService: IJWTService, CandidateService:ICandidateService, DatabaseService: DatabaseService, CompanyService:ICompanyService) {
+    constructor(JwtService: IJwtService, CandidateService:ICandidateService, DatabaseService: DatabaseService, CompanyService:ICompanyService) {
       this._jwtService = JwtService;
       this._candidateService = CandidateService;
       this._context = DatabaseService;

@@ -1,9 +1,9 @@
 import { ENV } from "@/constants/env";
-import { IJWTService, ITokenPayload, ITokenResponse } from "@/interfaces/auth/IJwtService";
+import { IJwtService, ITokenPayload, ITokenResponse } from "@/interfaces/auth/IJwtService"
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
 
-export default class JwtService implements IJWTService {
+export default class JwtService implements IJwtService {
   private accessTokenSecret!: string;
   private accessTokenExpriedIn!: number;
   private refreshTokenSecret!: string;

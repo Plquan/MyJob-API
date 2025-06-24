@@ -3,16 +3,14 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from 'cors';
 import 'dotenv/config';
-import swaggerUi from "swagger-ui-express";
 
 import { corsConfig } from "@/configs/corsConfig";
-import { Environments } from "@/constants/Environment";
 import container from "./container";
 import { Server } from "./server";
 import { asyncLocalStorageMiddleware } from "@/middlewares";
 import { apiLimiter } from "./middlewares/RateLimiter";
-import { glob, globSync } from "fs";
-import path from "path";
+
+
 /**
  * Application class.
  * @description Handle init config and components.
@@ -37,12 +35,12 @@ class Application {
       this.server.app.use(scopePerRequest(container))
       this.server.app.use(asyncLocalStorageMiddleware())
       this.server.app.use(apiLimiter)
-
       this.server.app.use("/api", loadControllers("./controllers/*.*s", { cwd: __dirname }))
-
+      
       this.serverInstance = this.server.app.listen(port, () =>
         console.log(`Server is running at http://localhost:${port}`)
       )
+
     }
 
   close() {

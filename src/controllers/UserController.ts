@@ -1,6 +1,8 @@
 import IUserService from "@/interfaces/user/IUserService";
-import { DELETE, GET, POST, PUT, route } from "awilix-express";
+import AuthenticateMiddleware, { Authenticate } from "@/middlewares/AuthenticateMiddleware";
+import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express";
 import { Response,Request } from "express";
+
 
 @route('/user')
 export class UserController {
@@ -10,9 +12,10 @@ export class UserController {
     constructor(UserService: IUserService) {
         this._userService = UserService;
     }
-
+    
     @POST()
     @route("/get-all-users")
+    @before([Authenticate()])
     async getAllUsers(req: Request, res: Response){
         const data = req.body;
         const response = await this._userService.getAllUsers(data);

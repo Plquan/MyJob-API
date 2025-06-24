@@ -1,12 +1,14 @@
 import { ErrorMessages } from "@/constants/ErrorMessages";
-import { IJWTService, ITokenPayload } from "@/interfaces/auth/IJwtService";
+import { IJwtService, ITokenPayload } from "@/interfaces/auth/IJwtService";
 import "dotenv/config";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { inject } from "awilix-express";
 
-function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
+function AuthenticateMiddleware(JwtService: IJwtService): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
-    let accessToken = "";
+
+     let accessToken = "";
     
        const cookies = req.cookies;
         accessToken = cookies["accessToken"];
@@ -54,4 +56,8 @@ function AuthenticateMiddleware(JwtService: IJWTService): RequestHandler {
   };
 }
 
-export default AuthenticateMiddleware;
+export default AuthenticateMiddleware
+
+export function Authenticate() {
+   return inject((JwtService) => AuthenticateMiddleware(JwtService))
+}

@@ -19,7 +19,7 @@ export interface ITokenPayload {
     revoked: boolean;
   }
 
-  export interface IJWTService {
+  export interface IJwtService {
     generateAccessToken(payload: ITokenPayload): ITokenResponse
     generateRefreshToken(payload: ITokenPayload):ITokenResponse
     verifyAccessToken(token: string): boolean
