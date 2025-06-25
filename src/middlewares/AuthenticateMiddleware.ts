@@ -8,7 +8,7 @@ import { inject } from "awilix-express";
 function AuthenticateMiddleware(JwtService: IJwtService): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
 
-     let accessToken = "";
+      let accessToken = "";
     
        const cookies = req.cookies;
         accessToken = cookies["accessToken"];
@@ -58,6 +58,6 @@ function AuthenticateMiddleware(JwtService: IJwtService): RequestHandler {
 
 export default AuthenticateMiddleware
 
-export function Authenticate() {
+export function authenticate() {
    return inject((JwtService) => AuthenticateMiddleware(JwtService))
 }

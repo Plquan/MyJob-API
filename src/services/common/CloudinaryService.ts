@@ -2,7 +2,7 @@ import cloudinary from '../../ultils/Cloudinary';
 import streamifier from 'streamifier';
 import type { UploadApiResponse } from 'cloudinary';
 import { CloudinaryResourceType } from '@/constants/CloudinaryResourceType';
-import { v4 as uuidv4 } from 'uuid';
+
 
 export class CloudinaryService {
   static async uploadFile(
