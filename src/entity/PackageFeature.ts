@@ -15,10 +15,7 @@ export class PackageFeature {
   featureId: number
 
   @Column({ type: 'int', nullable: true })
-  limit: number
-
-  @Column({ default: false })
-  hasLimit: boolean
+  limit: number | null
 
   @Column({ type: "text", nullable: true })
   description: string

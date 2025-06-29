@@ -1,9 +1,8 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import IProvinceService from "@/interfaces/province/IProvinceService";
-import DatabaseService from "../common/DatabaseService";
-import { StatusCodes } from "http-status-codes";
-import logger from "@/helpers/logger";
-import { ErrorMessages } from "@/constants/ErrorMessages";
+import { IResponseBase } from "@/interfaces/base/IResponseBase"
+import IProvinceService from "@/interfaces/province/IProvinceService"
+import DatabaseService from "../common/DatabaseService"
+import { StatusCodes } from "http-status-codes"
+import logger from "@/helpers/logger"
 
 export default class ProvinceService implements IProvinceService {
     private readonly _context:DatabaseService
@@ -23,13 +22,7 @@ export default class ProvinceService implements IProvinceService {
             data: districts,
         }
         } catch (error) {
-            logger.error(error?.message);
-            console.log(`Error in ProvinceService - method getDistrictsByProvince() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi khi lấy danh sách quận huyện, vui lòng thử lại sau",
-            }
+            
         }
     }
 

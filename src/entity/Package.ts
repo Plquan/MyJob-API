@@ -6,6 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from "typeorm";
 import { PackageFeature } from "./PackageFeature";
 import { PackageType } from "./PackageType";
@@ -22,9 +23,10 @@ export class Package {
   description: string;
 
   @Column()
-  packageTypeId!: number
+  packageTypeId: number;
 
-  @ManyToOne(() => PackageType, (pt) => pt.packages, { onDelete: 'SET NULL' })
+  @ManyToOne(() => PackageType, (pt) => pt.packages,{onDelete:'CASCADE'})
+  @JoinColumn({ name: 'packageTypeId' })
   packageType: PackageType;
 
   @OneToMany(() => PackageFeature, (pf) => pf.package)

@@ -17,8 +17,8 @@ export class PackageUsage {
   @Column({ type: 'int', default: 0 })
   used: number;
 
-  @Column({ type: 'int', default: 0 })
-  total: number;
+  @Column({ type: 'int',nullable:true})
+  total: number | null;
 
   @ManyToOne(() => Feature, { onDelete: 'CASCADE', nullable: false })
   @JoinColumn({ name: 'featureId' })

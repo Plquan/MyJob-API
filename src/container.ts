@@ -16,6 +16,7 @@ import EducationService from "./services/manager/EducationService"
 import LanguageService from "./services/manager/LanguageService"
 import SkillService from "./services/manager/SkillService"
 import { BackgroundService } from "./services/common/BackgroundService"
+import PackageService from "./services/manager/PackageService"
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -24,6 +25,7 @@ const container = createContainer({
 container.register({
   DatabaseService: asClass(DatabaseService).singleton(),
   JwtService: asClass(JwtService).singleton(),
+  BackgroundService: asClass(BackgroundService).singleton(),
   AuthService: asClass(AuthService).scoped(),
   RoleService: asClass(RoleService).scoped(),
   CompanyService: asClass(CompanyService).scoped(),
@@ -38,7 +40,7 @@ container.register({
   EducationService: asClass(EducationService).scoped(),
   LanguageService: asClass(LanguageService).scoped(),
   SkillService: asClass(SkillService).scoped(),
-  BackgroundService: asClass(BackgroundService).scoped()
+  PackageService: asClass(PackageService).scoped(),
 
 })
   container.resolve("JwtService")

@@ -112,7 +112,7 @@ export default class ResumeService implements IResumeService {
 
         const updatedAttachedResume = await this.getAttachedResumeById(data.id)
 
-        if(!updatedAttachedResume){
+        if(!updatedAttachedResume.data){
           return {
             status: StatusCodes.NOT_FOUND,
             message: "Không tìm thấy hồ sơ đã tạo",

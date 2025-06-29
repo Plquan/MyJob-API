@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { Package } from "./Package";
+import { Feature } from "./Feature";
 
 @Entity('PackageType')
 export class PackageType {
@@ -17,4 +18,7 @@ export class PackageType {
 
   @OneToMany(() => Package, (pkg) => pkg.packageType)
   packages: Package[];
+
+  @OneToMany(() => Feature, (pkg) => pkg.packageType)
+  features: Feature[];
 }

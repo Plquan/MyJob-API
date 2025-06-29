@@ -1,11 +1,15 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { PackageFeature } from "./PackageFeature";
+import { PackageType } from "./PackageType";
 
 @Entity("Feature")
 export class Feature {
 
   @PrimaryGeneratedColumn()
   id: number
+
+  @Column()
+  packageTypeId: number
 
   @Column({ unique: true })
   code: string
@@ -16,9 +20,10 @@ export class Feature {
   @Column({ type: "text", nullable: true })
   description: string
 
-  @Column({ default: false })
-  allowLimit: boolean
-
   @OneToMany(() => PackageFeature, (pf) => pf.feature)
   packageFeatures: PackageFeature[]
+
+  @ManyToOne(() => PackageType, (pt) => pt.features,{onDelete:'CASCADE'})
+  @JoinColumn({ name: 'packageTypeId' })
+  packageType: PackageType
 }

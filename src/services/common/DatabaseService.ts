@@ -1,4 +1,4 @@
-import { DataSource, Repository, QueryRunner } from "typeorm";
+import { DataSource, Repository, QueryRunner} from "typeorm";
 import logger from "@/helpers/logger";
 import { ENV } from "@/constants/env";
 
@@ -22,11 +22,16 @@ import { JobPost } from "@/entity/JobPost";
 import { Language } from "@/entity/Language";
 
 import dataSource from "@/ormconfig";
-import "reflect-metadata";
 import { RefreshToken } from "@/entity/RefreshToken";
 import { Role } from "@/entity/Role";
 import { District } from "@/entity/District";
 import { Skill } from "@/entity/Skill";
+import { Package } from "@/entity/Package";
+import { PackageFeature } from "@/entity/PackageFeature";
+import { PackagePurchased } from "@/entity/PackagePurchased";
+import { PackageType } from "@/entity/PackageType";
+import { PackageUsage } from "@/entity/PackageUsage";
+import { Feature } from "@/entity/Feature";
 
 class DatabaseService {
   private _dataSource: DataSource;
@@ -53,6 +58,12 @@ class DatabaseService {
   public RefreshTokenRepo: Repository<RefreshToken>
   public RoleRepo: Repository<Role>;
   public DistrictRepo: Repository<District>
+  public FeatureRepo: Repository<Feature>
+  public PackageRepo: Repository<Package>
+  public PackageFeatureRepo: Repository<PackageFeature>
+  public PackagePurchasedRepo: Repository<PackagePurchased>
+  public PackageTypeRepo: Repository<PackageType>
+  public PackageUsageRepo: Repository<PackageUsage>
   connection: any;
 
   constructor() {
@@ -80,7 +91,12 @@ class DatabaseService {
     this.RefreshTokenRepo = this._dataSource.getRepository(RefreshToken);
     this.RoleRepo = this._dataSource.getRepository(Role);
     this.DistrictRepo = this._dataSource.getRepository(District);
-
+    this.FeatureRepo = this._dataSource.getRepository(Feature);
+    this.PackageRepo = this._dataSource.getRepository(Package);
+    this.PackageFeatureRepo = this._dataSource.getRepository(PackageFeature);
+    this.PackagePurchasedRepo = this._dataSource.getRepository(PackagePurchased);
+    this.PackageTypeRepo = this._dataSource.getRepository(PackageType);
+    this.PackageUsageRepo = this._dataSource.getRepository(PackageUsage);
 
     this._dataSource
       .initialize()
