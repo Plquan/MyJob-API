@@ -22,6 +22,15 @@ export class Package {
   @Column({ type: "text", nullable: true })
   description: string;
 
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ type: 'decimal', precision: 12, scale: 0})
+  price: number;
+
+  @Column({ type: 'int', nullable: true })
+  durationInDays: number;
+
   @Column()
   packageTypeId: number;
 

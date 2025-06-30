@@ -153,7 +153,7 @@ export default class PackageService implements IPackageService {
     }
     async createPackage(data: ICreatePackageData): Promise<IResponseBase> {
         try {
-            if(!data.name || !data.packageTypeId){
+            if(!data.name || !data.packageTypeId || data.price){
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     message: "Vui lòng kiểm tra lại dữ liệu của bạn",
@@ -183,7 +183,7 @@ export default class PackageService implements IPackageService {
     }
     async updatePackage(data: IUpdatePackageData): Promise<IResponseBase> {
         try {
-            if(!data.id || !data.name){
+            if(!data.id || !data.name || !data.price){
                  return {
                     status: StatusCodes.BAD_REQUEST,
                     message: "Vui lòng kiểm tra lại dữ liệu của bạn",
