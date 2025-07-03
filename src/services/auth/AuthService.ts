@@ -355,18 +355,26 @@ export default class AuthService implements IAuthService {
             };
           }
 
-        const user = await this._context.UserRepo.createQueryBuilder("user")
-          .leftJoinAndSelect("user.avatar", "avatar") 
-          .where("user.id = :userId", { userId })
-          .select([
-            "user.id",
-            "user.fullName",
-            "user.email",
-            "user.isStaff",
-            "user.roleName",
-            "avatar.url as avatar",
-          ])
-          .getOne();
+        const user = await this._context.UserRepo.findOne({
+          where: {
+            id: userId, 
+          },
+          relations: {
+            candidate: true,
+            avatar: true,
+          },
+        })
+
+        const currentUser = {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          roleName: user.roleName,
+          isStaff: user.isStaff,
+          isActive: user.isActive,
+          allowSearch: user.candidate?.allowSearch ?? true,
+          avatar: user.avatar?.url
+        }
 
           if (!user) {
           return {
@@ -380,7 +388,7 @@ export default class AuthService implements IAuthService {
         return {
         status: StatusCodes.OK,
         success: true,
-        data: request?.user,
+        data: currentUser
       };
 
       } catch (error:any) {

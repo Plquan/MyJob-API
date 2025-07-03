@@ -33,6 +33,9 @@ export class Candidate {
     @Column({ type: "varchar", length: 255, nullable: true })
     address?: string;
 
+    @Column({ type: 'boolean', default: false })
+    allowSearch!: boolean;
+
     @OneToOne(() => User, (user) => user.candidate, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
     user!: User;
