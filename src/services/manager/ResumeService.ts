@@ -139,7 +139,6 @@ export default class ResumeService implements IResumeService {
         };
       }
     }
-
     async deleteAttachedResume(attachedResumeId: number): Promise<IResponseBase> {
       try {
         if(!attachedResumeId){
@@ -343,7 +342,19 @@ export default class ResumeService implements IResumeService {
           where: {
             type: VariableSystem.CV_TYPE.CV_ONLINE,
             candidate: { userId },
-          }
+          },
+          relations: [
+            'candidate',
+            'candidate.user',
+            'candidate.user.avatar',
+            'candidate.province', 
+            'candidate.district', 
+            'educations',
+            'certificates',
+            'experiences',
+            'languages',
+            'skills',
+          ],
         })
 
         if (!onlineResume) {
@@ -351,26 +362,54 @@ export default class ResumeService implements IResumeService {
             status: StatusCodes.NOT_FOUND,
             success: false,
             message: "Không tìm thấy hồ sơ trực tuyến",
-          };
+          }
         }
+
+         const {
+          candidate,
+          educations,
+          certificates,
+          experiences,
+          languages,
+          skills,
+          ...resumeData
+        } = onlineResume;
+
+        const userInfo = {
+          fullName: candidate.user.fullName,
+          email: candidate.user.email,
+          avatar: candidate.user.avatar,
+        }
+
+        const { user: _removedUser, ...candidateInfo } = candidate;
+
         return {
           status: StatusCodes.OK,
           success: true,
           message: "Lấy hồ sơ thành công",
-          data: onlineResume     
-          }
+          data: {
+            userInfo,
+            resume: resumeData,
+            candidate: candidateInfo,
+            educations,
+            certificates,
+            experiences,
+            languages,
+            skills,
+          },
+        }
 
       } catch (error) {
         logger.error(error?.message);
         console.error(
           `Error in CandidateService - method getOnlineResume at ${new Date().toISOString()} with message: ${error?.message}`
-        );
+        )
 
         return {
           status: StatusCodes.INTERNAL_SERVER_ERROR,
           success: false,
           message: "Lỗi lấy hồ sơ cá nhân, vui lòng thử lại sau",
-        };
+        }
       }
     }
     async updateOnlineResume(data: IResumeData): Promise<IResponseBase> {
