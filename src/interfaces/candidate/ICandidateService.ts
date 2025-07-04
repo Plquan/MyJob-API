@@ -6,4 +6,5 @@ import { ICandidateData, IResumeData } from "./CandidateDto"
    getProfile(): Promise<IResponseBase>
    createProfile(data:User,manager: EntityManager):Promise<IResponseBase>
    updateProfile(data: ICandidateData):Promise<IResponseBase>
+   allowSearch(status: boolean): Promise<IResponseBase>
 }

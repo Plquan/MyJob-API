@@ -69,7 +69,7 @@ export class Resume {
   type?: string;
 
   @Column({ type: 'boolean', default: false })
-  isActive!: boolean;
+  selected!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;

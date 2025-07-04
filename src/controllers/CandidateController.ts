@@ -1,9 +1,9 @@
 import ICandidateService from "@/interfaces/candidate/ICandidateService";
-import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
-import { before, GET, inject, POST, PUT, route } from "awilix-express";
+import { authenticate } from "@/middlewares/AuthenticateMiddleware";
+import { before, GET, PUT, route } from "awilix-express";
 import { Request, Response } from "express";
 
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+@before(authenticate())
 @route('/candidate')
 export class CandidateController {
     private readonly _candidateService: ICandidateService
@@ -27,6 +27,11 @@ export class CandidateController {
         return res.status(response.status).json(response)
     }
 
-   
-
+    @PUT()
+    @route("/allow-search")
+    async allowSearch(req:Request, res: Response){
+        const { status } = req.body
+        const response = await this._candidateService.allowSearch(status)
+        return res.status(response.status).json(response)
+    }
 }

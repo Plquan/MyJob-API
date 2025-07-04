@@ -372,7 +372,7 @@ export default class AuthService implements IAuthService {
           roleName: user.roleName,
           isStaff: user.isStaff,
           isActive: user.isActive,
-          allowSearch: user.candidate?.allowSearch ?? true,
+          allowSearch: user.candidate?.allowSearch,
           avatar: user.avatar?.url
         }
 

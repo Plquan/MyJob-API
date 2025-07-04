@@ -300,10 +300,11 @@ export default class ResumeService implements IResumeService {
         }
 
         const uploadResumes = await this._context.ResumeRepo.find({
-          where:{candidate:{userId}, 
-          type: VariableSystem.CV_TYPE.CV_ATTACHED, 
-          },
-          relations: ['myJobFile']
+          where:{candidate:{userId}},
+          relations: ['myJobFile'],
+          order: {
+          createdAt: 'DESC',
+        }
        })
 
         return {
@@ -449,7 +450,57 @@ export default class ResumeService implements IResumeService {
 
      } catch (error) {
           logger.error(error?.message);
-        console.error(`Error in CandidateService - updateOnlineResume at ${new Date().toISOString()} - ${error?.message}`);
+        console.error(`Error in resumeService - updateOnlineResume at ${new Date().toISOString()} - ${error?.message}`);
+        return {
+          status: StatusCodes.INTERNAL_SERVER_ERROR,
+          success: false,
+          message: "Lỗi cập nhật hồ sơ người dùng, vui lòng thử lại sau",
+        }
+      }
+    }
+    async setSelectedResume(resumeId: number): Promise<IResponseBase> {
+      try {
+        const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
+        const userId = request?.user?.id
+
+       if (!userId) {
+          return {
+            status: StatusCodes.UNAUTHORIZED,
+            success: false,
+            message: "Bạn không có quyền truy cập"
+          }
+        }
+        const candidate = await this._context.CandidateRepo.findOne({
+          where:{userId}
+        })
+
+        if(!candidate){
+           return {
+            status: StatusCodes.NOT_FOUND,
+            success: false,
+            message: "Không tìm thấy hồ sơ người dùng"
+          }
+        }
+
+        await this._context.ResumeRepo.update(
+          {candidateId:candidate.id},
+          {selected:false}
+        )
+
+        await this._context.ResumeRepo.update(
+          {id: resumeId},
+          {selected: true}
+        )
+
+        return {
+          status: StatusCodes.OK,
+          success: true,
+          message: "CV đã đánh dấu là được chọn",
+        }
+              
+      } catch (error) {
+         logger.error(error?.message);
+        console.error(`Error in resumeService - updateOnlineResume at ${new Date().toISOString()} - ${error?.message}`);
         return {
           status: StatusCodes.INTERNAL_SERVER_ERROR,
           success: false,

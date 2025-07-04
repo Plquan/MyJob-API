@@ -15,7 +15,7 @@ export class UserController {
     
     @POST()
     @route("/get-all-users")
-    @before([authenticate()])
+    @before(authenticate())
     async getAllUsers(req: Request, res: Response){
         const data = req.body;
         const response = await this._userService.getAllUsers(data);

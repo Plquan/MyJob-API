@@ -10,4 +10,5 @@ export default interface IResumeService {
    uploadAttachedResume(data: IUploadAttachedResumeData,file: Express.Multer.File): Promise<IResponseBase>
    updateAttachedResume(data: IUpdateAttachedResumeData,file: Express.Multer.File): Promise<IResponseBase>
    deleteAttachedResume(attchedResumeId: number): Promise<IResponseBase>
+   setSelectedResume(resumeId: number): Promise<IResponseBase>
 }

@@ -1,12 +1,11 @@
 import IResumeService from "@/interfaces/resume/IResumeService";
-import { IUpdateAttachedResumeData } from "@/interfaces/resume/ResumeDto";
 import { asyncLocalStorageMiddleware } from "@/middlewares";
-import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
+import AuthenticateMiddleware, { authenticate } from "@/middlewares/AuthenticateMiddleware";
 import { uploadAvatarMiddleware } from "@/middlewares/uploadMiddleware";
 import { GET, route, PUT, before, inject, POST, DELETE } from "awilix-express";
 import { Request, Response } from "express";
 
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+@before(authenticate())
 @route("/resume")
 export class ResumeController {
     private readonly _resumeService: IResumeService
@@ -69,4 +68,13 @@ export class ResumeController {
         const response = await this._resumeService.deleteAttachedResume(attachedResumeId)
         return res.status(response.status).json(response)
     }
+
+    @PUT()
+    @route("/set-selected-resume/:resumeId")
+    async setSelectedResume (req: Request, res: Response){
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.setSelectedResume(resumeId)
+        return res.status(response.status).json(response)
+    }
+
 }
