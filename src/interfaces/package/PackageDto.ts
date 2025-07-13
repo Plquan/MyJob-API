@@ -1,7 +1,6 @@
 export interface ICreatePackageData {
     name: string
     description?: string
-    packageTypeId: number
     price: number;
     durationInDays?: number;
     isActive?: boolean;
@@ -20,16 +19,7 @@ export interface IPackageFeatureData {
   featureId: number
   packageId: number
   unlimited?: boolean
-  limit?: number
+  quota?: number
   description?: string
 }
 
-export interface IUpdatePackageFeatureData {
-    id: number
-    open:boolean
-    name: string
-    haslimit:boolean
-    limit:number
-    description: string
-    packageTypeId: number
-}

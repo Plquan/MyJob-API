@@ -12,7 +12,7 @@ export default class PackageService implements IPackageService {
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
-    async updatePackageFeature(data: IPackageFeatureData[],packageId: number): Promise<IResponseBase> {
+    async updatePackageFeatures(data: IPackageFeatureData[],packageId: number): Promise<IResponseBase> {
         try {
             if(!packageId){
                  return {
@@ -22,10 +22,24 @@ export default class PackageService implements IPackageService {
                 }
             }
 
+        for (const item of data) {
+            if (
+                !item.featureId ||
+                !item.packageId ||
+                (item.unlimited === false && item.quota <= 0)
+            ) {
+                return {
+                    status: StatusCodes.BAD_REQUEST,
+                    message: "Vui lòng kiểm tra lại dữ liệu của bạn.",
+                    success: false
+                }
+            }
+        }
+
             await this._context.PackageFeatureRepo.delete({packageId})
-            if(data.length > 0){
-            const newfeaturesOfPackage = await this._context.PackageFeatureRepo.create(data)
-            await this._context.PackageFeatureRepo.save(newfeaturesOfPackage)
+                if(data.length > 0){
+                const newfeaturesOfPackage = await this._context.PackageFeatureRepo.create(data)
+                await this._context.PackageFeatureRepo.save(newfeaturesOfPackage)
             }
 
             return {
@@ -43,7 +57,7 @@ export default class PackageService implements IPackageService {
             }
         }
     }
-    async getFeaturesOfPackage(packageId: number): Promise<IResponseBase> {
+    async getPackageFeatures(packageId: number): Promise<IResponseBase> {
         try {
             if(!packageId){
                 return {
@@ -53,27 +67,33 @@ export default class PackageService implements IPackageService {
                 }
             }
 
-             const packageWithDetails = await this._context.PackageRepo.findOne({
+            const packageWithDetails = await this._context.PackageRepo.findOne({
                 where: { id: packageId },
-                relations: [
-                'packageType',
-                'packageType.features',
-                'packageFeatures',
-                ]
+                relations: ['packageFeatures', 'packageFeatures.feature'],
+            });
+
+            if (!packageWithDetails) {
+            throw new Error("Package not found")
+            }
+
+            const allFeatures = await this._context.FeatureRepo.find()
+
+            const result = allFeatures.map((feature) => {
+            const packageFeature = packageWithDetails.packageFeatures.find(
+                (pf) => pf.featureId === feature.id
+            )
+
+            return {
+                featureId: feature.id,
+                packageId: packageId,
+                open: !!packageFeature,
+                name: feature.name,
+                quota: packageFeature?.quota ?? null,
+                unlimited: packageFeature?.unlimited ?? false,
+                description: packageFeature?.description ?? null,
+             }
             })
 
-            const result = packageWithDetails.packageType.features.map((feature) => {
-                const packageFeature = packageWithDetails.packageFeatures.find(
-                (pf) => pf.featureId === feature.id)
-                return {
-                    featureId: feature.id,
-                    packageId: packageId,
-                    open: !!packageFeature,
-                    name: feature.name,
-                    limit: packageFeature?.limit,
-                    description: packageFeature?.description,
-                }
-            })
          
            return{  
                 status: StatusCodes.OK,
@@ -88,27 +108,6 @@ export default class PackageService implements IPackageService {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 success: false,
                 message: "Lỗi lấy danh sách tính năng thuộc gói, vui lòng thử lại sau",
-            }
-        }
-    }
-    async getAllPackageTypes(): Promise<IResponseBase> {
-        try {
-            const packageTypes = await this._context.PackageTypeRepo.find()
-
-            return {
-                status: StatusCodes.OK,
-                message: "Lấy danh sách thành công",
-                success: true,
-                data: packageTypes
-            }
-            
-        } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method getAllPackageTypes() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi lấy danh sách loại gói, vui lòng thử lại sau",
             }
         }
     }
@@ -153,7 +152,7 @@ export default class PackageService implements IPackageService {
     }
     async createPackage(data: ICreatePackageData): Promise<IResponseBase> {
         try {
-            if(!data.name || !data.packageTypeId || data.price){
+            if(!data.name || !data.price){
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     message: "Vui lòng kiểm tra lại dữ liệu của bạn",

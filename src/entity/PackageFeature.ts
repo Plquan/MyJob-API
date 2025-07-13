@@ -1,36 +1,46 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 import { Feature } from "./Feature";
 import { Package } from "./Package";
 
 @Entity({ name: "PackageFeature" })
 export class PackageFeature {
-
   @PrimaryGeneratedColumn()
-  id: number
+  id: number;
 
   @Column()
-  packageId: number
+  packageId: number;
 
   @Column()
-  featureId: number
+  featureId: number;
 
   @Column({ type: 'int', nullable: true })
-  limit: number | null
+  quota: number;
 
-  @Column({ type: "text", nullable: true })
+  @Column({ default: false })
+  unlimited: boolean;
+
+  @Column({ type: "text"})
   description: string
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date
+  updatedAt: Date;
 
   @ManyToOne(() => Package, (pkg) => pkg.packageFeatures, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'packageId' })
-  package: Package
+  package: Package;
 
   @ManyToOne(() => Feature, (f) => f.packageFeatures, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'featureId' })
-  feature: Feature
+  feature: Feature;
 }

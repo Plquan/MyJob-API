@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Migration1751648322353 implements MigrationInterface {
-    name = 'Migration1751648322353'
+export class Migration1752400357439 implements MigrationInterface {
+    name = 'Migration1752400357439'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "Function" ("id" SERIAL NOT NULL, "name" character varying(1000) NOT NULL, "codeName" character varying(1000) NOT NULL, CONSTRAINT "PK_1941666a1d109a6381a1fc2c5ce" PRIMARY KEY ("id"))`);
@@ -26,10 +26,9 @@ export class Migration1751648322353 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "Candidate" ("id" SERIAL NOT NULL, "userId" integer NOT NULL, "provinceId" integer, "districtId" integer, "phone" character varying(15), "birthday" date, "gender" smallint, "maritalStatus" smallint, "address" character varying(255), "allowSearch" boolean NOT NULL DEFAULT false, CONSTRAINT "REL_1532ed5687fc8eda1e3ed829dc" UNIQUE ("userId"), CONSTRAINT "PK_a31a8947b7261f49bdd66d29004" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "RefreshToken" ("id" character varying(255) NOT NULL, "userId" integer NOT NULL, "token" text NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "expiresAt" TIMESTAMP NOT NULL, "revoked" boolean NOT NULL DEFAULT false, CONSTRAINT "PK_e5efef1572bd829464edc903d19" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "User" ("id" SERIAL NOT NULL, "avatarId" integer, "email" character varying(255) NOT NULL, "fullName" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "isVerifyEmail" boolean NOT NULL DEFAULT false, "isActive" boolean NOT NULL DEFAULT false, "isSuperUser" boolean NOT NULL DEFAULT false, "isStaff" boolean NOT NULL DEFAULT false, "roleName" character varying(10), "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_4a257d2c9837248d70640b3e36e" UNIQUE ("email"), CONSTRAINT "REL_ecd9b3ed5dd5d888d739063806" UNIQUE ("avatarId"), CONSTRAINT "PK_9862f679340fb2388436a5ab3e4" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "PackageType" ("id" SERIAL NOT NULL, "code" character varying NOT NULL, "name" character varying NOT NULL, "description" text, CONSTRAINT "UQ_ddf170f083ad04d4477784bdb3b" UNIQUE ("code"), CONSTRAINT "PK_bc779ef559e22b98afc9ec1f8ae" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "Feature" ("id" SERIAL NOT NULL, "packageTypeId" integer NOT NULL, "code" character varying NOT NULL, "name" character varying NOT NULL, "description" text, CONSTRAINT "UQ_b72a53cd4d3488c19d1544961c3" UNIQUE ("code"), CONSTRAINT "PK_100753a77b35b43340a04f9c20c" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "PackageFeature" ("id" SERIAL NOT NULL, "packageId" integer NOT NULL, "featureId" integer NOT NULL, "limit" integer, "description" text, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_fe82126913b720fc85c55349651" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "Package" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "description" text, "isActive" boolean NOT NULL DEFAULT true, "price" numeric(12,0) NOT NULL, "durationInDays" integer, "packageTypeId" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_ab000fbbab38ed81e511ac3146f" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Feature" ("id" SERIAL NOT NULL, "packageTypeId" integer NOT NULL, "code" character varying NOT NULL, "name" character varying NOT NULL, CONSTRAINT "UQ_b72a53cd4d3488c19d1544961c3" UNIQUE ("code"), CONSTRAINT "PK_100753a77b35b43340a04f9c20c" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "PackageFeature" ("id" SERIAL NOT NULL, "packageId" integer NOT NULL, "featureId" integer NOT NULL, "limit" integer, "unlimited" boolean NOT NULL DEFAULT false, "description" text NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_fe82126913b720fc85c55349651" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "Package" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "price" numeric(12,0) NOT NULL, "durationInDays" integer, "isActive" boolean NOT NULL DEFAULT false, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_ab000fbbab38ed81e511ac3146f" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."PaymentHistory_status_enum" AS ENUM('PENDING', 'SUCCESS', 'FAILED')`);
         await queryRunner.query(`CREATE TABLE "PaymentHistory" ("id" SERIAL NOT NULL, "userId" integer NOT NULL, "packageId" integer NOT NULL, "amount" numeric(10,2) NOT NULL, "transactionId" character varying, "paymentMethod" character varying NOT NULL DEFAULT 'CASH', "status" "public"."PaymentHistory_status_enum" NOT NULL DEFAULT 'PENDING', "paidAt" TIMESTAMP, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_9d3ba1469bdcb7ed1a3e1f5e8df" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "PackagePurchased" ("id" SERIAL NOT NULL, "companyId" integer NOT NULL, "packageId" integer NOT NULL, "endDate" TIMESTAMP NOT NULL, CONSTRAINT "PK_86aee42393394e3e8ff8f1c59f4" PRIMARY KEY ("id"))`);
@@ -66,10 +65,8 @@ export class Migration1751648322353 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "Candidate" ADD CONSTRAINT "FK_3762d56062cb262d9aa66d55bba" FOREIGN KEY ("districtId") REFERENCES "District"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "RefreshToken" ADD CONSTRAINT "FK_3a4d068289fa6c2038fb2101e5b" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "User" ADD CONSTRAINT "FK_ecd9b3ed5dd5d888d739063806b" FOREIGN KEY ("avatarId") REFERENCES "MyJobFile"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "Feature" ADD CONSTRAINT "FK_6c790bfeffcdd59a419cb3b5f64" FOREIGN KEY ("packageTypeId") REFERENCES "PackageType"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "PackageFeature" ADD CONSTRAINT "FK_aa76f951ed0cbb34bbcd64aa5f9" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "PackageFeature" ADD CONSTRAINT "FK_ce6eb198eb4ed3b18369e35e6f6" FOREIGN KEY ("featureId") REFERENCES "Feature"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "Package" ADD CONSTRAINT "FK_72b463cfa563882260169022d35" FOREIGN KEY ("packageTypeId") REFERENCES "PackageType"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "PaymentHistory" ADD CONSTRAINT "FK_5b73f5fcfe3120db2d04640146e" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "PaymentHistory" ADD CONSTRAINT "FK_249b7e7909c0e6eb8f64ca75333" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "PackagePurchased" ADD CONSTRAINT "FK_273de78f32a112b258aa2978a90" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
@@ -85,10 +82,8 @@ export class Migration1751648322353 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "PackagePurchased" DROP CONSTRAINT "FK_273de78f32a112b258aa2978a90"`);
         await queryRunner.query(`ALTER TABLE "PaymentHistory" DROP CONSTRAINT "FK_249b7e7909c0e6eb8f64ca75333"`);
         await queryRunner.query(`ALTER TABLE "PaymentHistory" DROP CONSTRAINT "FK_5b73f5fcfe3120db2d04640146e"`);
-        await queryRunner.query(`ALTER TABLE "Package" DROP CONSTRAINT "FK_72b463cfa563882260169022d35"`);
         await queryRunner.query(`ALTER TABLE "PackageFeature" DROP CONSTRAINT "FK_ce6eb198eb4ed3b18369e35e6f6"`);
         await queryRunner.query(`ALTER TABLE "PackageFeature" DROP CONSTRAINT "FK_aa76f951ed0cbb34bbcd64aa5f9"`);
-        await queryRunner.query(`ALTER TABLE "Feature" DROP CONSTRAINT "FK_6c790bfeffcdd59a419cb3b5f64"`);
         await queryRunner.query(`ALTER TABLE "User" DROP CONSTRAINT "FK_ecd9b3ed5dd5d888d739063806b"`);
         await queryRunner.query(`ALTER TABLE "RefreshToken" DROP CONSTRAINT "FK_3a4d068289fa6c2038fb2101e5b"`);
         await queryRunner.query(`ALTER TABLE "Candidate" DROP CONSTRAINT "FK_3762d56062cb262d9aa66d55bba"`);
@@ -128,7 +123,6 @@ export class Migration1751648322353 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "Package"`);
         await queryRunner.query(`DROP TABLE "PackageFeature"`);
         await queryRunner.query(`DROP TABLE "Feature"`);
-        await queryRunner.query(`DROP TABLE "PackageType"`);
         await queryRunner.query(`DROP TABLE "User"`);
         await queryRunner.query(`DROP TABLE "RefreshToken"`);
         await queryRunner.query(`DROP TABLE "Candidate"`);

@@ -2,10 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
 import { Resume } from './Resume';
 

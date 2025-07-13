@@ -50,17 +50,10 @@ export class PackageController {
     }
 
     @GET()
-    @route('/get-package-types')
-    async getAllPackageTypes(req: Request, res: Response){
-        const response = await this._packageService.getAllPackageTypes()
-        res.status(response.status).json(response)
-    }
-
-    @GET()
-    @route('/get-features-of-package/:packageId')
-    async getFeaturesOfPackage(req: Request, res: Response){
+    @route('/get-package-features/:packageId')
+    async getPackageFeatures(req: Request, res: Response){
         const packageId = parseInt(req.params.packageId);
-        const response = await this._packageService.getFeaturesOfPackage(packageId)
+        const response = await this._packageService.getPackageFeatures(packageId)
         res.status(response.status).json(response)
     }
 
@@ -69,7 +62,7 @@ export class PackageController {
     async updatePackageFeatures(req: Request, res: Response){
         const data = req.body
         const packageId = parseInt(req.params.packageId);
-        const response = await this._packageService.updatePackageFeature(data,packageId)
+        const response = await this._packageService.updatePackageFeatures(data,packageId)
         res.status(response.status).json(response)
     }
 }

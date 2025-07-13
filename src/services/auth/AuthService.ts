@@ -1,4 +1,4 @@
-import { ICandidateRegisterData, ICompanyRegisterData, ILoginData, IUserLoginResponse } from "@/interfaces/auth/AuthDto";
+import { ICandidateRegisterData, ICompanyRegisterData, ICurrentUser, ILoginData, IUserLoginResponse } from "@/interfaces/auth/AuthDto";
 import IAuthService from "@/interfaces/auth/IAuthService";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/DatabaseService";
@@ -372,7 +372,7 @@ export default class AuthService implements IAuthService {
           roleName: user.roleName,
           isStaff: user.isStaff,
           isActive: user.isActive,
-          allowSearch: user.candidate?.allowSearch,
+          allowSearch: user.candidate?.allowSearch ?? true,
           avatar: user.avatar?.url
         }
 
@@ -388,7 +388,7 @@ export default class AuthService implements IAuthService {
         return {
         status: StatusCodes.OK,
         success: true,
-        data: currentUser
+        data: currentUser,
       };
 
       } catch (error:any) {

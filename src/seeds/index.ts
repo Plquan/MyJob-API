@@ -4,7 +4,7 @@ import { seedProvinces } from "./Province.seed";
 import { seedDistricts } from "./District.seed";
 import { seedFunctions } from "./Function.seed";
 import { seedCareers } from "./Career.seed";
-import { seedPackageTypes } from "./PackageType.seed";
+import { seedFeatures } from "./Feature.seed";
 
 const runAllSeeds = async () => {
   try {
@@ -15,7 +15,7 @@ const runAllSeeds = async () => {
     await seedDistricts(dataSource)
     await seedFunctions(dataSource)
     await seedCareers(dataSource)
-    await seedPackageTypes(dataSource)
+    await seedFeatures(dataSource)
 
     await dataSource.destroy();
     console.log("All seeds completed");

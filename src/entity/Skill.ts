@@ -2,10 +2,10 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    CreateDateColumn,
-    UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
   } from 'typeorm';
   import { Resume } from './Resume'; // Giả sử bảng Resume đã được định nghĩa
   

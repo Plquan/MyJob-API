@@ -29,7 +29,6 @@ import { Skill } from "@/entity/Skill";
 import { Package } from "@/entity/Package";
 import { PackageFeature } from "@/entity/PackageFeature";
 import { PackagePurchased } from "@/entity/PackagePurchased";
-import { PackageType } from "@/entity/PackageType";
 import { PackageUsage } from "@/entity/PackageUsage";
 import { Feature } from "@/entity/Feature";
 
@@ -62,7 +61,6 @@ class DatabaseService {
   public PackageRepo: Repository<Package>
   public PackageFeatureRepo: Repository<PackageFeature>
   public PackagePurchasedRepo: Repository<PackagePurchased>
-  public PackageTypeRepo: Repository<PackageType>
   public PackageUsageRepo: Repository<PackageUsage>
   connection: any;
 
@@ -95,7 +93,6 @@ class DatabaseService {
     this.PackageRepo = this._dataSource.getRepository(Package);
     this.PackageFeatureRepo = this._dataSource.getRepository(PackageFeature);
     this.PackagePurchasedRepo = this._dataSource.getRepository(PackagePurchased);
-    this.PackageTypeRepo = this._dataSource.getRepository(PackageType);
     this.PackageUsageRepo = this._dataSource.getRepository(PackageUsage);
 
     this._dataSource
