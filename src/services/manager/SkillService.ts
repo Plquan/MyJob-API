@@ -2,11 +2,11 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/DatabaseService";
 import { LocalStorage } from "@/constants/LocalStorage";
 import logger from "@/helpers/logger";
-import { RequestStorage } from "@/middlewares";
 import { StatusCodes } from "http-status-codes";
 import { VariableSystem } from "@/constants/VariableSystem";
 import ISkillService from "@/interfaces/skill/ISkillService";
 import { ICreateSkillData, IUpdateSkillData } from "@/interfaces/skill/SkillDto";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 
 
 export default class SkillService implements ISkillService {

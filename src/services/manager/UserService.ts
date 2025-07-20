@@ -10,6 +10,7 @@ import { User } from "@/entity/User";
 import { SelectQueryBuilder } from "typeorm";
 import IRoleService from "@/interfaces/role/IRoleService";
 import { GroupRole } from "@/entity/GroupRole";
+import { CreateUserRequest } from "@/interfaces/user/dtos/CreateUserRequest";
 
 export default class UserService implements IUserService {
     private readonly _context: DatabaseService
@@ -151,15 +152,8 @@ export default class UserService implements IUserService {
         }
     }
 
-    async createUser(data: ICreateUser): Promise<IResponseBase> {
-        try {
-           if(!data.fullName || !data.email || !data.password || !data.roleName) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    success: false,
-                    message: "Thông tin người dùng không hợp lệ",
-                }
-           }
+    async createUser(data: CreateUserRequest): Promise<IResponseBase> {
+        try {          
             const existingUser = await this._context.UserRepo.findOne({
                 where: { email: data.email }
             })

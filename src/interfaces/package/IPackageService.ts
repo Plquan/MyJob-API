@@ -9,4 +9,6 @@ export default interface IPackageService {
     deletePackage(packageId: number): Promise<IResponseBase>
     getPackageFeatures(packageId: number): Promise<IResponseBase>
     updatePackageFeatures(data: IPackageFeatureData[],packageId: number): Promise<IResponseBase>
+    getAllPackagesWithFeatures(): Promise<IResponseBase>
+    purchasePackage(packageId: number): Promise<IResponseBase>
 }

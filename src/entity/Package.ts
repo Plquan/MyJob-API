@@ -26,7 +26,7 @@ export class Package {
   packageFeatures: PackageFeature[]
 
   @Column({ default: false })
-  isActive: boolean;
+  isActive: boolean
 
   @CreateDateColumn()
   createdAt: Date;

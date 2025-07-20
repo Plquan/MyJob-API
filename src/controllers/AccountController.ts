@@ -1,5 +1,5 @@
 import IAccountService from "@/interfaces/account/IAccountService";
-import { asyncLocalStorageMiddleware, RequestStorage } from "@/middlewares";
+import { asyncLocalStorageMiddleware} from "@/middlewares";
 import AuthenticateMiddleware from "@/middlewares/AuthenticateMiddleware";
 import { uploadAvatarMiddleware } from "@/middlewares/uploadMiddleware";
 import { before, inject, POST, route } from "awilix-express";

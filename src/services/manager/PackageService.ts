@@ -12,6 +12,55 @@ export default class PackageService implements IPackageService {
     constructor(DatabaseService: DatabaseService){
         this._context = DatabaseService
     }
+    async purchasePackage(packageId: number): Promise<IResponseBase> {
+        try {
+            
+            
+        } catch (error) {
+             logger.error(error?.message)
+            console.log(`Error in PackageSerivce - method purchasePackage() at ${new Date().getTime()} with message ${error?.message}`);
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: "Lỗi mua gói, vui lòng thử lại sau",
+            }
+        }
+    }
+    async getAllPackagesWithFeatures(): Promise<IResponseBase> {
+        try {
+            
+            const packages = await this._context.PackageRepo
+            .createQueryBuilder("pkg")
+            .innerJoin("pkg.packageFeatures", "pf")
+            .select([
+                `pkg.id AS "id"`,
+                `pkg.name AS "name"`,
+                `pkg.price AS "price"`,
+                `pkg.durationInDays AS "durationInDays"`,
+               `json_agg(pf.description) AS "features"`
+            ])
+            .where("pkg.isActive = :isActive", { isActive: true })
+            .groupBy("pkg.id, pkg.name, pkg.createdAt")
+            .orderBy("pkg.createdAt", "DESC")
+            .getRawMany()
+
+            return {
+                status: StatusCodes.OK,
+                success: true,
+                message:"Lấy danh sách gói kèm tính năng thành công",
+                data: packages
+            }
+          
+        } catch (error) {
+             logger.error(error?.message)
+            console.log(`Error in PackageSerivce - method getAllPackagesWithFeatures() at ${new Date().getTime()} with message ${error?.message}`);
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                success: false,
+                message: "Lỗi lấy gói kèm tính năng, vui lòng thử lại sau",
+            }
+        }
+    }
     async updatePackageFeatures(data: IPackageFeatureData[],packageId: number): Promise<IResponseBase> {
         try {
             if(!packageId){

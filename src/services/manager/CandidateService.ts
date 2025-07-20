@@ -1,7 +1,6 @@
 import { LocalStorage } from "@/constants/LocalStorage";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import ICandidateService from "@/interfaces/candidate/ICandidateService";
-import { RequestStorage } from "@/middlewares";
 import { StatusCodes } from "http-status-codes";
 import DatabaseService from "../common/DatabaseService";
 import logger from "@/helpers/logger";
@@ -10,6 +9,7 @@ import { VariableSystem } from "@/constants/VariableSystem";
 import { User } from "@/entity/User";
 import { EntityManager } from "typeorm";
 import { ICandidateData } from "@/interfaces/candidate/CandidateDto";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 
 export default class CandidateService implements ICandidateService {
 

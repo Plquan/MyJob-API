@@ -5,3 +5,4 @@ export interface IResponseBase {
     message?: string;
     data?: any | null;
 }
+

@@ -48,7 +48,6 @@ export class ResumeController {
     @route("/update-attached-resume")
     async updateAttachedResume (req: Request, res: Response){
         const file = req.file
-        console.log(req.body.data)
         const data = JSON.parse(req.body.data)
         const response = await this._resumeService.updateAttachedResume(data,file)
         return res.status(response.status).json(response)

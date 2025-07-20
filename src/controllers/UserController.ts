@@ -1,4 +1,6 @@
+import { CreateUserRequest } from "@/interfaces/user/dtos/CreateUserRequest";
 import IUserService from "@/interfaces/user/IUserService";
+import { validationMiddleware } from "@/middlewares";
 import AuthenticateMiddleware, { authenticate } from "@/middlewares/AuthenticateMiddleware";
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express";
 import { Response,Request } from "express";
@@ -40,6 +42,7 @@ export class UserController {
 
     @POST()
     @route("/create-user")
+    @before([validationMiddleware(CreateUserRequest)])
     async createUser(req: Request, res: Response) {
         const data = req.body;
         const response = await this._userService.createUser(data);

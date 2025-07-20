@@ -6,7 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import DatabaseService from "../common/DatabaseService";
 import { LocalStorage } from "@/constants/LocalStorage";
 import { VariableSystem } from "@/constants/VariableSystem";
-import { RequestStorage } from "@/middlewares";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 
 
 export default class CertificateService implements ICertificateService {

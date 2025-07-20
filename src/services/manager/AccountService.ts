@@ -4,12 +4,11 @@ import CloudinaryService from "../common/CloudinaryService";
 import logger from "@/helpers/logger";
 import { StatusCodes } from "http-status-codes";
 import DatabaseService from "../common/DatabaseService";
-import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";
-import { MyJobFile } from "@/entity/MyJobFile";
 import { VariableSystem } from "@/constants/VariableSystem";
 import { console } from "inspector";
 import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 
 export default class AccountService implements IAccountService {
 

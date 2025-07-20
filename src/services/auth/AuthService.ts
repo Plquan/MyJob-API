@@ -6,11 +6,11 @@ import { StatusCodes } from "http-status-codes";
 import Extensions from "@/ultils/Extensions";
 import logger from "@/helpers/logger";
 import ICompanyService from "@/interfaces/company/ICompanyService";
-import { RequestStorage } from "@/middlewares";
 import { LocalStorage } from "@/constants/LocalStorage";
 import { VariableSystem } from "@/constants/VariableSystem";
 import ICandidateService from "@/interfaces/candidate/ICandidateService";
 import { IJwtService, ITokenPayload } from "@/interfaces/auth/IJwtService";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 
 
 

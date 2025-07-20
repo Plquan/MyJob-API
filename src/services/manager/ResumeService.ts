@@ -5,7 +5,6 @@ import DatabaseService from "../common/DatabaseService"
 import { LocalStorage } from "@/constants/LocalStorage"
 import { VariableSystem } from "@/constants/VariableSystem"
 import logger from "@/helpers/logger"
-import { RequestStorage } from "@/middlewares"
 import { StatusCodes } from "http-status-codes"
 import { IUpdateAttachedResumeData, IUploadAttachedResumeData } from "@/interfaces/resume/ResumeDto"
 import CloudinaryService from "../common/CloudinaryService"
@@ -14,6 +13,7 @@ import { Resume } from "@/entity/Resume"
 import { Candidate } from "@/entity/Candidate"
 import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType"
 import { getFileCategory } from "@/ultils/fileUltils"
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage"
 
 
 export default class ResumeService implements IResumeService {

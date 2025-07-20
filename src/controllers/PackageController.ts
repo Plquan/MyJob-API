@@ -65,4 +65,12 @@ export class PackageController {
         const response = await this._packageService.updatePackageFeatures(data,packageId)
         res.status(response.status).json(response)
     }
+
+    @GET()
+    @route('/get-all-packages-with-features')
+    async getAllPackagesWithFeatures(req: Request, res: Response){
+        const response = await this._packageService.getAllPackagesWithFeatures()
+        res.status(response.status).json(response)
+    }
+
 }

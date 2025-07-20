@@ -4,9 +4,9 @@ import IExperienceService from "@/interfaces/experience/IExperienceService";
 import DatabaseService from "../common/DatabaseService";
 import { LocalStorage } from "@/constants/LocalStorage";
 import logger from "@/helpers/logger";
-import { RequestStorage } from "@/middlewares";
 import { StatusCodes } from "http-status-codes";
 import { VariableSystem } from "@/constants/VariableSystem";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 
 export default class ExperienceService implements IExperienceService {
 

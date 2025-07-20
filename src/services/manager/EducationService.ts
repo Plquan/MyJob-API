@@ -4,10 +4,10 @@ import IEducationService from "@/interfaces/education/IEducationService";
 import DatabaseService from "../common/DatabaseService";
 import { LocalStorage } from "@/constants/LocalStorage";
 import logger from "@/helpers/logger";
-import { RequestStorage } from "@/middlewares";
 import { StatusCodes } from "http-status-codes";
 import { VariableSystem } from "@/constants/VariableSystem";
 import { ICreateEducationData, IUpdateEducationData } from "@/interfaces/education/EducationDto";
+import { RequestStorage } from "@/middlewares/AsyncLocalStorage";
 
 
 export default class EducationService implements IEducationService {
