@@ -1,12 +1,10 @@
 import { IResponseBase } from "@/interfaces/base/IResponseBase"
-import { IResumeData } from "@/interfaces/candidate/CandidateDto"
 import IResumeService from "@/interfaces/resume/IResumeService"
 import DatabaseService from "../common/DatabaseService"
 import { LocalStorage } from "@/constants/LocalStorage"
 import { VariableSystem } from "@/constants/VariableSystem"
 import logger from "@/helpers/logger"
 import { StatusCodes } from "http-status-codes"
-import { IUpdateAttachedResumeData, IUploadAttachedResumeData } from "@/interfaces/resume/ResumeDto"
 import CloudinaryService from "../common/CloudinaryService"
 import { MyJobFile } from "@/entity/MyJobFile"
 import { Resume } from "@/entity/Resume"
@@ -14,6 +12,9 @@ import { Candidate } from "@/entity/Candidate"
 import { CloudinaryResourceType } from "@/constants/CloudinaryResourceType"
 import { getFileCategory } from "@/ultils/fileUltils"
 import { RequestStorage } from "@/middlewares/AsyncLocalStorage"
+import { UpdateAttachedResumeRequest } from "@/interfaces/resume/dtos/UpdateAttachedResumeRequest"
+import { UploadAttachedResumeRequest } from "@/interfaces/resume/dtos/UploadAttachedResumeRequest"
+import { UpdateOnlineResumeRequest } from "@/interfaces/resume/dtos/UpdateOnlineResumeRequest"
 
 
 export default class ResumeService implements IResumeService {
@@ -25,14 +26,6 @@ export default class ResumeService implements IResumeService {
     }
     async getAttachedResumeById(attchedResumeId: number): Promise<IResponseBase> {
       try {
-
-        if(!attchedResumeId){
-          return {
-            status: StatusCodes.BAD_REQUEST,
-            message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-            success: false,
-          }
-        }
 
         const attachResume = await this._context.ResumeRepo.findOne({
           where:{id: attchedResumeId},
@@ -58,20 +51,8 @@ export default class ResumeService implements IResumeService {
         }
       }
     }
-    async updateAttachedResume(data: IUpdateAttachedResumeData, file?: Express.Multer.File): Promise<IResponseBase> {
+    async updateAttachedResume(data: UpdateAttachedResumeRequest, file?: Express.Multer.File): Promise<IResponseBase> {
       try {
-        if (
-          !data.academicLevel || !data.careerId || !data.experience ||
-          !data.jobType || !data.position || !data.provinceId ||
-          !data.salaryMax || !data.salaryMin || !data.description || !data.id
-        ) {
-          return {
-            status: StatusCodes.BAD_REQUEST,
-            message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-            success: false,
-          };
-        }
-
         const attachedResume = await this._context.ResumeRepo.findOne({
           where: { id: data.id },
           relations: ['myJobFile'],
@@ -141,13 +122,6 @@ export default class ResumeService implements IResumeService {
     }
     async deleteAttachedResume(attachedResumeId: number): Promise<IResponseBase> {
       try {
-        if(!attachedResumeId){
-          return{
-            status: StatusCodes.BAD_REQUEST,
-            message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-            success: false,
-          }
-        }
         const attachedResume = await this._context.ResumeRepo.findOne({
           where:{id:attachedResumeId},
           relations:['myJobFile']
@@ -182,17 +156,8 @@ export default class ResumeService implements IResumeService {
         }
       }
     }
-    async uploadAttachedResume(data: IUploadAttachedResumeData, file: Express.Multer.File): Promise<IResponseBase> {
-      if (
-        !data.academicLevel || !data.careerId || !data.experience || !file ||
-        !data.jobType || !data.position || !data.provinceId ||
-        !data.salaryMax || !data.salaryMin || !data.description ) {
-        return {
-          status: StatusCodes.BAD_REQUEST,
-          message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-          success: false,
-        }
-      }
+    async uploadAttachedResume(data: UploadAttachedResumeRequest, file: Express.Multer.File): Promise<IResponseBase> {
+
       const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
       const userId = request?.user.id
 
@@ -244,8 +209,6 @@ export default class ResumeService implements IResumeService {
           format: getFileCategory(file),
         })
         await queryRunner.manager.save(MyJobFile, newFile)
-
-        data.type = VariableSystem.CV_TYPE.CV_ATTACHED
         data.candidateId = candidateProfile.id
         data.myJobFileId = newFile.id
 
@@ -413,7 +376,7 @@ export default class ResumeService implements IResumeService {
         }
       }
     }
-    async updateOnlineResume(data: IResumeData): Promise<IResponseBase> {
+    async updateOnlineResume(data: UpdateOnlineResumeRequest): Promise<IResponseBase> {
       try {
         const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
         const userId = request?.user?.id

@@ -1,9 +1,14 @@
+import { ErrorMessages } from "@/constants/ErrorMessages";
+import HttpException from "@/errors/http-exception";
+import { UpdateOnlineResumeRequest } from "@/interfaces/resume/dtos/UpdateOnlineResumeRequest";
+import { UploadAttachedResumeRequest } from "@/interfaces/resume/dtos/UploadAttachedResumeRequest";
 import IResumeService from "@/interfaces/resume/IResumeService";
-import { asyncLocalStorageMiddleware } from "@/middlewares";
+import { asyncLocalStorageMiddleware, validationMiddleware } from "@/middlewares";
 import AuthenticateMiddleware, { authenticate } from "@/middlewares/AuthenticateMiddleware";
 import { uploadAvatarMiddleware } from "@/middlewares/uploadMiddleware";
 import { GET, route, PUT, before, inject, POST, DELETE } from "awilix-express";
 import { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 
 @before(authenticate())
 @route("/resume")
@@ -21,6 +26,7 @@ export class ResumeController {
         return res.status(response.status).json(response)
     }
 
+    @before(validationMiddleware(UpdateOnlineResumeRequest))
     @PUT()
     @route("/update-online-resume")
     async updateOnlineResume(req:Request, res: Response){
@@ -31,24 +37,24 @@ export class ResumeController {
     
     @before([
     uploadAvatarMiddleware,
-    asyncLocalStorageMiddleware()])
+    asyncLocalStorageMiddleware(),validationMiddleware(UploadAttachedResumeRequest,false,true,true)])
     @POST()
     @route("/upload-attached-resume")
     async uploadAttachedResume(req:Request, res: Response){
         const file = req.file
-        const data = JSON.parse(req.body.data)
+        const data = req.body
         const response = await this._resumeService.uploadAttachedResume(data,file)
         return res.status(response.status).json(response)
     }
     
     @before([
     uploadAvatarMiddleware,
-    asyncLocalStorageMiddleware()])
+    asyncLocalStorageMiddleware(),validationMiddleware(UploadAttachedResumeRequest,false,false,true)])
     @PUT()
     @route("/update-attached-resume")
     async updateAttachedResume (req: Request, res: Response){
         const file = req.file
-        const data = JSON.parse(req.body.data)
+        const data = req.body
         const response = await this._resumeService.updateAttachedResume(data,file)
         return res.status(response.status).json(response)
     }
@@ -64,6 +70,9 @@ export class ResumeController {
     @route("/delete-attached-resume/:attachedResumeId")
     async deleteAttachedResume (req: Request, res: Response){
         const attachedResumeId = parseInt(req.params.attachedResumeId)
+        if(!attachedResumeId){
+            throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
+        }
         const response = await this._resumeService.deleteAttachedResume(attachedResumeId)
         return res.status(response.status).json(response)
     }
@@ -72,6 +81,9 @@ export class ResumeController {
     @route("/set-selected-resume/:resumeId")
     async setSelectedResume (req: Request, res: Response){
         const resumeId = parseInt(req.params.resumeId)
+        if(!resumeId){
+            throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
+        }
         const response = await this._resumeService.setSelectedResume(resumeId)
         return res.status(response.status).json(response)
     }

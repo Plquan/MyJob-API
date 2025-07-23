@@ -6,7 +6,6 @@ import logger from "@/helpers/logger";
 import { ICreateRoleData, IUpdateRoleData, IUpdateRolePermission } from "@/interfaces/role/RoleDto";
 import { Permission } from "@/entity/Permission";
 import { In } from "typeorm";
-import { GroupRole } from "@/entity/GroupRole";
 
 export default class RoleService implements IRoleService {
     private readonly _context: DatabaseService

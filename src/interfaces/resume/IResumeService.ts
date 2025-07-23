@@ -1,14 +1,15 @@
 import { IResponseBase } from "../base/IResponseBase"
-import { IResumeData } from "../candidate/CandidateDto"
-import { IUpdateAttachedResumeData, IUploadAttachedResumeData } from "./ResumeDto"
+import { UpdateAttachedResumeRequest } from "./dtos/UpdateAttachedResumeRequest"
+import { UpdateOnlineResumeRequest } from "./dtos/UpdateOnlineResumeRequest"
+import { UploadAttachedResumeRequest } from "./dtos/UploadAttachedResumeRequest"
 
 export default interface IResumeService {
    getOnlineResume(): Promise<IResponseBase>
-   updateOnlineResume(data: IResumeData):Promise<IResponseBase>
+   updateOnlineResume(data: UpdateOnlineResumeRequest):Promise<IResponseBase>
    getAllAttachedResumes(): Promise<IResponseBase>
    getAttachedResumeById(attchedResumeId: number): Promise<IResponseBase>
-   uploadAttachedResume(data: IUploadAttachedResumeData,file: Express.Multer.File): Promise<IResponseBase>
-   updateAttachedResume(data: IUpdateAttachedResumeData,file: Express.Multer.File): Promise<IResponseBase>
+   uploadAttachedResume(data: UploadAttachedResumeRequest,file: Express.Multer.File): Promise<IResponseBase>
+   updateAttachedResume(data: UpdateAttachedResumeRequest,file: Express.Multer.File): Promise<IResponseBase>
    deleteAttachedResume(attchedResumeId: number): Promise<IResponseBase>
    setSelectedResume(resumeId: number): Promise<IResponseBase>
 }
