@@ -1,10 +1,8 @@
-import dataSource from "../ormconfig";
-
-import { seedProvinces } from "./Province.seed";
-import { seedDistricts } from "./District.seed";
-import { seedFunctions } from "./Function.seed";
-import { seedCareers } from "./Career.seed";
-import { seedFeatures } from "./Feature.seed";
+import dataSource from "../orm-config";
+import { seedCareers } from "./career-seed";
+import { seedDistricts } from "./district-seed";
+import { seedFunctions } from "./function-seed";
+import { seedProvinces } from "./province-seed";
 
 const runAllSeeds = async () => {
   try {
@@ -15,7 +13,6 @@ const runAllSeeds = async () => {
     await seedDistricts(dataSource)
     await seedFunctions(dataSource)
     await seedCareers(dataSource)
-    await seedFeatures(dataSource)
 
     await dataSource.destroy();
     console.log("All seeds completed");

@@ -1,0 +1,25 @@
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn } from "typeorm";
+import { PackagePurchased } from "./package-purchased";
+
+@Entity('PackageUsages')
+export class PackageUsage {
+
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  companyPackageId!: number;
+
+  @Column()
+  featureId!: number;
+
+  @Column({ type: 'int', default: 0 })
+  used: number;
+
+  @Column({ type: 'int',nullable:true})
+  total: number | null;
+
+  @ManyToOne(() => PackagePurchased, (cp) => cp.usages, {onDelete: 'CASCADE',nullable: false})
+  @JoinColumn({ name: 'companyPackageId' })
+  companyPackage: PackagePurchased;
+}

@@ -1,9 +1,7 @@
-export default interface IPaging {
-  page: number
-  limit:number
-}
-
-export const defaultPaging: IPaging = {
-  page: 1, 
-  limit: 10,
+export interface PaginatedList<T> {
+  items: T[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
 }

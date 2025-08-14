@@ -1,22 +1,23 @@
 import { asClass, createContainer, InjectionMode } from "awilix"
-import JwtService from "./services/auth/JwtService"
-import AuthService from "./services/auth/AuthService"
-import RoleService from "./services/manager/RoleService"
-import CompanyService from "./services/manager/CompanyService"
-import DatabaseService from "./services/common/DatabaseService"
-import ProvinceService from "./services/manager/ProvinceService"
-import UserService from "./services/manager/UserService"
-import AccountService from "./services/manager/AccountService"
-import CandidateService from "./services/manager/CandidateService"
-import CareerService from "./services/manager/CareerService"
-import ResumeService from "./services/manager/ResumeService"
-import CertificateService from "./services/manager/CertificateService"
-import ExperienceService from "./services/manager/ExperienceService"
-import EducationService from "./services/manager/EducationService"
-import LanguageService from "./services/manager/LanguageService"
-import SkillService from "./services/manager/SkillService"
-import { BackgroundService } from "./services/common/BackgroundService"
-import PackageService from "./services/manager/PackageService"
+import JwtService from "./services/auth/jwt-service"
+import AuthService from "./services/auth/auth-service"
+import RoleService from "./services/role/role-service"
+import CompanyService from "./services/company/company-service"
+import DatabaseService from "./services/common/database-service"
+import ProvinceService from "./services/province/province-service"
+import UserService from "./services/user/user-service"
+import AccountService from "./services/account/account-service"
+import CandidateService from "./services/candidate/candidate-service"
+import CareerService from "./services/career/career-service"
+import ResumeService from "./services/resume/resume-service"
+import CertificateService from "./services/resume/certificate-service"
+import ExperienceService from "./services/resume/experience-service"
+import EducationService from "./services/resume/education-service"
+import LanguageService from "./services/resume/language-service"
+import SkillService from "./services/resume/skill-service"
+import { BackgroundService } from "./services/common/background-service"
+import PackageService from "./services/package/package-service"
+import JobPostService from "./services/Job/job-post-service"
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -41,6 +42,7 @@ container.register({
   LanguageService: asClass(LanguageService).scoped(),
   SkillService: asClass(SkillService).scoped(),
   PackageService: asClass(PackageService).scoped(),
+  JobPostService: asClass(JobPostService).scoped(),
 
 })
   container.resolve("JwtService")

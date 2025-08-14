@@ -8,6 +8,7 @@
     "outDir": "./dist",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": false,
     "skipLibCheck": true,
     "baseUrl": ".",
     "rootDir": ".",
@@ -15,16 +16,17 @@
     "paths": {
       "@/*": ["src/*"],
       "@interfaces/*": ["src/interfaces/*"],
-      "@entity/*": ["src/entity/*"],
+      "@entity/*": ["src/entities/*"],
       "@routes/*": ["src/routes/*"],
-      "@helpers/*": ["src/helpers/*"],
-      "@middlewares/*": ["src/middlewares/*"],
+      "@helpers/*": ["src/common/helpers/*"],
+      "@middlewares/*": ["src/common/middlewares/*"],
       "@controllers/*": ["src/controllers/*"],
       "@services/*": ["src/services/*"],
       "@utils/*": ["src/utils/*"],
-      "@seeds/*": ["src/seeds/*"]
+      "@seeds/*": ["src/seeds/*"],
+      "@enums/*": ["src/common/enums/*"]
     },
-    "typeRoots": ["node_modules/@types", "src/types"]
+    "typeRoots": ["node_modules/@types", "src/common/types"]
   },
   "lib": ["es2015"],
   "exclude": ["node_modules", "src/tests"],
