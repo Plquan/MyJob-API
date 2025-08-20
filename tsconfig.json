@@ -6,10 +6,29 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "types": ["node"]
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "rootDir": ".",
+    "types": ["node", "express", "multer"],
+    "paths": {
+      "@/*": ["src/*"],
+      "@interfaces/*": ["src/interfaces/*"],
+      "@entity/*": ["src/entities/*"],
+      "@routes/*": ["src/routes/*"],
+      "@helpers/*": ["src/common/helpers/*"],
+      "@middlewares/*": ["src/common/middlewares/*"],
+      "@controllers/*": ["src/controllers/*"],
+      "@services/*": ["src/services/*"],
+      "@utils/*": ["src/utils/*"],
+      "@seeds/*": ["src/seeds/*"],
+      "@enums/*": ["src/common/enums/*"]
+    },
+    "typeRoots": ["node_modules/@types", "src/common/types"]
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./node_modules", "./dist"]
+  "lib": ["es2015"],
+  "exclude": ["node_modules", "src/tests"],
+  "include": ["src/**/*.ts"]
 }
