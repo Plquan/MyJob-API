@@ -8,7 +8,7 @@ import {
 } from "typeorm";
 import { PackageFeature } from "./package-feature"
 
-@Entity("Packages")
+@Entity("packages")
 export class Package {
   @PrimaryGeneratedColumn()
   id: number;

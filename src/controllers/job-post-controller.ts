@@ -1,4 +1,4 @@
-import { validateDto } from "@/common/helpers/validate-dto";
+
 import { CreateJobPostRequest } from "@/dtos/job/create-job-post-request";
 import IJobPostService from "@/interfaces/jobPost/job-post-interface";
 import { authenticate } from "@/common/middlewares/authenticate-middleware";
@@ -19,7 +19,7 @@ export class JobPostController {
       try {
           const data = plainToInstance(CreateJobPostRequest, req.body)
         const userId = req.user?.id;
-        await validateDto(data)
+        // await validateDto(data)
         const response = await this._jobPostService.CreateJobPost(data,userId);
         res.status(201).json(response)
       } catch (error) {

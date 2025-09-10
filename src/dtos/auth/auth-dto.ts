@@ -56,3 +56,12 @@ export interface ICurrentUser {
   isSuperUser:boolean
   accessToken: string;
 };
+
+export interface  IUserClaim {
+  id: number;
+  fullName: string;
+  roleName: string;
+  function: string[]
+  isSuperUser:boolean
+  accessToken: string;
+};

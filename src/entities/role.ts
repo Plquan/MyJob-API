@@ -2,7 +2,7 @@ import { PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, One
 import { Permission } from "./permission";
 import { GroupRole } from "./group-role";
 
-@Entity("Roles")
+@Entity("roles")
 export class Role {
   @PrimaryGeneratedColumn()
   id!: number;

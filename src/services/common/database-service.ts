@@ -7,7 +7,7 @@ import { SavedJobPost } from "@/entities/save-job-post";
 import { Resume } from "@/entities/resume";
 import { Province } from "@/entities/province";
 import { Permission } from "@/entities/permission";
-import { MyJobFile } from "@/entities/my-job-file";
+import { MyJobFile } from "@/entities/myjob-file";
 import { Candidate } from "@/entities/candidate";
 import { Career } from "@/entities/career";
 import { Certificate } from "@/entities/certificate";
@@ -21,7 +21,7 @@ import { JobPostActivity } from "@/entities/job-post-activity";
 import { JobPost } from "@/entities/job-post";
 import { Language } from "@/entities/language";
 
-import dataSource from "@/orm-config";
+import dataSource from "@/ormconfig";
 import { RefreshToken } from "@/entities/refresh-token";
 import { Role } from "@/entities/role";
 import { District } from "@/entities/district";

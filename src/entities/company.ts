@@ -1,20 +1,21 @@
-import { Entity, OneToOne,PrimaryGeneratedColumn,Column,JoinColumn,OneToMany,ManyToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, OneToOne, PrimaryGeneratedColumn, Column, JoinColumn, OneToMany, ManyToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { User } from "./user";
 import { JobPost } from "./job-post";
 import { Province } from "./province";
 import { CompanyFollowed } from "./company-followed";
+import { CompanyFile } from "./company-file";
 
-@Entity('Companies')
+@Entity('companies')
 export class Company {
-  
+
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column({nullable: true})
-    provinceId?:number;
+    @Column({ nullable: true })
+    provinceId?: number;
 
     @Column()
-    userId!:number;
+    userId!: number;
 
     @Column({ type: 'varchar', length: 255 })
     companyName!: string;
@@ -27,6 +28,15 @@ export class Company {
 
     @Column({ type: 'varchar', length: 300, nullable: true })
     websiteUrl?: string;
+
+    @Column({ type: 'varchar', length: 300, nullable: true })
+    youtubeUrl?: string;
+
+    @Column({ type: 'varchar', length: 300, nullable: true })
+    linkedInUrl?: string;
+
+    @Column({ type: 'varchar', length: 300, nullable: true })
+    facebookUrl?: string;
 
     @Column({ type: 'varchar', length: 30 })
     taxCode!: string;
@@ -52,11 +62,11 @@ export class Company {
     @UpdateDateColumn()
     updatedAt!: Date;
 
-    @OneToOne(() => User, (user) => user.employer,{onDelete: 'CASCADE'})
-    @JoinColumn({name: 'userId'})
+    @OneToOne(() => User, (user) => user.company, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
     user!: User;
 
-    @ManyToOne(() => Province, { onDelete: 'SET NULL',nullable: true })
+    @ManyToOne(() => Province, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ name: 'provinceId' })
     province?: Province;
 
@@ -68,5 +78,9 @@ export class Company {
 
     @OneToMany(() => CompanyFollowed, companyFollowed => companyFollowed.company)
     followedCompanies!: CompanyFollowed[];
-  
+
+    @OneToMany(() => CompanyFile, (companyFile) => companyFile.company)
+    files!: CompanyFile[];
+
+
 } 

@@ -8,7 +8,7 @@ import { JobPostActivity } from "./job-post-activity";
 import { CompanyFollowed } from "./company-followed";
 import { SavedJobPost } from "./save-job-post";
 
-@Entity('Candidates')
+@Entity('candidates')
 export class Candidate {
     @PrimaryGeneratedColumn()
     id!: number;

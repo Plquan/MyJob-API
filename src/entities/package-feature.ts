@@ -10,7 +10,7 @@ import {
 import { EFeatureKey } from "../common/enums/package-features/EFeatureKey";
 import { Package } from "./package";
 
-@Entity({ name: "PackageFeatures" })
+@Entity('package_features')
 export class PackageFeature {
   @PrimaryGeneratedColumn()
   id: number;

@@ -2,7 +2,6 @@ import { JobPost } from "@/entities/job-post";
 import IJobPostService from "@/interfaces/jobPost/job-post-interface";
 import DatabaseService from "../common/database-service";
 import { CreateJobPostRequest } from "@/dtos/job/create-job-post-request";
-import HttpException from "@/errors/http-exception";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
@@ -19,7 +18,7 @@ export default class JobPostService implements IJobPostService {
             where: { userId },
         });
         if (!company) {
-            throw new HttpException(400, 'cc')
+            // throw new HttpException(400, 'cc')
         }
         data.companyId = company.id
         const newJobPost = this._context.JobPostRepo.create(data)

@@ -8,7 +8,7 @@ import container from "./container";
 import { Server } from "./server";
 import { asyncLocalStorageMiddleware } from "@/common/middlewares";
 import { apiLimiter } from "./common/middlewares/RateLimiter";
-import { errorHandler } from "./common/middlewares/error-handler";
+import errorMiddleware from "./common/middlewares/exception";
 
 
 /**
@@ -36,7 +36,7 @@ class Application {
       this.server.app.use(asyncLocalStorageMiddleware())
       this.server.app.use(apiLimiter)
       this.server.app.use("/api", loadControllers("./controllers/*.*s", { cwd: __dirname }))
-      this.server.app.use(errorHandler);
+      this.server.app.use(errorMiddleware);
       this.serverInstance = this.server.app.listen(port, () =>
         console.log(`Server is running at http://localhost:${port}`)
       )

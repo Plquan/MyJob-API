@@ -1,5 +1,4 @@
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
-import HttpException from "@/errors/http-exception";
 import { UpdateOnlineResumeRequest } from "@/dtos/resume/update-online-resume-request";
 import { UploadAttachedResumeRequest } from "@/dtos/resume/upload-attached-resume-request";
 import IResumeService from "@/interfaces/resume/resume-interface";
@@ -71,7 +70,7 @@ export class ResumeController {
     async deleteAttachedResume (req: Request, res: Response){
         const attachedResumeId = parseInt(req.params.attachedResumeId)
         if(!attachedResumeId){
-            throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
+            // throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
         }
         const response = await this._resumeService.deleteAttachedResume(attachedResumeId)
         return res.status(response.status).json(response)
@@ -82,7 +81,7 @@ export class ResumeController {
     async setSelectedResume (req: Request, res: Response){
         const resumeId = parseInt(req.params.resumeId)
         if(!resumeId){
-            throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
+            // throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
         }
         const response = await this._resumeService.setSelectedResume(resumeId)
         return res.status(response.status).json(response)

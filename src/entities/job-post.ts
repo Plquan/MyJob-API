@@ -16,7 +16,7 @@ import { JobPostActivity } from './job-post-activity';
 import { EPosition, ETypeOfWorkplace, EExperience, EAcademicLevel, EJobType } from '../common/enums/resume/resume-enum';
 import { EJobPostStatus } from '../common/enums/job/EJobPostStatus';
   
-  @Entity('JobPosts') 
+  @Entity('job_post') 
   export class JobPost {
 
     @PrimaryGeneratedColumn()

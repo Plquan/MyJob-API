@@ -17,11 +17,11 @@ import { Experience } from './experience';
 import { Education } from './education';
 import { Certificate } from './certificate';
 import { JobPostActivity } from './job-post-activity';
-import { MyJobFile } from './my-job-file';
+import { MyJobFile } from './myjob-file';
 import { Skill } from './skill';
 import { EAcademicLevel, EExperience, EJobType, EPosition, ETypeOfWorkplace } from '../common/enums/resume/resume-enum';
 
-@Entity('Resume')
+@Entity('resumes')
 export class Resume {
   @PrimaryGeneratedColumn()
   id!: number;

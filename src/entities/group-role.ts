@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { User } from "./user";
 import { Role } from "./role";
 
-@Entity({ name: "GroupRoles" })
+@Entity('group_roles')
 export class GroupRole {
   @PrimaryGeneratedColumn()
   id!: number;

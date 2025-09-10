@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from './user';
 import { Resume } from './resume';
 
-@Entity('MyJobFiles')
+@Entity('myjob_files')
 export class MyJobFile {
 
   @PrimaryGeneratedColumn()

@@ -8,10 +8,9 @@ import {
     JoinColumn
   } from 'typeorm';
   import { Company } from './company'; 
-  import { User } from './user'; 
 import { Candidate } from './candidate';
   
-  @Entity('CompanyFolloweds')
+  @Entity('company_followeds')
   export class CompanyFollowed {
   
     @PrimaryGeneratedColumn()

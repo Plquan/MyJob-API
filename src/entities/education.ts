@@ -8,7 +8,7 @@ import {
     UpdateDateColumn
   } from 'typeorm';
   import { Resume } from './resume';
-  @Entity('Educations')
+  @Entity('educations')
   export class Education {
   
     @PrimaryGeneratedColumn()
