@@ -3,7 +3,7 @@ import { User } from "./user";
 import { JobPost } from "./job-post";
 import { Province } from "./province";
 import { CompanyFollowed } from "./company-followed";
-import { CompanyFile } from "./company-file";
+import { CompanyImage } from "./company-image";
 
 @Entity('companies')
 export class Company {
@@ -79,8 +79,8 @@ export class Company {
     @OneToMany(() => CompanyFollowed, companyFollowed => companyFollowed.company)
     followedCompanies!: CompanyFollowed[];
 
-    @OneToMany(() => CompanyFile, (companyFile) => companyFile.company)
-    files!: CompanyFile[];
+    @OneToMany(() => CompanyImage, (companyImage) => companyImage.company)
+    companyImages!: CompanyImage[];
 
 
 } 

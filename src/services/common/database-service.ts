@@ -30,6 +30,7 @@ import { Package } from "@/entities/package";
 import { PackageFeature } from "@/entities/package-feature";
 import { PackagePurchased } from "@/entities/package-purchased";
 import { PackageUsage } from "@/entities/package-usage";
+import { CompanyImage } from "@/entities/company-image";
 
 class DatabaseService {
   private _dataSource: DataSource;
@@ -60,6 +61,7 @@ class DatabaseService {
   public PackageFeatureRepo: Repository<PackageFeature>
   public PackagePurchasedRepo: Repository<PackagePurchased>
   public PackageUsageRepo: Repository<PackageUsage>
+  public CompanyImageRepo: Repository<CompanyImage>
   connection: any;
 
   constructor() {
@@ -91,6 +93,7 @@ class DatabaseService {
     this.PackageFeatureRepo = this._dataSource.getRepository(PackageFeature);
     this.PackagePurchasedRepo = this._dataSource.getRepository(PackagePurchased);
     this.PackageUsageRepo = this._dataSource.getRepository(PackageUsage);
+    this.CompanyImageRepo = this._dataSource.getRepository(CompanyImage)
 
     this._dataSource
       .initialize()

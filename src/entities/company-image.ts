@@ -2,8 +2,8 @@ import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn
 import { Company } from './company';
 import { MyJobFile } from './myjob-file';
 
-@Entity('company_files')
-export class CompanyFile {
+@Entity('company_images')
+export class CompanyImage {
 
     @PrimaryGeneratedColumn()
     id!: number;
@@ -14,13 +14,13 @@ export class CompanyFile {
     @Column()
     imageId!: number;
 
-    @ManyToOne(() => Company, (company) => company.files, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Company, (company) => company.companyImages, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'companyId' })
     company!: Company;
 
     @ManyToOne(() => MyJobFile, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'myJobFileId' })
-    images!: MyJobFile;
+    @JoinColumn({ name: 'imageId' })
+    image!: MyJobFile;
 
     @CreateDateColumn()
     createdAt!: Date;

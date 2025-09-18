@@ -6,4 +6,6 @@ const upload = multer({
 });
 
 
-export const uploadAvatarMiddleware = upload.single('file');
+export const uploadFileMiddleware = upload.single('file');
+export const uploadMultiFileMiddleware = upload.array('files');
+

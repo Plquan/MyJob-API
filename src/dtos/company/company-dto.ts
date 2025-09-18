@@ -60,5 +60,5 @@ export class CompanyDto {
 
   @Expose()
   @Type(() => MyJobFileDto)
-  images?: MyJobFileDto[];
+  files?: MyJobFileDto[];
 }

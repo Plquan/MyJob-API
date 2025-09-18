@@ -48,13 +48,11 @@ export default class AuthService implements IAuthService {
         fullName: payload.fullName,
         roleName: payload.roleName,
         isStaff: payload.isStaff,
-        isSuperUser: payload.isSuperUser
-
+        isSuperUser: payload.isSuperUser,
+        companyId: payload.companyId
       };
-
       const accessToken = this._jwtService.generateAccessToken(tokenPayload)
       const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
-
       const userRefreshToken = {
         id: refreshToken.tokenId,
         userId: payload.userId,
@@ -139,6 +137,7 @@ export default class AuthService implements IAuthService {
     try {
       const user = await this._context.UserRepo.findOne({
         where: { email: loginRequest.email, roleName: EUserRole.EMPLOYER },
+        relations: ['company']
       })
 
       if (!user) {
@@ -157,7 +156,8 @@ export default class AuthService implements IAuthService {
         fullName: user.fullName,
         roleName: user.roleName,
         isStaff: user.isStaff,
-        isSuperUser: user.isSuperUser
+        isSuperUser: user.isSuperUser,
+        companyId: user.company.id,
       };
 
       const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -249,7 +249,7 @@ export default class AuthService implements IAuthService {
       })
 
       if (checkEmail) {
-       throw new HttpException(StatusCodes.CONFLICT, '')
+        throw new HttpException(StatusCodes.CONFLICT, '')
       }
       const hashPassword = Extensions.hashPassword(companyRegister.password);
       const registerData = {
@@ -263,9 +263,9 @@ export default class AuthService implements IAuthService {
 
       companyRegister.companyInfo.userId = newUser.id
       if (companyRegister.companyInfo) {
-       await this._companyService.createCompanyInfo(companyRegister.companyInfo)
+        await this._companyService.createCompanyInfo(companyRegister.companyInfo)
       }
-     return true
+      return true
     } catch (error: any) {
       logger.error(error?.message);
       console.log(`Error in AuthService - method register at ${new Date().getTime()} with message ${error?.message}`);

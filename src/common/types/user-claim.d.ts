@@ -5,4 +5,5 @@ type UserClaim = {
   function: string[]
   isSuperUser:boolean
   accessToken: string;
+  companyId: number
 };
