@@ -17,7 +17,7 @@ import LanguageService from "./services/language/language-service"
 import SkillService from "./services/skill/skill-service"
 import { BackgroundService } from "./services/common/background-service"
 import PackageService from "./services/package/package-service"
-import JobPostService from "./services/Job/job-post-service"
+import JobPostService from "./services/Job-post/job-post-service"
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,

@@ -23,25 +23,18 @@ export class CompanyController {
     @POST()
     @route("/upload-company-images")
     async uploadCompanyMedias(req: Request, res: Response) {
-            const files = req.files as Express.Multer.File[];
-            const response = await this._companyService.uploadCompanyImages(files);
-            res.status(201).json(response)
+        const files = req.files as Express.Multer.File[];
+        const response = await this._companyService.uploadCompanyImages(files);
+        res.status(201).json(response)
     }
 
     @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
     @DELETE()
-    @route("/delete-company-images")
+    @route("/delete-company-image/:imageId")
     async deleteCompanyMedias(req: Request, res: Response) {
-        try {
-            const data = req.body
-            if (!data) {
-                throw new HttpException(400, ErrorMessages.INVALID_REQUEST_BODY)
-            }
-            const response = await this._companyService.deleteCompanyImages(data)
-            res.status(200).json(response)
-        } catch (error) {
-            throw error
-        }
+        const imageId = parseInt(req.params.imageId);
+        const response = await this._companyService.deleteCompanyImage(imageId)
+        res.status(200).json(response)
     }
 
     @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
@@ -74,6 +67,11 @@ export class CompanyController {
     async uploadCompanyLogo(req: Request, res: Response) {
         const file = req.file
         const response = await this._companyService.uploadCompanyLogo(file)
+        res.status(200).json(response)
+    }
+    @GET()
+    async getCompanies(req: Request, res: Response) {
+        const response = await this._companyService.getCompanies()
         res.status(200).json(response)
     }
 

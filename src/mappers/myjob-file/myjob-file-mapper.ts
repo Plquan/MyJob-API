@@ -13,7 +13,8 @@ export default class MyjobFileMapper {
         newFile.format = request.format;
         return newFile;
     }
-    public static toMyJobFileDto(entity: MyJobFile): MyJobFileDto {
+    public static toMyJobFileDto(entity?: MyJobFile): MyJobFileDto | undefined {
+        if (!entity) return;
         let dto = new MyJobFileDto();
         dto.id = entity.id;
         dto.publicId = entity.publicId;
@@ -24,6 +25,9 @@ export default class MyjobFileMapper {
         dto.createdAt = new Date(entity.createdAt);
         dto.updatedAt = new Date(entity.updatedAt);
         return dto;
+    }
+    public static toMyJobFileDtos(entities: MyJobFile[]): MyJobFileDto[] {
+        return entities.map(e => this.toMyJobFileDto(e));
     }
 
 

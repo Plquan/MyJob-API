@@ -15,16 +15,10 @@ export class JobPostController {
   }
 
   @POST()
-  async createJobPost(req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = plainToInstance(CreateJobPostRequest, req.body)
-      const userId = req.user?.id;
-      // await validateDto(data)
-      const response = await this._jobPostService.CreateJobPost(data, userId);
+  async createJobPost(req: Request, res: Response) {
+      const data = req.body
+      const response = await this._jobPostService.CreateJobPost(data);
       res.status(201).json(response)
-    } catch (error) {
-      next(error);
-    }
   }
 
 

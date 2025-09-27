@@ -4,6 +4,7 @@ import { JobPost } from "./job-post";
 import { Province } from "./province";
 import { CompanyFollowed } from "./company-followed";
 import { CompanyImage } from "./company-image";
+import { District } from "./district";
 
 @Entity('companies')
 export class Company {
@@ -13,6 +14,9 @@ export class Company {
 
     @Column({ nullable: true })
     provinceId?: number;
+
+    @Column({ nullable: true })
+    districtId?: number;
 
     @Column()
     userId!: number;
@@ -69,6 +73,10 @@ export class Company {
     @ManyToOne(() => Province, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ name: 'provinceId' })
     province?: Province;
+
+    @ManyToOne(() => District, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn({ name: 'districtId' })
+    district?: District;
 
     @OneToMany(() => JobPost, (jobpost) => jobpost.company)
     job!: JobPost[];
