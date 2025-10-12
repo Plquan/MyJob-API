@@ -1,25 +1,46 @@
 
+import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
-import { CreateJobPostRequest } from "@/dtos/job/create-job-post-request";
+import { IGetJobPostsReqParams } from "@/interfaces/jobPost/job-post-dto";
 import IJobPostService from "@/interfaces/jobPost/job-post-interface";
-import { before, inject, POST, route } from "awilix-express";
-import { plainToInstance } from "class-transformer";
-import { NextFunction, Request, Response } from "express";
+import { before, GET, inject, POST, PUT, route } from "awilix-express";
+import { Request, Response } from "express";
 
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
 @route('/job-post')
 export class JobPostController {
   private readonly _jobPostService: IJobPostService
   constructor(JobPostService: IJobPostService) {
     this._jobPostService = JobPostService
   }
-
+  @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
   @POST()
   async createJobPost(req: Request, res: Response) {
-      const data = req.body
-      const response = await this._jobPostService.CreateJobPost(data);
-      res.status(201).json(response)
+    const data = req.body
+    const response = await this._jobPostService.CreateJobPost(data);
+    res.status(201).json(response)
   }
 
+  @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+  @GET()
+  @route("/get-company-job-posts")
+  async getCompanyJobPosts(req: Request, res: Response) {
+    const { page = 1, limit = 10, search, jobPostStatus } = req.query;
+
+    const params: IGetJobPostsReqParams = {
+      page: +page,
+      limit: +limit,
+      search: search.toString(),
+      jobPostStatus: +jobPostStatus,
+    };
+    const response = await this._jobPostService.getCompanyJobPosts(params);
+    res.status(200).json(response)
+  }
+  @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+  @PUT()
+  async updateJobPost(req: Request, res: Response) {
+    const data = req.body
+    const response = await this._jobPostService.UpdateJobPost(data);
+    res.status(200).json(response)
+  }
 
 }

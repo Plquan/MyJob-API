@@ -3,7 +3,7 @@ import logger from "@/common/helpers/logger";
 import { ENV } from "@/common/constants/env";
 
 import { User } from "@/entities/user";
-import { SavedJobPost } from "@/entities/save-job-post";
+import { SavedJobPost } from "@/entities/saved-job-post";
 import { Resume } from "@/entities/resume";
 import { Province } from "@/entities/province";
 import { Permission } from "@/entities/permission";

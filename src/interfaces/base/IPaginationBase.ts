@@ -1,6 +1,6 @@
 export interface IPaginationResponse {
   items: any[];
-  currentPage: number;
+  page: number;
   limit: number;
   totalItems: number;
   totalPages: number;

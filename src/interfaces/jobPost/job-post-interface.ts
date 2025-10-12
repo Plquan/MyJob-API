@@ -1,10 +1,9 @@
-import { CreateJobPostRequest } from "@/dtos/job/create-job-post-request";
-import { UpdateJobPostRequest } from "@/dtos/job/update-job-post-request";
 import { JobPost } from "@/entities/job-post";
-import { ICreateJobPostReq } from "./job-post-dto";
+import { ICreateJobPostReq, IGetJobPostsReqParams, IUpdateJobPostReq, JobPostDto } from "./job-post-dto";
+import { IPaginationResponse } from "../base/IPaginationBase";
 
 export  default interface IJobPostService {
-    getAllJobPosts(): Promise<JobPost[]>
+    getCompanyJobPosts(req: IGetJobPostsReqParams): Promise<IPaginationResponse>
     CreateJobPost(data: ICreateJobPostReq): Promise<JobPost>
-    UpdateJobPost(data: UpdateJobPostRequest): Promise<JobPost>
+    UpdateJobPost(data: IUpdateJobPostReq): Promise<JobPost>
 }

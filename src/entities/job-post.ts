@@ -11,7 +11,7 @@ import {
 import { Career } from './career';
 import { Company } from './company';
 import { Province } from './province';
-import { SavedJobPost } from './save-job-post';
+import { SavedJobPost } from './saved-job-post';
 import { JobPostActivity } from './job-post-activity';
 import { EPosition, ETypeOfWorkplace, EExperience, EAcademicLevel, EJobType } from '../common/enums/resume/resume-enum';
 import { EJobPostStatus } from '../common/enums/job/EJobPostStatus';
@@ -80,9 +80,6 @@ export class JobPost {
   @Column({ type: 'boolean', default: false })
   isUrgent!: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  isActive!: boolean;
-
   @Column({ type: 'varchar', length: 100, nullable: true })
   contactPersonName?: string;
 
@@ -101,7 +98,7 @@ export class JobPost {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @Column({ type: 'enum', enum: EJobPostStatus, default: EJobPostStatus.PENDING_APPROVAL })
+  @Column({ type: 'int', enum: EJobPostStatus, default: EJobPostStatus.PENDING_APPROVAL })
   status!: EJobPostStatus;
 
   @ManyToOne(() => Career, career => career.jobPosts, { onDelete: 'CASCADE' })
