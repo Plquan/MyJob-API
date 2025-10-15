@@ -4,7 +4,6 @@ import ICompanyService from "@/interfaces/company/company-interface";
 import DatabaseService from "../common/database-service";
 import { StatusCodes } from "http-status-codes";
 import logger from "@/common/helpers/logger";
-import { CompanyDto } from "@/dtos/company/company-dto";
 import { HttpException } from "@/errors/http-exception";
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { plainToInstance } from "class-transformer";
@@ -18,13 +17,36 @@ import { getCurrentUser } from "@/common/helpers/get-current-user";
 import { CompanyImage } from "@/entities/company-image";
 import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto";
 import { CompanyMapper } from "@/mappers/company/company-mapper";
-import { ICompanyDto, ICompanyWithImagesDto, IUpdateCompanyRequest } from "@/interfaces/company/company-dto";
+import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest } from "@/interfaces/company/company-dto";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
 export default class CompanyService implements ICompanyService {
     private readonly _context: DatabaseService
 
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
+    }
+
+    async getCompanyDetail(companyId: number): Promise<ICompanyDetail> {
+        try {
+            if (!companyId) {
+                throw new HttpException(StatusCodes.NOT_FOUND, "Company id not found")
+            }
+            const company = await this._context.CompanyRepo
+                .createQueryBuilder('company')
+                .leftJoinAndSelect('company.companyImages', 'ci')
+                .leftJoinAndSelect('ci.image', 'file', 'file.deletedAt IS NULL')
+                .leftJoinAndSelect('company.jobPosts', 'jobPost')
+                .where('company.id = :id', { id: companyId })
+                .getOne();
+
+            if (company == null) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound.toString())
+            }
+            return CompanyMapper.toCompanyWithJobsDto(company);
+        } catch (error) {
+
+        }
     }
     updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto> {
         throw new Error("Method not implemented.");
@@ -170,12 +192,12 @@ export default class CompanyService implements ICompanyService {
             const company = await this._context.CompanyRepo
                 .createQueryBuilder('company')
                 .leftJoinAndSelect('company.companyImages', 'ci')
-                .innerJoinAndSelect('ci.image', 'file', 'file.deletedAt IS NULL')
+                .leftJoinAndSelect('ci.image', 'file', 'file.deletedAt IS NULL')
                 .where('company.id = :id', { id: companyId })
                 .getOne();
 
             if (company == null) {
-                throw new HttpException(StatusCodes.NOT_FOUND, ErrorMessages.NOT_FOUND)
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound.toString())
             }
             return CompanyMapper.toCompanyWithImagesDto(company);
         } catch (error) {

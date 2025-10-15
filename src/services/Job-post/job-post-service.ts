@@ -1,10 +1,9 @@
 import { JobPost } from "@/entities/job-post";
 import IJobPostService from "@/interfaces/jobPost/job-post-interface";
 import DatabaseService from "../common/database-service";
-import { ICreateJobPostReq, IGetJobPostsReqParams, IUpdateJobPostReq, JobPostDto } from "@/interfaces/jobPost/job-post-dto";
+import { ICreateJobPostReq, IGetJobPostsReqParams, IUpdateJobPostReq } from "@/interfaces/jobPost/job-post-dto";
 import { HttpException } from "@/errors/http-exception";
 import { StatusCodes } from "http-status-codes";
-import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
@@ -16,6 +15,9 @@ export default class JobPostService implements IJobPostService {
 
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
+    }
+    deleteJobPost(jobPostId: number): Promise<boolean> {
+        throw new Error("Method not implemented.");
     }
     validateJobPost(dto: ICreateJobPostReq) {
         if (
@@ -34,6 +36,7 @@ export default class JobPostService implements IJobPostService {
             !dto.typeOfWorkPlace ||
             !dto.experience ||
             !dto.academicLevel ||
+            !dto.genderRequirement ||
             !dto.jobType ||
             !dto.contactPersonName ||
             !dto.contactPersonEmail ||
@@ -85,7 +88,7 @@ export default class JobPostService implements IJobPostService {
             throw error
         }
     }
-    async CreateJobPost(data: ICreateJobPostReq): Promise<JobPost> {
+    async createJobPost(data: ICreateJobPostReq): Promise<JobPost> {
         try {
             this.validateJobPost(data)
             const companyId = getCurrentUser().companyId
@@ -98,7 +101,7 @@ export default class JobPostService implements IJobPostService {
             throw error
         }
     }
-    async UpdateJobPost(data: IUpdateJobPostReq): Promise<JobPost> {
+    async updateJobPost(data: IUpdateJobPostReq): Promise<JobPost> {
         try {
             const currentJobPost = await this._context.JobPostRepo.findOne({
                 where: { id: data.id }

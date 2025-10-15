@@ -1,3 +1,4 @@
+import { EGender } from "@/common/enums/candidate/candidate-enum";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { EAcademicLevel, EExperience, EJobType, EPosition, ETypeOfWorkplace } from "@/common/enums/resume/resume-enum";
 
@@ -17,33 +18,15 @@ export interface ICreateJobPostReq {
   typeOfWorkPlace: ETypeOfWorkplace;
   experience: EExperience;
   academicLevel: EAcademicLevel;
+  genderRequirement: EGender;
   jobType: EJobType;
   contactPersonName: string;
   contactPersonEmail: string;
   contactPersonPhone: string;
 }
 
-export interface IUpdateJobPostReq {
+export interface IUpdateJobPostReq extends Partial<ICreateJobPostReq> {
   id: number;
-  careerId: number;
-  provinceId: number;
-  districtId: number;
-  jobName: string;
-  deadline: Date;
-  quantity: number;
-  jobDescription: string;
-  jobRequirement: string;
-  benefitsEnjoyed: string;
-  salaryMin: number;
-  salaryMax: number;
-  position: EPosition;
-  typeOfWorkPlace: ETypeOfWorkplace;
-  experience: EExperience;
-  academicLevel: EAcademicLevel;
-  jobType: EJobType;
-  contactPersonName: string;
-  contactPersonEmail: string;
-  contactPersonPhone: string;
 }
 
 export interface JobPostDto {
@@ -64,6 +47,7 @@ export interface JobPostDto {
   typeOfWorkPlace: ETypeOfWorkplace;
   experience: EExperience;
   academicLevel: EAcademicLevel;
+  genderRequirement:EGender;
   jobType: EJobType;
   isHot: boolean;
   isUrgent: boolean;
@@ -75,6 +59,10 @@ export interface JobPostDto {
   createdAt: Date;
   updatedAt: Date;
   status: EJobPostStatus;
+}
+
+export interface IJobPostWithImages {
+  
 }
 
 export interface IGetJobPostsReqParams {

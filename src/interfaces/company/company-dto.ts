@@ -1,3 +1,4 @@
+import { JobPostDto } from "../jobPost/job-post-dto";
 import { IMyJobFileDto } from "../myjobfile/myjobfile-dto";
 
 
@@ -22,11 +23,15 @@ export interface ICompanyDto {
   createdAt: Date;
   updatedAt: Date;
 }
-
 export interface ICompanyWithImagesDto {
-  company: ICompanyDto
+  company: ICompanyDto;
   images?: IMyJobFileDto[];
 }
+
+export interface ICompanyDetail extends ICompanyWithImagesDto {
+  jobPosts?: JobPostDto[];
+}
+
 
 
 export interface IUpdateCompanyRequest {

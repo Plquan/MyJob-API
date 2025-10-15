@@ -21,6 +21,7 @@ export default class JobPostMapper {
     job.typeOfWorkPlace = dto.typeOfWorkPlace;
     job.experience = dto.experience;
     job.academicLevel = dto.academicLevel;
+    job.genderRequirement = dto.genderRequirement;
     job.jobType = dto.jobType;
     job.contactPersonName = dto.contactPersonName;
     job.contactPersonEmail = dto.contactPersonEmail;
@@ -47,6 +48,7 @@ export default class JobPostMapper {
     job.typeOfWorkPlace = dto.typeOfWorkPlace;
     job.experience = dto.experience;
     job.academicLevel = dto.academicLevel;
+    job.genderRequirement = dto.genderRequirement;
     job.jobType = dto.jobType;
     job.contactPersonName = dto.contactPersonName;
     job.contactPersonEmail = dto.contactPersonEmail;
@@ -74,6 +76,7 @@ export default class JobPostMapper {
       typeOfWorkPlace: entity.typeOfWorkPlace,
       experience: entity.experience,
       academicLevel: entity.academicLevel,
+      genderRequirement: entity.genderRequirement,
       jobType: entity.jobType,
       isHot: entity.isHot,
       isUrgent: entity.isUrgent,

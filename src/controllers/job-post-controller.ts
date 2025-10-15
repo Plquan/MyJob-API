@@ -16,7 +16,7 @@ export class JobPostController {
   @POST()
   async createJobPost(req: Request, res: Response) {
     const data = req.body
-    const response = await this._jobPostService.CreateJobPost(data);
+    const response = await this._jobPostService.createJobPost(data);
     res.status(201).json(response)
   }
 
@@ -39,7 +39,7 @@ export class JobPostController {
   @PUT()
   async updateJobPost(req: Request, res: Response) {
     const data = req.body
-    const response = await this._jobPostService.UpdateJobPost(data);
+    const response = await this._jobPostService.updateJobPost(data);
     res.status(200).json(response)
   }
 

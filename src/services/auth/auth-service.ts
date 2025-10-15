@@ -6,16 +6,15 @@ import { StatusCodes } from "http-status-codes";
 import Extensions from "@/common/ultils/extension";
 import logger from "@/common/helpers/logger";
 import ICompanyService from "@/interfaces/company/company-interface";
-import { LocalStorage } from "@/common/constants/local-storage";
-import { VariableSystem } from "@/common/constants/VariableSystem";
 import ICandidateService from "@/interfaces/candidate/candidate-interface";
 import { IJwtService, ITokenPayload } from "@/interfaces/auth/jwt-interface";
-import { RequestStorage } from "@/common/middlewares/async-local-storage";
 import { EUserRole } from "@/common/enums/user/user-role-enum";
 import { LoginRequest } from "@/dtos/auth/login-request";
 import { HttpException } from "@/errors/http-exception";
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
+import { EAuthError } from "@/common/enums/error/EAuthError";
 
 
 
@@ -190,11 +189,7 @@ export default class AuthService implements IAuthService {
   }
   async candidateRegister(candidateRegister: ICandidateRegisterData): Promise<IResponseBase> {
     if (!candidateRegister.email || !candidateRegister.fullName || !candidateRegister.password) {
-      return {
-        status: StatusCodes.BAD_REQUEST,
-        success: false,
-        message: "Thông tin đăng ký chưa đầy đủ",
-      }
+      throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.InvalidInput.toString())
     }
 
     const checkEmail = await this._context.UserRepo.count({
@@ -202,11 +197,7 @@ export default class AuthService implements IAuthService {
     });
 
     if (checkEmail) {
-      return {
-        status: StatusCodes.CONFLICT,
-        success: false,
-        message: "Email đã tồn tại",
-      }
+      throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ConflictError.toString())
     }
     const dataSource = this._context.getDataSource()
     try {
@@ -223,7 +214,7 @@ export default class AuthService implements IAuthService {
 
         const profileResult = await this._candidateService.createProfile(newUser, manager)
         if (!profileResult.success) {
-          throw new Error(profileResult.message)
+          throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.CreateFailed.toString())
         }
       })
 
@@ -233,13 +224,8 @@ export default class AuthService implements IAuthService {
         message: "Đăng kí tài khoản thành công",
       }
     } catch (error: any) {
-      logger.error(error?.message);
       console.log(`Error in AuthService - candidateRegister transaction: ${error?.message}`);
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi máy chủ, vui lòng thử lại sau"
-      }
+      throw error;
     }
   }
   async companyRegister(companyRegister: ICompanyRegisterData): Promise<boolean> {
@@ -249,7 +235,7 @@ export default class AuthService implements IAuthService {
       })
 
       if (checkEmail) {
-        throw new HttpException(StatusCodes.CONFLICT, '')
+        throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists.toString())
       }
       const hashPassword = Extensions.hashPassword(companyRegister.password);
       const registerData = {
@@ -260,13 +246,15 @@ export default class AuthService implements IAuthService {
         roleName: EUserRole.EMPLOYER,
       }
       const newUser = await this._context.UserRepo.save(registerData);
-
+      if (!newUser) {
+        throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.CreateFailed.toString())
+      }
       companyRegister.companyInfo.userId = newUser.id
       if (companyRegister.companyInfo) {
         await this._companyService.createCompanyInfo(companyRegister.companyInfo)
       }
       return true
-    } catch (error: any) {
+    } catch (error) {
       logger.error(error?.message);
       console.log(`Error in AuthService - method register at ${new Date().getTime()} with message ${error?.message}`);
     }

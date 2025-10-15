@@ -16,6 +16,7 @@ import { JobPostActivity } from './job-post-activity';
 import { EPosition, ETypeOfWorkplace, EExperience, EAcademicLevel, EJobType } from '../common/enums/resume/resume-enum';
 import { EJobPostStatus } from '../common/enums/job/EJobPostStatus';
 import { District } from './district';
+import { EGender } from '../common/enums/candidate/candidate-enum';
 
 @Entity('job_post')
 export class JobPost {
@@ -73,6 +74,9 @@ export class JobPost {
 
   @Column({ type: 'enum', enum: EJobType })
   jobType!: EJobType;
+  
+  @Column({ type: 'enum', enum: EGender,default: EGender.OTHER})
+  genderRequirement!: EGender;
 
   @Column({ type: 'boolean', default: false })
   isHot!: boolean;

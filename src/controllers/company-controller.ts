@@ -75,5 +75,12 @@ export class CompanyController {
         res.status(200).json(response)
     }
 
+    @GET()
+    @route("/get-company-detail/:companyId")
+    async getCompanyDetail(req: Request, res: Response) {
+        const companyId = parseInt(req.params.companyId);
+        const response = await this._companyService.getCompanyDetail(companyId)
+        res.status(200).json(response)
+    }
 
 }

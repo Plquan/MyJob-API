@@ -1,7 +1,8 @@
 
 import { Company } from '@/entities/company';
-import { ICompanyDto, ICompanyWithImagesDto } from '@/interfaces/company/company-dto';
+import { ICompanyDetail, ICompanyDto, ICompanyWithImagesDto } from '@/interfaces/company/company-dto';
 import MyjobFileMapper from '../myjob-file/myjob-file-mapper';
+import JobPostMapper from '../job-post/job-post-mapper';
 
 export class CompanyMapper {
     public static toCompanyDto(entity: Company): ICompanyDto {
@@ -33,6 +34,15 @@ export class CompanyMapper {
             images: entity.companyImages?.map(ci =>
                 MyjobFileMapper.toMyJobFileDto(ci.image)
             ) ?? [],
+        };
+    }
+    public static toCompanyWithJobsDto(entity: Company): ICompanyDetail {
+        return {
+            company: this.toCompanyDto(entity),
+            images: entity.companyImages?.map(ci =>
+                MyjobFileMapper.toMyJobFileDto(ci.image)
+            ) ?? [],
+            jobPosts: JobPostMapper.toJobPostListDto(entity.jobPosts)
         };
     }
 
