@@ -1,4 +1,4 @@
-import dataSource from "../orm-config";
+import dataSource from "../ormconfig";
 import { seedCareers } from "./career-seed";
 import { seedDistricts } from "./district-seed";
 import { seedFunctions } from "./function-seed";

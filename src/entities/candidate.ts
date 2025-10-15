@@ -6,9 +6,9 @@ import { District } from "./district";
 import { EGender, EMartialStatus } from "../common/enums/candidate/candidate-enum";
 import { JobPostActivity } from "./job-post-activity";
 import { CompanyFollowed } from "./company-followed";
-import { SavedJobPost } from "./save-job-post";
+import { SavedJobPost } from "./saved-job-post";
 
-@Entity('Candidates')
+@Entity('candidates')
 export class Candidate {
     @PrimaryGeneratedColumn()
     id!: number;

@@ -3,27 +3,29 @@ import streamifier from 'streamifier';
 import type { UploadApiResponse } from 'cloudinary';
 import { CloudinaryResourceType } from '@/common/constants/cloudinary-resource-type';
 import cloudinary from '@/common/ultils/cloudinary';
-
+import { v4 as uuidv4 } from "uuid";
 
 export class CloudinaryService {
   static async uploadFile(
-    file:Express.Multer.File,
+    file: Express.Multer.File,
     folder: string,
     resourceType: CloudinaryResourceType,
     publicId?: string
   ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
-      const format = file.originalname?.split('.').pop()?.toLowerCase()
+      const format = file.originalname?.split('.').pop()?.toLowerCase();
+      const options: any = {
+        resource_type: resourceType,
+        format,
+        public_id: publicId ?? uuidv4(), 
+        overwrite: true,
+      };
+      if (!publicId) {
+        options.folder = folder;
+      }
+
       const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: resourceType,
-          format,
-          public_id: publicId,
-          overwrite:true,
-          use_filename: true,
-          unique_filename: true,
-        },
+        options,
         (error, result) => {
           if (error) {
             console.error('Lỗi tải tệp lên cloudinary', error);
@@ -31,9 +33,10 @@ export class CloudinaryService {
           }
           return resolve(result as UploadApiResponse);
         }
-      )
-      streamifier.createReadStream(file.buffer).pipe(uploadStream)
-    })
+      );
+
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
   }
 
   static async deleteFile(publicId: string,resourceType:string): Promise<void> {

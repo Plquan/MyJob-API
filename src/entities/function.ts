@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Permission } from "./permission";
 
-@Entity({ name: "Functions" })
+@Entity('functions')
 export class Function {
   
   @PrimaryGeneratedColumn()

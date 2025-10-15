@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, DeleteDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, DeleteDateColumn, OneToMany } from 'typeorm';
 import { User } from './user';
 import { Resume } from './resume';
+import { CompanyImage } from './company-image';
 
-@Entity('MyJobFiles')
+@Entity('myjob_files')
 export class MyJobFile {
 
   @PrimaryGeneratedColumn()
@@ -12,7 +13,7 @@ export class MyJobFile {
   publicId!: string;
 
   @Column({ type: 'varchar', length: 255 })
-  url!: string; 
+  url!: string;
 
   @Column({ type: 'varchar', length: 50 })
   fileType!: string;
@@ -22,7 +23,7 @@ export class MyJobFile {
 
   @Column({ type: 'varchar', length: 20 })
   format!: string;
-  
+
   @CreateDateColumn()
   createdAt!: Date;
 
@@ -37,4 +38,7 @@ export class MyJobFile {
 
   @OneToOne(() => Resume, (resume) => resume.myJobFile)
   resume?: Resume
+
+  @OneToMany(() => CompanyImage, (companyImage) => companyImage.image)
+  companyImages!: CompanyImage[];
 }

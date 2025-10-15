@@ -4,50 +4,245 @@ import ICompanyService from "@/interfaces/company/company-interface";
 import DatabaseService from "../common/database-service";
 import { StatusCodes } from "http-status-codes";
 import logger from "@/common/helpers/logger";
+import { HttpException } from "@/errors/http-exception";
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
-import { CompanyDto } from "@/dtos/company/company-dto";
+import { plainToInstance } from "class-transformer";
+import { FileType } from "@/common/enums/file-type/file-types";
+import { MyJobFileDto } from "@/dtos/myjob-file/myjob-file-dto";
+import CloudinaryService from "../common/cloudinary-service";
+import { CloudinaryResourceType } from "@/common/constants/cloudinary-resource-type";
+import MyjobFileMapper from "@/mappers/myjob-file/myjob-file-mapper";
+import { MyJobFile } from "@/entities/myjob-file";
+import { getCurrentUser } from "@/common/helpers/get-current-user";
+import { CompanyImage } from "@/entities/company-image";
+import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto";
+import { CompanyMapper } from "@/mappers/company/company-mapper";
+import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest } from "@/interfaces/company/company-dto";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
-export default class CompanyService implements ICompanyService{
+export default class CompanyService implements ICompanyService {
+    private readonly _context: DatabaseService
 
-    private readonly _context:DatabaseService
-
-    constructor(DatabaseService: DatabaseService){
+    constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
-    getCompanies(): Promise<CompanyDto[]> {
+
+    async getCompanyDetail(companyId: number): Promise<ICompanyDetail> {
+        try {
+            if (!companyId) {
+                throw new HttpException(StatusCodes.NOT_FOUND, "Company id not found")
+            }
+            const company = await this._context.CompanyRepo
+                .createQueryBuilder('company')
+                .leftJoinAndSelect('company.companyImages', 'ci')
+                .leftJoinAndSelect('ci.image', 'file', 'file.deletedAt IS NULL')
+                .leftJoinAndSelect('company.jobPosts', 'jobPost')
+                .where('company.id = :id', { id: companyId })
+                .getOne();
+
+            if (company == null) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound.toString())
+            }
+            return CompanyMapper.toCompanyWithJobsDto(company);
+        } catch (error) {
+
+        }
+    }
+    updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto> {
         throw new Error("Method not implemented.");
     }
-    
-    async createCompanyInfo(data: ICompanyData): Promise<IResponseBase> {
+    async uploadCompanyCoverImage(image: Express.Multer.File): Promise<IMyJobFileDto> {
         try {
-            if(!data.companyName || !data.companyEmail || !data.companyPhone || !data.fieldOperation || !data.provinceId
-                ||!data.since || !data.taxCode || !data.address || !data.fieldOperation) {
-                return {
-                    status:StatusCodes.BAD_REQUEST,
-                    success:false,
-                    message:"Missing required fields"
-                }
+            if (!image) {
+                throw new HttpException(StatusCodes.NOT_FOUND, ErrorMessages.INVALID_REQUEST_BODY)
+            }
+            const companyId = getCurrentUser().companyId
+            if (!companyId) {
+                throw new HttpException(StatusCodes.FORBIDDEN, ErrorMessages.FORBIDDEN)
+            }
+            const companyImage = await this._context.MyJobFileRepo
+                .createQueryBuilder('myJobFile')
+                .innerJoin('myJobFile.companyImages', 'companyImage')
+                .where('companyImage.companyId = :companyId', { companyId })
+                .andWhere('myJobFile.fileType = :fileType', { fileType: FileType.COVER_IMAGE })
+                .getOne();
+
+            const result = await CloudinaryService.uploadFile(
+                image,
+                FileType.COVER_IMAGE,
+                CloudinaryResourceType.IMAGE,
+                companyImage?.publicId ?? undefined
+            );
+            const newImage = MyjobFileMapper.toMyJobFileFromCreate(result, FileType.COVER_IMAGE)
+            const savedFile = await this._context.MyJobFileRepo.save(
+                companyImage ? this._context.MyJobFileRepo.merge(companyImage, newImage) : newImage
+            )
+            if (!companyImage) {
+                const newCompanyImage = new CompanyImage()
+                newCompanyImage.companyId = companyId,
+                    newCompanyImage.imageId = savedFile.id
+                await this._context.CompanyImageRepo.save(newCompanyImage)
+            }
+            return savedFile
+        } catch (error) {
+            console.log(
+                `Error in CompanyService - method uploadCompanyCoverImage at ${new Date().getTime()} with message ${error?.message}`)
+            throw error
+        }
+    }
+    async uploadCompanyLogo(image: Express.Multer.File): Promise<IMyJobFileDto> {
+        try {
+            if (!image) {
+                throw new HttpException(StatusCodes.NOT_FOUND, ErrorMessages.INVALID_REQUEST_BODY)
+            }
+            const companyId = getCurrentUser().companyId
+            if (!companyId) {
+                throw new HttpException(StatusCodes.FORBIDDEN, ErrorMessages.FORBIDDEN)
             }
 
+            const companyImage = await this._context.MyJobFileRepo
+                .createQueryBuilder('myJobFile')
+                .innerJoin('myJobFile.companyImages', 'companyImage')
+                .where('companyImage.companyId = :companyId', { companyId })
+                .andWhere('myJobFile.fileType = :fileType', { fileType: FileType.LOGO })
+                .getOne();
+            const result = await CloudinaryService.uploadFile(
+                image,
+                FileType.LOGO,
+                CloudinaryResourceType.IMAGE,
+                companyImage?.publicId ?? undefined
+            );
+
+            const newImage = MyjobFileMapper.toMyJobFileFromCreate(result, FileType.LOGO)
+
+            const savedFile = await this._context.MyJobFileRepo.save(
+                companyImage ? this._context.MyJobFileRepo.merge(companyImage, newImage) : newImage
+            )
+            if (!companyImage) {
+
+                const newCompanyImage = new CompanyImage()
+                newCompanyImage.companyId = companyId,
+                    newCompanyImage.imageId = savedFile.id
+                await this._context.CompanyImageRepo.save(newCompanyImage)
+            }
+            return savedFile
+        } catch (error) {
+            console.log(
+                `Error in CompanyService - method uploadCompanyLogo at ${new Date().getTime()} with message ${error?.message}`)
+            throw error
+        }
+    }
+    async uploadCompanyImages(images: Express.Multer.File[]): Promise<MyJobFileDto[]> {
+        try {
+            if (!images) {
+                throw new HttpException(StatusCodes.BAD_GATEWAY, ErrorMessages.INVALID_REQUEST_BODY)
+            }
+            const companyId = getCurrentUser().companyId
+            if (!companyId) {
+                throw new HttpException(StatusCodes.FORBIDDEN, ErrorMessages.FORBIDDEN)
+            }
+
+            let newFiles: MyJobFile[] = []
+            let newCompanyFiles: CompanyImage[] = []
+            for (const image of images) {
+                const result = await CloudinaryService.uploadFile(
+                    image,
+                    FileType.COMPANY_IMAGE,
+                    CloudinaryResourceType.IMAGE,
+                );
+                newFiles.push(MyjobFileMapper.toMyJobFileFromCreate(result, FileType.COMPANY_IMAGE));
+            }
+            const savedFiles = await this._context.MyJobFileRepo.save(newFiles);
+
+            for (const file of savedFiles) {
+                const companyFile = new CompanyImage()
+                companyFile.companyId = companyId,
+                    companyFile.imageId = file.id
+                newCompanyFiles.push(companyFile);
+            }
+
+            await this._context.CompanyImageRepo.save(newCompanyFiles);
+
+            const myJobFiledtos = plainToInstance(MyJobFileDto, savedFiles, { excludeExtraneousValues: true });
+            return myJobFiledtos;
+        } catch (error) {
+            console.log(`Error in CompanyService - method uploadCompanyImages at ${new Date().getTime()} with message ${error?.message}`)
+            throw error
+        }
+    }
+
+    async deleteCompanyImage(imageId: number): Promise<boolean> {
+        try {
+            const image = await this._context.MyJobFileRepo.findOne({
+                where: { id: imageId }
+            });
+            image.deletedAt = new Date();
+            await this._context.MyJobFileRepo.save(image);
+            return true;
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async getCompanyById(companyId: number): Promise<ICompanyWithImagesDto> {
+        try {
+            if (!companyId) {
+                throw new HttpException(StatusCodes.NOT_FOUND, "Company id not found")
+            }
+            const company = await this._context.CompanyRepo
+                .createQueryBuilder('company')
+                .leftJoinAndSelect('company.companyImages', 'ci')
+                .leftJoinAndSelect('ci.image', 'file', 'file.deletedAt IS NULL')
+                .where('company.id = :id', { id: companyId })
+                .getOne();
+
+            if (company == null) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound.toString())
+            }
+            return CompanyMapper.toCompanyWithImagesDto(company);
+        } catch (error) {
+            console.log(`Error in CompanyService - method getCompanyById at ${new Date().getTime()} with message ${error?.message}`)
+            throw error;
+        }
+    }
+
+    async getCompanies(): Promise<ICompanyWithImagesDto[]> {
+        try {
+            const companies = await this._context.CompanyRepo
+                .createQueryBuilder('company')
+                .leftJoinAndSelect('company.companyImages', 'companyImage')
+                .leftJoinAndSelect('companyImage.image', 'myJobFile',
+                    "myJobFile.fileType IN (:...types)",
+                    { types: [FileType.LOGO, FileType.COVER_IMAGE] })
+                .getMany();
+
+            const companyDtos = companies.map(company =>
+                CompanyMapper.toCompanyWithImagesDto(company)
+            );
+            return companyDtos;
+        } catch (error) {
+            console.log(`Error in CompanyService - method getCompanies at ${new Date().getTime()} with message ${error?.message}`)
+            throw error;
+        }
+    }
+
+    async createCompanyInfo(data: ICompanyData): Promise<IResponseBase> {
+        try {
             const companyInfo = await this._context.CompanyRepo.create(data)
             await this._context.CompanyRepo.save(companyInfo)
 
-             return {
-                status:StatusCodes.CREATED,
-                success:true,
-                message:"Create company profile success"
-             }
+            return {
+                status: StatusCodes.CREATED,
+                success: true,
+                message: "Create company profile success"
+            }
 
         } catch (error) {
             logger.error(error?.message);
             console.log(
                 `Error in CompanyService - method createCompanyInfo at ${new Date().getTime()} with message ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: ErrorMessages.INTERNAL_SERVER_ERROR
-            }
         }
-    } 
+    }
+
 }

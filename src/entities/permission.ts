@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDa
 import { Function } from "./function";
 import { Role } from "./role";
 
-@Entity({ name: "Permissions" })
+@Entity('permissions')
 export class Permission {
   
   @PrimaryGeneratedColumn()

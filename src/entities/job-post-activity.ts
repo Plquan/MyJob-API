@@ -9,10 +9,9 @@ import {
   } from 'typeorm';
 import { JobPost } from './job-post';
 import { Resume } from './resume';
-import { User } from './user';
 import { Candidate } from './candidate';
   
- @Entity('JobPostActivities')
+ @Entity('job_post_activities')
 export class JobPostActivity {
   @PrimaryGeneratedColumn()
   id!: number;

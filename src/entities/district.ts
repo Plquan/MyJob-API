@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from "typeorm";
 import { Province } from "./province";
 
-@Entity({ name: 'Districts' })
+@Entity('districts')
 export class District {
     
     @PrimaryGeneratedColumn()

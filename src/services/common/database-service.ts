@@ -3,11 +3,11 @@ import logger from "@/common/helpers/logger";
 import { ENV } from "@/common/constants/env";
 
 import { User } from "@/entities/user";
-import { SavedJobPost } from "@/entities/save-job-post";
+import { SavedJobPost } from "@/entities/saved-job-post";
 import { Resume } from "@/entities/resume";
 import { Province } from "@/entities/province";
 import { Permission } from "@/entities/permission";
-import { MyJobFile } from "@/entities/my-job-file";
+import { MyJobFile } from "@/entities/myjob-file";
 import { Candidate } from "@/entities/candidate";
 import { Career } from "@/entities/career";
 import { Certificate } from "@/entities/certificate";
@@ -21,7 +21,7 @@ import { JobPostActivity } from "@/entities/job-post-activity";
 import { JobPost } from "@/entities/job-post";
 import { Language } from "@/entities/language";
 
-import dataSource from "@/orm-config";
+import dataSource from "@/ormconfig";
 import { RefreshToken } from "@/entities/refresh-token";
 import { Role } from "@/entities/role";
 import { District } from "@/entities/district";
@@ -30,6 +30,7 @@ import { Package } from "@/entities/package";
 import { PackageFeature } from "@/entities/package-feature";
 import { PackagePurchased } from "@/entities/package-purchased";
 import { PackageUsage } from "@/entities/package-usage";
+import { CompanyImage } from "@/entities/company-image";
 
 class DatabaseService {
   private _dataSource: DataSource;
@@ -60,6 +61,7 @@ class DatabaseService {
   public PackageFeatureRepo: Repository<PackageFeature>
   public PackagePurchasedRepo: Repository<PackagePurchased>
   public PackageUsageRepo: Repository<PackageUsage>
+  public CompanyImageRepo: Repository<CompanyImage>
   connection: any;
 
   constructor() {
@@ -91,6 +93,7 @@ class DatabaseService {
     this.PackageFeatureRepo = this._dataSource.getRepository(PackageFeature);
     this.PackagePurchasedRepo = this._dataSource.getRepository(PackagePurchased);
     this.PackageUsageRepo = this._dataSource.getRepository(PackageUsage);
+    this.CompanyImageRepo = this._dataSource.getRepository(CompanyImage)
 
     this._dataSource
       .initialize()

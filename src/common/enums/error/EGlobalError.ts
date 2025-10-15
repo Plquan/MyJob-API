@@ -1,0 +1,17 @@
+export enum EGlobalError {
+    UnknownError = 0,
+    DatabaseConnectionFailed = 1,
+    ResourceNotFound = 2,
+    InvalidInput = 3,
+    UnauthorizedAccess = 4,
+    OperationFailed = 5,
+    ServiceUnavailable = 6,
+    TimeoutError = 7,
+    ConflictError = 8,
+    RateLimitExceeded = 9,
+    DependencyError = 10,
+    ServerError = 11,
+    CreateFailed = 12,
+    DeleteFailed = 13,
+    UpdateFailed = 14,
+}

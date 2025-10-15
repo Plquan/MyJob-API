@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn } from "typeorm";
 import { PackagePurchased } from "./package-purchased";
 
-@Entity('PackageUsages')
+@Entity('package_usages')
 export class PackageUsage {
 
   @PrimaryGeneratedColumn()

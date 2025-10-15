@@ -10,7 +10,7 @@ import {
 import { JobPost } from './job-post';
 import { Candidate } from './candidate';
 
-@Entity('SavedJobPosts')
+@Entity('saved_job_posts')
 export class SavedJobPost {
 
   @PrimaryGeneratedColumn()

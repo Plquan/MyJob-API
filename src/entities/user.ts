@@ -11,9 +11,9 @@ import { GroupRole } from "./group-role";
 import { Candidate } from "./candidate";
 import { Company } from "./company";
 import { RefreshToken } from "./refresh-token";
-import { MyJobFile } from "./my-job-file";
+import { MyJobFile } from "./myjob-file";
 import { EUserRole } from "../common/enums/user/user-role-enum";
-@Entity({ name: 'Users' })
+@Entity('users')
 export class User {
     
     @PrimaryGeneratedColumn()
@@ -56,7 +56,7 @@ export class User {
     candidate?: Candidate;
     
     @OneToOne(() => Company, (company) => company.user)
-    employer?: Company;
+    company?: Company;
 
     @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'avatarId' })

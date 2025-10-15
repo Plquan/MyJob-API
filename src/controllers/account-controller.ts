@@ -1,9 +1,9 @@
 import IAccountService from "@/interfaces/account/account-interface";
 import { asyncLocalStorageMiddleware} from "@/common/middlewares";
 import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
-import { uploadAvatarMiddleware } from "@/common/middlewares/upload-middleware";
 import { before, inject, POST, route } from "awilix-express";
 import { Request, Response } from "express";
+import { uploadFileMiddleware } from "@/common/middlewares/upload-middleware";
 
 @route("/account")
 export class AccountController {
@@ -16,7 +16,7 @@ export class AccountController {
     
     @before([
     inject((JwtService) => AuthenticateMiddleware(JwtService)), 
-    uploadAvatarMiddleware,
+    uploadFileMiddleware,
     asyncLocalStorageMiddleware()])
     @POST()
     @route("/update-avatar")

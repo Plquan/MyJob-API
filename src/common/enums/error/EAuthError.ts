@@ -1,0 +1,16 @@
+export enum EAuthError {
+    FirebaseLoginFailed = 1000,
+    InvalidFirebaseIdToken = 1001,
+    UserNotFound = 1002,
+    UserAlreadyExists = 1003,
+    InvalidCredentials = 1004,
+    TokenGenerationFailed = 1005,
+    RefreshTokenExpired = 1006,
+    AccessTokenExpired = 1007,
+    UnauthorizedAccess = 1008,
+    InvalidRefreshToken = 1009,
+    AccountLocked = 1010,
+    EmailNotVerified = 1011,
+    LogoutFailed = 1012,
+    UserInactive = 1013,
+}

@@ -51,13 +51,10 @@ function AuthenticateMiddleware(JwtService: IJwtService): RequestHandler {
       roleName: payload?.roleName,
       function: [],
       accessToken: accessToken,
+      companyId:payload?.companyId,
     };
     next();
   };
 }
 
 export default AuthenticateMiddleware
-
-export function authenticate() {
-   return inject((JwtService) => AuthenticateMiddleware(JwtService))
-}

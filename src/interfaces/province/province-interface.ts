@@ -1,6 +1,7 @@
-import { IResponseBase } from "../base/IResponseBase";
+import { Province } from "@/entities/province";
+import { District } from "@/entities/district";
 
 export default interface IProvinceService {
-    getAllProvinces(): Promise<IResponseBase>
-    getDistrictsByProvince(provinceId:number):Promise<IResponseBase>
+    getAllProvinces(): Promise<Province[]>
+    getDistrictsByProvince(provinceId:number):Promise<District[]>
 }

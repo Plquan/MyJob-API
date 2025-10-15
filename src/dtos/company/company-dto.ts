@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { MyJobFileDto } from '../myjob-file/myjob-file-dto';
 
 export class CompanyDto {
   @Expose()
@@ -21,6 +22,15 @@ export class CompanyDto {
 
   @Expose()
   websiteUrl?: string;
+
+  @Expose()
+  youtubeUrl?: string;
+
+  @Expose()
+  linkedInUrl?: string;
+
+  @Expose()
+  facebookUrl?: string;
 
   @Expose()
   taxCode!: string;
@@ -47,4 +57,8 @@ export class CompanyDto {
   @Expose()
   @Type(() => Date)
   updatedAt!: Date;
+
+  @Expose()
+  @Type(() => MyJobFileDto)
+  files?: MyJobFileDto[];
 }

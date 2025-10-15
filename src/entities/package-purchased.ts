@@ -10,7 +10,7 @@ import { Company } from "./company";
 import { Package } from "./package";
 import { PackageUsage } from "./package-usage";
 
-@Entity("PackagePurchaseds")
+@Entity('package_purchased')
 export class PackagePurchased {
   @PrimaryGeneratedColumn()
   id: number;
