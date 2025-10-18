@@ -1,8 +1,9 @@
 
 import { Company } from '@/entities/company';
-import { ICompanyDetail, ICompanyDto, ICompanyWithImagesDto } from '@/interfaces/company/company-dto';
+import { ICompanyDetail, ICompanyDto, ICompanyWithImagesDto, ICreateFollowedCompany } from '@/interfaces/company/company-dto';
 import MyjobFileMapper from '../myjob-file/myjob-file-mapper';
 import JobPostMapper from '../job-post/job-post-mapper';
+import { FollowedCompany } from '@/entities/followed-company';
 
 export class CompanyMapper {
     public static toCompanyDto(entity: Company): ICompanyDto {
@@ -48,5 +49,12 @@ export class CompanyMapper {
 
     public static toCompanyDtos(entities: Company[]): ICompanyDto[] {
         return entities.map(e => this.toCompanyDto(e));
+    }
+
+    public static toFollowedCompanyFromCreate(candidateId: number, companyId: number): ICreateFollowedCompany {
+        const followedCompany = new FollowedCompany()
+        followedCompany.candidateId = candidateId
+        followedCompany.companyId = companyId
+        return followedCompany;
     }
 }

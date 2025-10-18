@@ -1,9 +1,6 @@
-import { ErrorMessages } from "@/common/constants/ErrorMessages"
 import { getCurrentUser } from "@/common/helpers/get-current-user"
-import { asyncLocalStorageMiddleware } from "@/common/middlewares"
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware"
+import { asyncLocalStorageMiddleware, Auth } from "@/common/middlewares"
 import { uploadFileMiddleware, uploadMultiFileMiddleware } from "@/common/middlewares/upload-middleware"
-import { HttpException } from "@/errors/http-exception"
 import ICompanyService from "@/interfaces/company/company-interface"
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request, Response } from "express"
@@ -17,7 +14,7 @@ export class CompanyController {
     }
 
     @before([
-        inject((JwtService) => AuthenticateMiddleware(JwtService)),
+        inject(Auth.required),
         uploadMultiFileMiddleware,
         asyncLocalStorageMiddleware()])
     @POST()
@@ -28,7 +25,7 @@ export class CompanyController {
         res.status(201).json(response)
     }
 
-    @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+    @before(inject(Auth.required))
     @DELETE()
     @route("/delete-company-image/:imageId")
     async deleteCompanyMedias(req: Request, res: Response) {
@@ -37,7 +34,7 @@ export class CompanyController {
         res.status(200).json(response)
     }
 
-    @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+    @before(inject(Auth.required))
     @GET()
     @route("/get-employer-company")
     async getEmployerCompany(req: Request, res: Response) {
@@ -47,7 +44,7 @@ export class CompanyController {
     }
 
     @before([
-        inject((JwtService) => AuthenticateMiddleware(JwtService)),
+        inject(Auth.required),
         uploadFileMiddleware,
         asyncLocalStorageMiddleware()])
     @PUT()
@@ -59,7 +56,7 @@ export class CompanyController {
     }
 
     @before([
-        inject((JwtService) => AuthenticateMiddleware(JwtService)),
+        inject(Auth.required),
         uploadFileMiddleware,
         asyncLocalStorageMiddleware()])
     @PUT()
@@ -69,8 +66,10 @@ export class CompanyController {
         const response = await this._companyService.uploadCompanyLogo(file)
         res.status(200).json(response)
     }
+    @before(inject(Auth.optional))
     @GET()
     async getCompanies(req: Request, res: Response) {
+        const userId = req.body
         const response = await this._companyService.getCompanies()
         res.status(200).json(response)
     }

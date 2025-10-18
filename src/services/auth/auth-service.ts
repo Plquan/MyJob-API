@@ -42,16 +42,11 @@ export default class AuthService implements IAuthService {
           success: false,
           message: "Token không hợp lệ",
         }
-      const tokenPayload: ITokenPayload = {
-        userId: payload.userId,
-        fullName: payload.fullName,
-        roleName: payload.roleName,
-        isStaff: payload.isStaff,
-        isSuperUser: payload.isSuperUser,
-        companyId: payload.companyId
-      };
-      const accessToken = this._jwtService.generateAccessToken(tokenPayload)
-      const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
+      delete (payload as any).exp;
+      delete (payload as any).iat;
+
+      const accessToken = this._jwtService.generateAccessToken(payload)
+      const refreshToken = this._jwtService.generateRefreshToken(payload)
       const userRefreshToken = {
         id: refreshToken.tokenId,
         userId: payload.userId,
@@ -70,7 +65,7 @@ export default class AuthService implements IAuthService {
 
     } catch (error) {
       logger.error(error?.message);
-      console.log(`Error in AuthService - method refreshToken at ${new Date().getTime()} with message ${error?.message}`);
+      console.log(`Error in AuthService - method refreshToken with message ${error?.message}`);
       return {
         status: StatusCodes.INTERNAL_SERVER_ERROR,
         success: false,
@@ -82,6 +77,7 @@ export default class AuthService implements IAuthService {
     try {
       const user = await this._context.UserRepo.findOne({
         where: { email: loginRequest.email, roleName: EUserRole.CANDIDATE },
+        relations: ['candidate']
       })
 
       if (!user) {
@@ -102,7 +98,8 @@ export default class AuthService implements IAuthService {
         fullName: user.fullName,
         roleName: user.roleName,
         isStaff: user.isStaff,
-        isSuperUser: user.isSuperUser
+        isSuperUser: user.isSuperUser,
+        candidateId: user.candidate.id
       }
 
       const accessToken = this._jwtService.generateAccessToken(tokenPayload)
@@ -124,7 +121,7 @@ export default class AuthService implements IAuthService {
 
     } catch (error) {
       logger.error(error?.message);
-      console.log(`Error in AuthService - method login at ${new Date().getTime()} with message ${error?.message}`);
+      console.log(`Error in AuthService - method candidateLogin  with message ${error?.message}`);
       return {
         status: 500,
         success: false,
@@ -262,6 +259,9 @@ export default class AuthService implements IAuthService {
   async getMe(): Promise<IResponseBase> {
     try {
       const userId = getCurrentUser().id
+      if (!userId) {
+        throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED);
+      }
 
       const user = await this._context.UserRepo.findOne({
         where: {

@@ -10,8 +10,8 @@ import {
   import { Company } from './company'; 
 import { Candidate } from './candidate';
   
-  @Entity('company_followeds')
-  export class CompanyFollowed {
+  @Entity('followed_companies')
+  export class FollowedCompany {
   
     @PrimaryGeneratedColumn()
     id!: number;
@@ -20,7 +20,7 @@ import { Candidate } from './candidate';
     companyId!:number;
 
     @Column()
-    userId!:number;
+    candidateId!:number;
     
     @CreateDateColumn()
     createdAt!: Date;

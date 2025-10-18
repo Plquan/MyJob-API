@@ -14,4 +14,5 @@ export default interface ICompanyService {
     deleteCompanyImage(imageId: number): Promise<boolean>
     updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto>
     getCompanyDetail(companyId: number):Promise<ICompanyDetail>
+    toggleFollowCompany(companyId: number): Promise<boolean>
 }

@@ -6,6 +6,7 @@ export interface ITokenPayload {
     isStaff: boolean
     isSuperUser: boolean
     companyId?: number
+    candidateId?: number
   }
 
   export interface ITokenResponse {

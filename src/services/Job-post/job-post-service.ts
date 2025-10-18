@@ -9,6 +9,7 @@ import JobPostMapper from "@/mappers/job-post/job-post-mapper";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { Brackets } from "typeorm";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
+import { ErrorMessages } from "@/common/constants/ErrorMessages";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
@@ -49,6 +50,9 @@ export default class JobPostService implements IJobPostService {
         try {
             const { page, limit, search, jobPostStatus } = params;
             const companyId = getCurrentUser().companyId;
+            if (!companyId) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED);
+            }
 
             const query = this._context.JobPostRepo.createQueryBuilder("job")
                 .leftJoin("job.jobPostActivities", "activity")
@@ -92,6 +96,9 @@ export default class JobPostService implements IJobPostService {
         try {
             this.validateJobPost(data)
             const companyId = getCurrentUser().companyId
+            if (!companyId) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED);
+            }
             const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId))
             await this._context.JobPostRepo.save(newJobPost)
             return newJobPost

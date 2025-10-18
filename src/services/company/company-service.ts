@@ -19,6 +19,7 @@ import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto";
 import { CompanyMapper } from "@/mappers/company/company-mapper";
 import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest } from "@/interfaces/company/company-dto";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
+import { EAuthError } from "@/common/enums/error/EAuthError";
 
 export default class CompanyService implements ICompanyService {
     private readonly _context: DatabaseService
@@ -26,7 +27,29 @@ export default class CompanyService implements ICompanyService {
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
-
+    async toggleFollowCompany(companyId: number): Promise<boolean> {
+        try {
+            const candidateId = getCurrentUser().candidateId
+            if (!candidateId) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess.toString())
+            }
+            const isFollowedCompany = await this._context.FollowedCompanyRepo.findOne({
+                where: { candidateId, companyId }
+            })
+            if (isFollowedCompany) {
+                await this._context.FollowedCompanyRepo.remove(isFollowedCompany);
+                return false;
+            }
+            const newFollowCompany = CompanyMapper.toFollowedCompanyFromCreate(candidateId, companyId)
+            await this._context.FollowedCompanyRepo.save(newFollowCompany);
+            return true;
+        } catch (error) {
+            logger.error(`Error in CompanyService - method createCompanyInfo with message ${error?.message}`);
+            console.log(
+                `Error in CompanyService - method createCompanyInfo with message ${error?.message}`
+            )
+        }
+    }
     async getCompanyDetail(companyId: number): Promise<ICompanyDetail> {
         try {
             if (!companyId) {
@@ -170,7 +193,6 @@ export default class CompanyService implements ICompanyService {
             throw error
         }
     }
-
     async deleteCompanyImage(imageId: number): Promise<boolean> {
         try {
             const image = await this._context.MyJobFileRepo.findOne({
@@ -183,7 +205,6 @@ export default class CompanyService implements ICompanyService {
             throw error
         }
     }
-
     async getCompanyById(companyId: number): Promise<ICompanyWithImagesDto> {
         try {
             if (!companyId) {
@@ -205,7 +226,6 @@ export default class CompanyService implements ICompanyService {
             throw error;
         }
     }
-
     async getCompanies(): Promise<ICompanyWithImagesDto[]> {
         try {
             const companies = await this._context.CompanyRepo
@@ -216,16 +236,31 @@ export default class CompanyService implements ICompanyService {
                     { types: [FileType.LOGO, FileType.COVER_IMAGE] })
                 .getMany();
 
-            const companyDtos = companies.map(company =>
-                CompanyMapper.toCompanyWithImagesDto(company)
-            );
+            const candidateId = getCurrentUser()?.candidateId
+            const followedCompanyIds = new Set<number>();
+
+            if (candidateId) {
+                const companyFollowed = await this._context.FollowedCompanyRepo.find({
+                    where: { candidateId },
+                    select: ['companyId'],
+                });
+                for (const f of companyFollowed) {
+                    followedCompanyIds.add(f.companyId);
+                }
+            }
+
+            const companyDtos = companies.map(company => {
+                const dto = CompanyMapper.toCompanyWithImagesDto(company);
+                dto.isFollowed = followedCompanyIds.has(company.id);
+                return dto;
+            });
+
             return companyDtos;
         } catch (error) {
-            console.log(`Error in CompanyService - method getCompanies at ${new Date().getTime()} with message ${error?.message}`)
+            console.log(`Error in CompanyService - method getCompanies with message ${error?.message}`)
             throw error;
         }
     }
-
     async createCompanyInfo(data: ICompanyData): Promise<IResponseBase> {
         try {
             const companyInfo = await this._context.CompanyRepo.create(data)

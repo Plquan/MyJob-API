@@ -6,4 +6,5 @@ type UserClaim = {
   isSuperUser:boolean
   accessToken: string;
   companyId: number
+  candidateId: number
 };

@@ -5,8 +5,8 @@ import { Resume } from "./resume";
 import { District } from "./district";
 import { EGender, EMartialStatus } from "../common/enums/candidate/candidate-enum";
 import { JobPostActivity } from "./job-post-activity";
-import { CompanyFollowed } from "./company-followed";
 import { SavedJobPost } from "./saved-job-post";
+import { FollowedCompany } from "./followed-company";
 
 @Entity('candidates')
 export class Candidate {
@@ -64,8 +64,8 @@ export class Candidate {
     @OneToMany(() => JobPostActivity, (activity) => activity.candidate)
     jobActivities?: JobPostActivity[];
 
-    @OneToMany(() => CompanyFollowed, companyFollowed => companyFollowed.candidate)
-    followedCompanies?: CompanyFollowed[];
+    @OneToMany(() => FollowedCompany, companyFollowed => companyFollowed.candidate)
+    followedCompanies?: FollowedCompany[];
 
     @OneToMany(() => SavedJobPost, SavedJobPost => SavedJobPost.candidate)
     savedJobPosts?: SavedJobPost[];

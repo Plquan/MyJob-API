@@ -26,6 +26,7 @@ export interface ICompanyDto {
 export interface ICompanyWithImagesDto {
   company: ICompanyDto;
   images?: IMyJobFileDto[];
+  isFollowed?: boolean;
 }
 
 export interface ICompanyDetail extends ICompanyWithImagesDto {
@@ -54,3 +55,7 @@ export interface IUpdateCompanyRequest {
   address: string;
 }
 
+export interface ICreateFollowedCompany {
+  companyId: number
+  candidateId: number
+}

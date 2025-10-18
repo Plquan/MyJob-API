@@ -12,7 +12,7 @@ import { Candidate } from "@/entities/candidate";
 import { Career } from "@/entities/career";
 import { Certificate } from "@/entities/certificate";
 import { Company } from "@/entities/company";
-import { CompanyFollowed } from "@/entities/company-followed";
+import { FollowedCompany } from "@/entities/followed-company";
 import { Education } from "@/entities/education";
 import { Experience } from "@/entities/experience";
 import { Function as JobFunction } from "@/entities/function";
@@ -46,7 +46,7 @@ class DatabaseService {
   public CareerRepo: Repository<Career>;
   public CertificateRepo: Repository<Certificate>;
   public CompanyRepo: Repository<Company>;
-  public CompanyFollowedRepo: Repository<CompanyFollowed>;
+  public FollowedCompanyRepo: Repository<FollowedCompany>;
   public EducationRepo: Repository<Education>;
   public ExperienceRepo: Repository<Experience>;
   public FunctionRepo: Repository<JobFunction>;
@@ -78,7 +78,7 @@ class DatabaseService {
     this.CareerRepo = this._dataSource.getRepository(Career);
     this.CertificateRepo = this._dataSource.getRepository(Certificate);
     this.CompanyRepo = this._dataSource.getRepository(Company);
-    this.CompanyFollowedRepo = this._dataSource.getRepository(CompanyFollowed);
+    this.FollowedCompanyRepo = this._dataSource.getRepository(FollowedCompany);
     this.EducationRepo = this._dataSource.getRepository(Education);
     this.ExperienceRepo = this._dataSource.getRepository(Experience);
     this.FunctionRepo = this._dataSource.getRepository(JobFunction);

@@ -2,9 +2,9 @@ import { Entity, OneToOne, PrimaryGeneratedColumn, Column, JoinColumn, OneToMany
 import { User } from "./user";
 import { JobPost } from "./job-post";
 import { Province } from "./province";
-import { CompanyFollowed } from "./company-followed";
 import { CompanyImage } from "./company-image";
 import { District } from "./district";
+import { FollowedCompany } from "./followed-company";
 
 @Entity('companies')
 export class Company {
@@ -84,11 +84,9 @@ export class Company {
     @OneToMany(() => JobPost, jobPost => jobPost.company)
     jobPosts?: JobPost[];
 
-    @OneToMany(() => CompanyFollowed, companyFollowed => companyFollowed.company)
-    followedCompanies!: CompanyFollowed[];
+    @OneToMany(() => FollowedCompany, companyFollowed => companyFollowed.company)
+    followedCompanies!: FollowedCompany[];
 
     @OneToMany(() => CompanyImage, (companyImage) => companyImage.company)
     companyImages!: CompanyImage[];
-
-
 } 
