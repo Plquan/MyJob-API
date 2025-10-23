@@ -55,10 +55,8 @@ export class CompanyController {
         res.status(200).json(response)
     }
 
-    @before([
-        inject(Auth.required),
-        uploadFileMiddleware,
-        asyncLocalStorageMiddleware()])
+    @before([inject(Auth.required), uploadFileMiddleware,
+    asyncLocalStorageMiddleware()])
     @PUT()
     @route("/upload-company-logo")
     async uploadCompanyLogo(req: Request, res: Response) {
@@ -66,10 +64,10 @@ export class CompanyController {
         const response = await this._companyService.uploadCompanyLogo(file)
         res.status(200).json(response)
     }
+
     @before(inject(Auth.optional))
     @GET()
     async getCompanies(req: Request, res: Response) {
-        const userId = req.body
         const response = await this._companyService.getCompanies()
         res.status(200).json(response)
     }
@@ -79,6 +77,14 @@ export class CompanyController {
     async getCompanyDetail(req: Request, res: Response) {
         const companyId = parseInt(req.params.companyId);
         const response = await this._companyService.getCompanyDetail(companyId)
+        res.status(200).json(response)
+    }
+    @before(inject(Auth.required))
+    @POST()
+    @route("/toggle-follow-company")
+    async toggleFollowCompany(req: Request, res: Response) {
+        const companyId = Number(req.query.companyId)
+        const response = await this._companyService.toggleFollowCompany(companyId)
         res.status(200).json(response)
     }
 

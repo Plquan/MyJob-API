@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn } from "typeorm";
-import { PackagePurchased } from "./package-purchased";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Company } from "./company";
+import { Package } from "./package";
 
 @Entity('package_usages')
 export class PackageUsage {
@@ -8,18 +9,31 @@ export class PackageUsage {
   id: number;
 
   @Column()
-  companyPackageId!: number;
+  packageId!: number;
 
   @Column()
-  featureId!: number;
+  companyId!: number;
 
-  @Column({ type: 'int', default: 0 })
-  used: number;
+  @Column({ type: "int" })
+  candidateSearchUsed: number;
 
-  @Column({ type: 'int',nullable:true})
-  total: number | null;
+  @Column({ type: "int" })
+  cvSearchUsed: number;
 
-  @ManyToOne(() => PackagePurchased, (cp) => cp.usages, {onDelete: 'CASCADE',nullable: false})
-  @JoinColumn({ name: 'companyPackageId' })
-  companyPackage: PackagePurchased;
+  @Column({ type: "int" })
+  jobPostUsed: number;
+
+  @ManyToOne(() => Package, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "packageId" })
+  package!: Package;
+
+  @ManyToOne(() => Company, (company) => company.packageUsages, {onDelete: "CASCADE"})
+  @JoinColumn({ name: "companyId" })
+  company!: Company;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

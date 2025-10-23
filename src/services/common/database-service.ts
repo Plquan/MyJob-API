@@ -27,7 +27,6 @@ import { Role } from "@/entities/role";
 import { District } from "@/entities/district";
 import { Skill } from "@/entities/skill";
 import { Package } from "@/entities/package";
-import { PackageFeature } from "@/entities/package-feature";
 import { PackagePurchased } from "@/entities/package-purchased";
 import { PackageUsage } from "@/entities/package-usage";
 import { CompanyImage } from "@/entities/company-image";
@@ -58,7 +57,6 @@ class DatabaseService {
   public RoleRepo: Repository<Role>;
   public DistrictRepo: Repository<District>
   public PackageRepo: Repository<Package>
-  public PackageFeatureRepo: Repository<PackageFeature>
   public PackagePurchasedRepo: Repository<PackagePurchased>
   public PackageUsageRepo: Repository<PackageUsage>
   public CompanyImageRepo: Repository<CompanyImage>
@@ -90,7 +88,6 @@ class DatabaseService {
     this.RoleRepo = this._dataSource.getRepository(Role);
     this.DistrictRepo = this._dataSource.getRepository(District);
     this.PackageRepo = this._dataSource.getRepository(Package);
-    this.PackageFeatureRepo = this._dataSource.getRepository(PackageFeature);
     this.PackagePurchasedRepo = this._dataSource.getRepository(PackagePurchased);
     this.PackageUsageRepo = this._dataSource.getRepository(PackageUsage);
     this.CompanyImageRepo = this._dataSource.getRepository(CompanyImage)

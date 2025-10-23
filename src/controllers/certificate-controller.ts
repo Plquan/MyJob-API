@@ -3,7 +3,6 @@ import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request,Response } from "express"
 
-
 @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
 @route("/certificate")
 export class CertificateController {

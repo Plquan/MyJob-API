@@ -1,13 +1,11 @@
 import { IResponseBase } from "../base/IResponseBase"
-import { ICreatePackageData, IPackageFeatureData, IUpdatePackageData } from "../../dtos/package/package-dto"
+import { ICreatePackageRequest, IPackageDto, IUpdatePackageRequest } from "./package-dto"
 
 export default interface IPackageService {
-    getAllPackages(): Promise<IResponseBase>
-    createPackage(data: ICreatePackageData):Promise<IResponseBase>
-    updatePackage(data: IUpdatePackageData):Promise<IResponseBase>
-    deletePackage(packageId: number): Promise<IResponseBase>
-    getPackageFeatures(packageId: number): Promise<IResponseBase>
-    updatePackageFeatures(data: IPackageFeatureData[],packageId: number): Promise<IResponseBase>
-    getAllPackagesWithFeatures(): Promise<IResponseBase>
+    getPackages(): Promise<IPackageDto[]>
+    getAllPackages(): Promise<IPackageDto[]>
+    createPackage(data: ICreatePackageRequest):Promise<IPackageDto>
+    updatePackage(data: IUpdatePackageRequest):Promise<IPackageDto>
+    deletePackage(packageId: number): Promise<boolean>
     purchasePackage(packageId: number): Promise<IResponseBase>
 }

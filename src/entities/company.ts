@@ -5,6 +5,7 @@ import { Province } from "./province";
 import { CompanyImage } from "./company-image";
 import { District } from "./district";
 import { FollowedCompany } from "./followed-company";
+import { PackageUsage } from "./package-usage";
 
 @Entity('companies')
 export class Company {
@@ -89,4 +90,7 @@ export class Company {
 
     @OneToMany(() => CompanyImage, (companyImage) => companyImage.company)
     companyImages!: CompanyImage[];
+
+    @OneToMany(() => PackageUsage, (usage) => usage.company)
+    packageUsages!: PackageUsage[];
 } 

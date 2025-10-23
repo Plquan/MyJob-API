@@ -7,4 +7,5 @@ export  default interface IJobPostService {
     createJobPost(data: ICreateJobPostReq): Promise<JobPost>
     updateJobPost(data: IUpdateJobPostReq): Promise<JobPost>
     deleteJobPost(jobPostId: number): Promise<boolean>
+    getJobPosts():Promise<boolean>
 }

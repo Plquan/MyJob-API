@@ -17,6 +17,9 @@ export default class JobPostService implements IJobPostService {
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
+    getJobPosts(): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
     deleteJobPost(jobPostId: number): Promise<boolean> {
         throw new Error("Method not implemented.");
     }

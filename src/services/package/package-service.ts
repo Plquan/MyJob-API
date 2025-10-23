@@ -3,7 +3,9 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import IPackageService from "@/interfaces/package/package-interface";
 import { StatusCodes } from "http-status-codes";
 import DatabaseService from "@/services/common/database-service";
-import { ICreatePackageData, IPackageFeatureData, IUpdatePackageData } from "@/dtos/package/package-dto";
+import { ICreatePackageRequest, IPackageDto, IUpdatePackageRequest } from "@/interfaces/package/package-dto";
+import PackageMapper from "@/mappers/package/package-mapper";
+import { HttpException } from "@/errors/http-exception";
 
 export default class PackageService implements IPackageService {
 
@@ -11,6 +13,74 @@ export default class PackageService implements IPackageService {
 
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
+    }
+    async getAllPackages(): Promise<IPackageDto[]> {
+        try {
+            const packages = await this._context.PackageRepo.find({
+                order: {
+                    createdAt: 'DESC'
+                }
+            })
+            return PackageMapper.toPackageDtoList(packages)
+        } catch (error) {
+            logger.error(error?.message)
+            console.log(`Error in PackageSerivce - method getAllPackages() with message ${error?.message}`);
+            throw error
+        }
+    }
+    async createPackage(data: ICreatePackageRequest): Promise<IPackageDto> {
+        try {
+            if (!data.name || !data.price || !data.durationInDays) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, "Invalid input")
+            }
+            const newPackage = this._context.PackageRepo.create(data)
+            await this._context.PackageRepo.save(newPackage)
+            return PackageMapper.toPackageDto(newPackage)
+        } catch (error) {
+            logger.error(error?.message)
+            console.log(`Error in PackageSerivce - method createPackage() with message ${error?.message}`);
+            throw error
+        }
+    }
+    async updatePackage(data: IUpdatePackageRequest): Promise<IPackageDto> {
+        try {
+            if (!data.id) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, "Invalid input")
+            }
+            const existingPackage = await this._context.PackageRepo.findOne({
+                where: { id: data.id }
+            })
+            if (!existingPackage) {
+                throw new HttpException(StatusCodes.NOT_FOUND, "Package not found");
+            }
+            const updatedPackage = this._context.PackageRepo.merge(existingPackage, data)
+            await this._context.PackageRepo.save(updatedPackage)
+            return PackageMapper.toPackageDto(updatedPackage)
+
+        } catch (error) {
+            logger.error(error?.message)
+            console.log(`Error in PackageSerivce - method updatePackage() with message ${error?.message}`);
+            throw error
+        }
+    }
+    async deletePackage(packageId: number): Promise<boolean> {
+        try {
+            if (!packageId) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, "Invalid input")
+            }
+            const existingPackage = await this._context.PackageRepo.findOne({
+                where: { id: packageId }
+            })
+            if (!existingPackage) {
+                throw new HttpException(StatusCodes.NOT_FOUND, "Package not found");
+            }
+            await this._context.PackageRepo.remove(existingPackage)
+            return true
+        } catch (error) {
+            logger.error(error?.message)
+            console.log(`Error in PackageSerivce - method deletePackage() with message ${error?.message}`);
+            throw error
+        }
     }
     async purchasePackage(packageId: number): Promise<IResponseBase> {
         try {
@@ -26,250 +96,19 @@ export default class PackageService implements IPackageService {
             }
         }
     }
-    async getAllPackagesWithFeatures(): Promise<IResponseBase> {
+    async getPackages(): Promise<IPackageDto[]> {
         try {
-
-            const packages = await this._context.PackageRepo
-                .createQueryBuilder("pkg")
-                .innerJoin("pkg.packageFeatures", "pf")
-                .select([
-                    `pkg.id AS "id"`,
-                    `pkg.name AS "name"`,
-                    `pkg.price AS "price"`,
-                    `pkg.durationInDays AS "durationInDays"`,
-                    `json_agg(pf.description) AS "features"`
-                ])
-                .where("pkg.isActive = :isActive", { isActive: true })
-                .groupBy("pkg.id, pkg.name, pkg.createdAt")
-                .orderBy("pkg.createdAt", "DESC")
-                .getRawMany()
-
-            return {
-                status: StatusCodes.OK,
-                success: true,
-                message: "Lấy danh sách gói kèm tính năng thành công",
-                data: packages
-            }
-
-        } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method getAllPackagesWithFeatures() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi lấy gói kèm tính năng, vui lòng thử lại sau",
-            }
-        }
-    }
-    async updatePackageFeatures(data: IPackageFeatureData[], packageId: number): Promise<IResponseBase> {
-        try {
-            if (!packageId) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                    success: false,
+            const packages = await this._context.PackageRepo.find({
+                where: { isActive: true },
+                order: {
+                    createdAt: 'DESC'
                 }
-            }
-
-            for (const item of data) {
-                if (
-                    !item.featureId ||
-                    !item.packageId ||
-                    (item.unlimited === false && item.quota <= 0)
-                ) {
-                    return {
-                        status: StatusCodes.BAD_REQUEST,
-                        message: "Vui lòng kiểm tra lại dữ liệu của bạn.",
-                        success: false
-                    }
-                }
-            }
-
-            await this._context.PackageFeatureRepo.delete({ packageId })
-            if (data.length > 0) {
-                const newfeaturesOfPackage = await this._context.PackageFeatureRepo.create(data)
-                await this._context.PackageFeatureRepo.save(newfeaturesOfPackage)
-            }
-
-            return {
-                status: StatusCodes.OK,
-                message: "Cập nhật tính năng gói thành công",
-                success: true
-            }
-        } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method updatePackageFeature() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi cập nhật tính năng gói, vui lòng thử lại sau",
-            }
-        }
-    }
-    async getPackageFeatures(packageId: number): Promise<IResponseBase> {
-        try {
-            if (!packageId) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                    success: false,
-                }
-            }
-
-            const packageWithDetails = await this._context.PackageRepo.findOne({
-                where: { id: packageId },
-                relations: ['packageFeatures', 'packageFeatures.feature'],
-            });
-
-            if (!packageWithDetails) {
-                throw new Error("Package not found")
-            }
-
-           
-
-
-            return {
-                status: StatusCodes.OK,
-                message: "Lấy danh sách tính năng thuộc gói thành công",
-                success: true,
-                data: null
-            }
-        } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method getFeaturesOfPackage() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi lấy danh sách tính năng thuộc gói, vui lòng thử lại sau",
-            }
-        }
-    }
-    async getAllPackages(): Promise<IResponseBase> {
-        try {
-            const packages = await this._context.PackageRepo.find()
-            return {
-                status: StatusCodes.OK,
-                message: "Lấy danh sách thành công",
-                success: true,
-                data: packages
-            }
-
-        } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method getAllPackages() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi lấy danh sách gói, vui lòng thử lại sau",
-            }
-        }
-    }
-    async createPackage(data: ICreatePackageData): Promise<IResponseBase> {
-        try {
-            if (!data.name || !data.price) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                    success: false
-                }
-            }
-
-            const newPackage = await this._context.PackageRepo.create(data)
-            await this._context.PackageRepo.save(newPackage)
-
-            return {
-                status: StatusCodes.CREATED,
-                message: "Thêm gói dịch vụ mới thành công",
-                success: true,
-                data: newPackage
-            }
-
-        } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method getAllPackages() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi tạo gói, vui lòng thử lại sau",
-            }
-        }
-    }
-    async updatePackage(data: IUpdatePackageData): Promise<IResponseBase> {
-        try {
-            if (!data.id || !data.name || !data.price) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                    success: false
-                }
-            }
-            const pkg = await this._context.PackageRepo.findOne({
-                where: { id: data.id }
             })
-            if (!pkg) {
-                return {
-                    status: StatusCodes.NOT_FOUND,
-                    message: "Không tìm thấy gói dịch vụ",
-                    success: false
-                }
-            }
-            this._context.PackageRepo.merge(pkg, data)
-            await this._context.PackageRepo.save(pkg)
-
-            return {
-                status: StatusCodes.OK,
-                message: "Cập nhật thành công",
-                success: true,
-                data: pkg
-            }
-
+            return PackageMapper.toPackageDtoList(packages)
         } catch (error) {
             logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method updatePackage() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi cập nhật gói, vui lòng thử lại sau",
-            }
-        }
-    }
-    async deletePackage(packageId: number): Promise<IResponseBase> {
-        try {
-
-            if (!packageId) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                    success: false
-                }
-            }
-            const pkg = await this._context.PackageRepo.findOne({
-                where: { id: packageId }
-            })
-            if (!pkg) {
-                return {
-                    status: StatusCodes.NOT_FOUND,
-                    message: "Không tìm thấy gói dịch vụ",
-                    success: false
-                }
-            }
-
-            await this._context.PackageRepo.remove(pkg)
-
-            return {
-                status: StatusCodes.OK,
-                message: "Xóa gói thành công",
-                success: true,
-            }
-
-        } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method deletePackage() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi xóa gói, vui lòng thử lại sau",
-            }
+            console.log(`Error in PackageSerivce - method getPackages() with message ${error?.message}`);
+            throw error
         }
     }
 

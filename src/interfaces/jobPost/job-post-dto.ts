@@ -47,7 +47,7 @@ export interface JobPostDto {
   typeOfWorkPlace: ETypeOfWorkplace;
   experience: EExperience;
   academicLevel: EAcademicLevel;
-  genderRequirement:EGender;
+  genderRequirement: EGender;
   jobType: EJobType;
   isHot: boolean;
   isUrgent: boolean;
@@ -61,8 +61,9 @@ export interface JobPostDto {
   status: EJobPostStatus;
 }
 
-export interface IJobPostWithImages {
-  
+export interface IJobPostWithImageDto {
+  id: number;
+  jobName: string;
 }
 
 export interface IGetJobPostsReqParams {

@@ -31,7 +31,7 @@ export default class CompanyService implements ICompanyService {
         try {
             const candidateId = getCurrentUser().candidateId
             if (!candidateId) {
-                throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess.toString())
+                throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED)
             }
             const isFollowedCompany = await this._context.FollowedCompanyRepo.findOne({
                 where: { candidateId, companyId }
@@ -44,9 +44,9 @@ export default class CompanyService implements ICompanyService {
             await this._context.FollowedCompanyRepo.save(newFollowCompany);
             return true;
         } catch (error) {
-            logger.error(`Error in CompanyService - method createCompanyInfo with message ${error?.message}`);
+            logger.error(`Error in CompanyService - method toggleFollowCompany with message ${error?.message}`);
             console.log(
-                `Error in CompanyService - method createCompanyInfo with message ${error?.message}`
+                `Error in CompanyService - method toggleFollowCompany with message ${error?.message}`
             )
         }
     }

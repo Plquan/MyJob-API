@@ -1,5 +1,6 @@
+import { Auth } from "@/common/middlewares";
 import IPackageService from "@/interfaces/package/package-interface";
-import { route, GET, POST, PUT, DELETE } from "awilix-express";
+import { route, GET, POST, PUT, DELETE, before, inject } from "awilix-express";
 import { Request, Response } from "express";
 
 @route('/package')
@@ -7,63 +8,40 @@ export class PackageController {
 
     private readonly _packageService: IPackageService
 
-    constructor(PackageService: IPackageService){
+    constructor(PackageService: IPackageService) {
         this._packageService = PackageService
     }
-
+    @before(inject(Auth.required))
     @GET()
-    @route('/get-packages')
-    async getAllPackages(req: Request, res: Response){
+    @route('/get-all-package')
+    async getAllPackages(req: Request, res: Response) {
         const response = await this._packageService.getAllPackages()
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
-
+    @before(inject(Auth.required))
     @POST()
-    @route('/create-package')
-    async createPackage(req: Request, res: Response){
+    async createPackage(req: Request, res: Response) {
         const data = req.body
         const response = await this._packageService.createPackage(data)
-        res.status(response.status).json(response)
+        res.status(201).json(response)
     }
-
+    @before(inject(Auth.required))
     @PUT()
-    @route('/update-package')
-    async updatePackage(req: Request, res: Response){
+    async updatePackage(req: Request, res: Response) {
         const data = req.body
         const response = await this._packageService.updatePackage(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
-
+    @before(inject(Auth.required))
     @DELETE()
-    @route('/delete-package/:packageId')
-    async deletePackage(req: Request, res: Response){
-        const packageId = parseInt(req.params.packageId)
+    async deletePackage(req: Request, res: Response) {
+        const packageId = Number(req.query.packageId)
         const response = await this._packageService.deletePackage(packageId)
-        res.status(response.status).json(response)
+        res.status(204).json(response)
     }
-
     @GET()
-    @route('/get-package-features/:packageId')
-    async getPackageFeatures(req: Request, res: Response){
-        const packageId = parseInt(req.params.packageId);
-        const response = await this._packageService.getPackageFeatures(packageId)
-        res.status(response.status).json(response)
+    async getPackages(req: Request, res: Response) {
+        const response = await this._packageService.getPackages()
+        res.status(200).json(response)
     }
-
-    @PUT()
-    @route('/update-package-features/:packageId')
-    async updatePackageFeatures(req: Request, res: Response){
-        const data = req.body
-        const packageId = parseInt(req.params.packageId);
-        const response = await this._packageService.updatePackageFeatures(data,packageId)
-        res.status(response.status).json(response)
-    }
-
-    @GET()
-    @route('/get-all-packages-with-features')
-    async getAllPackagesWithFeatures(req: Request, res: Response){
-        const response = await this._packageService.getAllPackagesWithFeatures()
-        res.status(response.status).json(response)
-    }
-
 }

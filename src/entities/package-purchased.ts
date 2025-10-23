@@ -24,9 +24,6 @@ export class PackagePurchased {
   @Column()
   endDate: Date;
 
-  @OneToMany(() => PackageUsage, (usage) => usage.companyPackage)
-  usages: PackageUsage[]
-
   @ManyToOne(() => Package, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'packageId' })
   package: Package

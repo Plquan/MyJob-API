@@ -2,11 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { PackageFeature } from "./package-feature"
 
 @Entity("packages")
 export class Package {
@@ -16,14 +14,29 @@ export class Package {
   @Column()
   name: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 0})
+  @Column({ type: 'decimal', precision: 12, scale: 0 })
   price: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int' })
   durationInDays: number;
 
-  @OneToMany(() => PackageFeature, (pf) => pf.package)
-  packageFeatures: PackageFeature[]
+  @Column({ type: 'int', default: 0 })
+  jobHotDurationInDays: number;
+  
+  @Column({ type: 'int', default: 0 })
+  highlightCompanyDurationInDays: number;
+
+  @Column({ type: 'int', default: 0 })
+  candidateSearchLimit: number;
+
+  @Column({ type: 'int', default: 0 })
+  cvSearchLimit: number;
+
+  @Column({ type: 'int', default: 0 })
+  jobPostLimit: number;
+
+  @Column({ type: 'text', nullable: true })
+  description?: string;
 
   @Column({ default: false })
   isActive: boolean

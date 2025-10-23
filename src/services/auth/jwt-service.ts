@@ -22,9 +22,7 @@ export default class JwtService implements IJwtService {
       const token = jwt.sign({ isCredential: true, ...payload }, this.refreshTokenSecret, {
         expiresIn: this.refreshTokenExpriedIn,
       });
-
       const expiresAt = new Date(Date.now() + this.refreshTokenExpriedIn * 1000);
-
       return {
         tokenId,
         token,

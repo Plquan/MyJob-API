@@ -283,7 +283,7 @@ export default class AuthService implements IAuthService {
         isActive: user.isActive,
         allowSearch: user.candidate?.allowSearch ?? true,
         avatar: user.avatar?.url,
-        companyId: user.company.id,
+        companyId: user?.company?.id,
       }
 
       if (!user) {
@@ -303,7 +303,7 @@ export default class AuthService implements IAuthService {
 
     } catch (error: any) {
       logger.error(error?.message);
-      console.log(`Error in AuthService - method getMe() at ${new Date().getTime} with message ${error?.message}`);
+      console.log(`Error in AuthService - method getMe()  with message ${error?.message}`);
       return {
         status: StatusCodes.INTERNAL_SERVER_ERROR,
         success: false,
