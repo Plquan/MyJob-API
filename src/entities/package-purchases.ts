@@ -10,8 +10,8 @@ import { Company } from "./company";
 import { Package } from "./package";
 import { PackageUsage } from "./package-usage";
 
-@Entity('package_purchased')
-export class PackagePurchased {
+@Entity('package_purchases')
+export class PackagePurchases {
   @PrimaryGeneratedColumn()
   id: number;
 

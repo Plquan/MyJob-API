@@ -2,12 +2,9 @@ import { Auth } from "@/common/middlewares";
 import IPackageService from "@/interfaces/package/package-interface";
 import { route, GET, POST, PUT, DELETE, before, inject } from "awilix-express";
 import { Request, Response } from "express";
-
 @route('/package')
 export class PackageController {
-
     private readonly _packageService: IPackageService
-
     constructor(PackageService: IPackageService) {
         this._packageService = PackageService
     }
@@ -42,6 +39,13 @@ export class PackageController {
     @GET()
     async getPackages(req: Request, res: Response) {
         const response = await this._packageService.getPackages()
+        res.status(200).json(response)
+    }
+    @POST()
+    @route('/purchase-package')
+    async purchasePackage(req: Request, res: Response) {
+        const packageId = Number(req.query.packageId)
+        const response = await this._packageService.purchasePackage(packageId)
         res.status(200).json(response)
     }
 }

@@ -7,5 +7,5 @@ export default interface IPackageService {
     createPackage(data: ICreatePackageRequest):Promise<IPackageDto>
     updatePackage(data: IUpdatePackageRequest):Promise<IPackageDto>
     deletePackage(packageId: number): Promise<boolean>
-    purchasePackage(packageId: number): Promise<IResponseBase>
+    purchasePackage(packageId: number): Promise<boolean>
 }

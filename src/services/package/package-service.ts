@@ -1,16 +1,17 @@
 import logger from "@/common/helpers/logger";
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import IPackageService from "@/interfaces/package/package-interface";
 import { StatusCodes } from "http-status-codes";
 import DatabaseService from "@/services/common/database-service";
 import { ICreatePackageRequest, IPackageDto, IUpdatePackageRequest } from "@/interfaces/package/package-dto";
 import PackageMapper from "@/mappers/package/package-mapper";
 import { HttpException } from "@/errors/http-exception";
+import { getCurrentUser } from "@/common/helpers/get-current-user";
+import { ErrorMessages } from "@/common/constants/ErrorMessages";
+import { Package } from "@/entities/package";
+import { PackageUsage } from "@/entities/package-usage";
 
 export default class PackageService implements IPackageService {
-
     private readonly _context: DatabaseService
-
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
@@ -82,18 +83,32 @@ export default class PackageService implements IPackageService {
             throw error
         }
     }
-    async purchasePackage(packageId: number): Promise<IResponseBase> {
+    async purchasePackage(packageId: number): Promise<boolean> {
+        const dataSource = this._context.getDataSource();
         try {
-
-
+            return await dataSource.transaction(async (manager) => {
+                const companyId = getCurrentUser().companyId;
+                if (!companyId) {
+                    throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED);
+                }
+                const [existingPackage, existingPackageUsage] = await Promise.all([
+                    manager.getRepository(Package).findOne({ where: { id: packageId } }),
+                    manager.getRepository(PackageUsage).findOne({ where: { companyId } }),
+                ]);
+                if (!existingPackage) {
+                    throw new HttpException(StatusCodes.NOT_FOUND, ErrorMessages.NOT_FOUND);
+                }
+                const packageUsageData = PackageMapper.toCreatePackageUsage(existingPackage, companyId);
+                if (existingPackageUsage) {
+                    packageUsageData.id = existingPackageUsage.id;
+                }
+                await manager.getRepository(PackageUsage).save(packageUsageData);
+                return true;
+            });
         } catch (error) {
-            logger.error(error?.message)
-            console.log(`Error in PackageSerivce - method purchasePackage() at ${new Date().getTime()} with message ${error?.message}`);
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi mua gói, vui lòng thử lại sau",
-            }
+            logger.error(error?.message);
+            console.log(`Error in PackageSerivce - method purchasePackage() with message ${error?.message}`);
+            throw error;
         }
     }
     async getPackages(): Promise<IPackageDto[]> {
@@ -111,5 +126,4 @@ export default class PackageService implements IPackageService {
             throw error
         }
     }
-
 }
