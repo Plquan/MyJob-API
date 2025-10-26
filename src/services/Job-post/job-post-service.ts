@@ -3,13 +3,13 @@ import IJobPostService from "@/interfaces/jobPost/job-post-interface";
 import DatabaseService from "../common/database-service";
 import { ICreateJobPostReq, IGetJobPostsReqParams, IUpdateJobPostReq } from "@/interfaces/jobPost/job-post-dto";
 import { HttpException } from "@/errors/http-exception";
-import { StatusCodes } from "http-status-codes";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { Brackets } from "typeorm";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
@@ -46,7 +46,7 @@ export default class JobPostService implements IJobPostService {
             !dto.contactPersonEmail ||
             !dto.contactPersonPhone
         ) {
-            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput.toString())
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput,"Invalid input")
         }
     }
     async getCompanyJobPosts(params: IGetJobPostsReqParams): Promise<IPaginationResponse> {
@@ -54,7 +54,7 @@ export default class JobPostService implements IJobPostService {
             const { page, limit, search, jobPostStatus } = params;
             const companyId = getCurrentUser().companyId;
             if (!companyId) {
-                throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED);
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Company Id not found");
             }
 
             const query = this._context.JobPostRepo.createQueryBuilder("job")
@@ -100,7 +100,7 @@ export default class JobPostService implements IJobPostService {
             this.validateJobPost(data)
             const companyId = getCurrentUser().companyId
             if (!companyId) {
-                throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED);
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Company Id not found");
             }
             const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId))
             await this._context.JobPostRepo.save(newJobPost)
@@ -117,7 +117,7 @@ export default class JobPostService implements IJobPostService {
                 where: { id: data.id }
             })
             if (!currentJobPost) {
-                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound.toString());
+                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Company Id not found");
             }
             const updateJobPostDto = JobPostMapper.toUpdateJobPostEntity(data)
             const updatedJobPost = this._context.JobPostRepo.merge(currentJobPost, updateJobPostDto)

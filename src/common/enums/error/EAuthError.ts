@@ -13,4 +13,5 @@ export enum EAuthError {
     EmailNotVerified = 1011,
     LogoutFailed = 1012,
     UserInactive = 1013,
+    InvalidPassword = 1014
 }

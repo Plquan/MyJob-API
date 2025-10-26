@@ -2,11 +2,10 @@ import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { UpdateOnlineResumeRequest } from "@/dtos/resume/update-online-resume-request";
 import { UploadAttachedResumeRequest } from "@/dtos/resume/upload-attached-resume-request";
 import IResumeService from "@/interfaces/resume/resume-interface";
-import { asyncLocalStorageMiddleware, validationMiddleware } from "@/common/middlewares";
+import { asyncLocalStorageMiddleware } from "@/common/middlewares";
 import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
 import { GET, route, PUT, before, inject, POST, DELETE } from "awilix-express";
 import { Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
 import { uploadFileMiddleware } from "@/common/middlewares/upload-middleware";
 
 @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
@@ -25,7 +24,6 @@ export class ResumeController {
         return res.status(response.status).json(response)
     }
 
-    @before(validationMiddleware(UpdateOnlineResumeRequest))
     @PUT()
     @route("/update-online-resume")
     async updateOnlineResume(req: Request, res: Response) {
@@ -36,7 +34,7 @@ export class ResumeController {
 
     @before([
         uploadFileMiddleware,
-        asyncLocalStorageMiddleware(), validationMiddleware(UploadAttachedResumeRequest, false, true, true)])
+        asyncLocalStorageMiddleware()])
     @POST()
     @route("/upload-attached-resume")
     async uploadAttachedResume(req: Request, res: Response) {
@@ -48,7 +46,7 @@ export class ResumeController {
 
     @before([
         uploadFileMiddleware,
-        asyncLocalStorageMiddleware(), validationMiddleware(UploadAttachedResumeRequest, false, false, true)])
+        asyncLocalStorageMiddleware()])
     @PUT()
     @route("/update-attached-resume")
     async updateAttachedResume(req: Request, res: Response) {

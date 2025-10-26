@@ -1,8 +1,7 @@
-import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { IJwtService, ITokenPayload } from "@/interfaces/auth/jwt-interface";
 import "dotenv/config";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { StatusCodes } from "http-status-codes";
+import { StatusCodes } from "../enums/status-code/status-code.enum";
 
 interface AuthenticateOptions {
   allowAnonymous?: boolean;
@@ -13,9 +12,8 @@ function AuthenticateMiddleware(
   options?: AuthenticateOptions
 ): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
-    let accessToken = "";
-    const cookies = req.cookies;
-    accessToken = cookies["accessToken"];
+    const authHeader = req.headers["authorization"];
+    const accessToken = authHeader && authHeader.split(" ")[1];
 
     if (!accessToken) {
       if (options?.allowAnonymous) {
@@ -25,13 +23,7 @@ function AuthenticateMiddleware(
 
       res.status(StatusCodes.UNAUTHORIZED).json({
         status: StatusCodes.UNAUTHORIZED,
-        error: {
-          message: "Không tìm thấy accessToken",
-          errorDetail: "Không tìm thấy accessToken",
-        },
-        success: false,
-        data: null,
-        ErrorMessages: ErrorMessages.UNAUTHORIZED,
+        message: "Can not find accessToken"
       });
       return;
     }
@@ -46,13 +38,7 @@ function AuthenticateMiddleware(
 
       res.status(StatusCodes.UNAUTHORIZED).json({
         status: StatusCodes.UNAUTHORIZED,
-        error: {
-          message: "Token không hợp lệ",
-          errorDetail: "Invalid token",
-        },
-        success: false,
-        data: null,
-        ErrorMessages: ErrorMessages.UNAUTHORIZED,
+        message: "Invalid token"
       });
       return;
     }

@@ -36,3 +36,8 @@ export enum EJobType {
   INTERN = 3,
   FREELANCE = 4,
 }
+
+export enum EResumeType {
+  ONLINE = 1,
+  ATTACHED = 2,
+}

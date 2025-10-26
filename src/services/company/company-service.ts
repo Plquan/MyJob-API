@@ -2,10 +2,8 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import { ICompanyData } from "@/dtos/company/CompanyDto";
 import ICompanyService from "@/interfaces/company/company-interface";
 import DatabaseService from "../common/database-service";
-import { StatusCodes } from "http-status-codes";
 import logger from "@/common/helpers/logger";
 import { HttpException } from "@/errors/http-exception";
-import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { plainToInstance } from "class-transformer";
 import { FileType } from "@/common/enums/file-type/file-types";
 import { MyJobFileDto } from "@/dtos/myjob-file/myjob-file-dto";
@@ -20,6 +18,7 @@ import { CompanyMapper } from "@/mappers/company/company-mapper";
 import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest } from "@/interfaces/company/company-dto";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { EAuthError } from "@/common/enums/error/EAuthError";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 
 export default class CompanyService implements ICompanyService {
     private readonly _context: DatabaseService
@@ -31,7 +30,7 @@ export default class CompanyService implements ICompanyService {
         try {
             const candidateId = getCurrentUser().candidateId
             if (!candidateId) {
-                throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED)
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate id not found")
             }
             const isFollowedCompany = await this._context.FollowedCompanyRepo.findOne({
                 where: { candidateId, companyId }
@@ -53,7 +52,7 @@ export default class CompanyService implements ICompanyService {
     async getCompanyDetail(companyId: number): Promise<ICompanyDetail> {
         try {
             if (!companyId) {
-                throw new HttpException(StatusCodes.NOT_FOUND, "Company id not found")
+                throw new HttpException(StatusCodes.NOT_FOUND,EGlobalError.InvalidInput, "Company id not found")
             }
             const company = await this._context.CompanyRepo
                 .createQueryBuilder('company')
@@ -64,7 +63,7 @@ export default class CompanyService implements ICompanyService {
                 .getOne();
 
             if (company == null) {
-                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound.toString())
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound,"Company not found")
             }
             return CompanyMapper.toCompanyWithJobsDto(company);
         } catch (error) {
@@ -77,11 +76,11 @@ export default class CompanyService implements ICompanyService {
     async uploadCompanyCoverImage(image: Express.Multer.File): Promise<IMyJobFileDto> {
         try {
             if (!image) {
-                throw new HttpException(StatusCodes.NOT_FOUND, ErrorMessages.INVALID_REQUEST_BODY)
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.InvalidInput,"Image not found")
             }
             const companyId = getCurrentUser().companyId
             if (!companyId) {
-                throw new HttpException(StatusCodes.FORBIDDEN, ErrorMessages.FORBIDDEN)
+                throw new HttpException(StatusCodes.FORBIDDEN, EGlobalError.UnauthorizedAccess,"CompanyId not found")
             }
             const companyImage = await this._context.MyJobFileRepo
                 .createQueryBuilder('myJobFile')
@@ -116,11 +115,11 @@ export default class CompanyService implements ICompanyService {
     async uploadCompanyLogo(image: Express.Multer.File): Promise<IMyJobFileDto> {
         try {
             if (!image) {
-                throw new HttpException(StatusCodes.NOT_FOUND, ErrorMessages.INVALID_REQUEST_BODY)
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.InvalidInput,"Images not found")
             }
             const companyId = getCurrentUser().companyId
             if (!companyId) {
-                throw new HttpException(StatusCodes.FORBIDDEN, ErrorMessages.FORBIDDEN)
+                throw new HttpException(StatusCodes.FORBIDDEN, EGlobalError.UnauthorizedAccess,"CompanyId not found")
             }
 
             const companyImage = await this._context.MyJobFileRepo
@@ -158,11 +157,11 @@ export default class CompanyService implements ICompanyService {
     async uploadCompanyImages(images: Express.Multer.File[]): Promise<MyJobFileDto[]> {
         try {
             if (!images) {
-                throw new HttpException(StatusCodes.BAD_GATEWAY, ErrorMessages.INVALID_REQUEST_BODY)
+                throw new HttpException(StatusCodes.BAD_GATEWAY, EGlobalError.InvalidInput,"Images not found")
             }
             const companyId = getCurrentUser().companyId
             if (!companyId) {
-                throw new HttpException(StatusCodes.FORBIDDEN, ErrorMessages.FORBIDDEN)
+                throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UnauthorizedAccess,"Company id not found")
             }
 
             let newFiles: MyJobFile[] = []
@@ -176,16 +175,13 @@ export default class CompanyService implements ICompanyService {
                 newFiles.push(MyjobFileMapper.toMyJobFileFromCreate(result, FileType.COMPANY_IMAGE));
             }
             const savedFiles = await this._context.MyJobFileRepo.save(newFiles);
-
             for (const file of savedFiles) {
                 const companyFile = new CompanyImage()
                 companyFile.companyId = companyId,
                     companyFile.imageId = file.id
                 newCompanyFiles.push(companyFile);
             }
-
             await this._context.CompanyImageRepo.save(newCompanyFiles);
-
             const myJobFiledtos = plainToInstance(MyJobFileDto, savedFiles, { excludeExtraneousValues: true });
             return myJobFiledtos;
         } catch (error) {
@@ -208,7 +204,7 @@ export default class CompanyService implements ICompanyService {
     async getCompanyById(companyId: number): Promise<ICompanyWithImagesDto> {
         try {
             if (!companyId) {
-                throw new HttpException(StatusCodes.NOT_FOUND, "Company id not found")
+                throw new HttpException(StatusCodes.NOT_FOUND ,EGlobalError.InvalidInput,"Company id not found")
             }
             const company = await this._context.CompanyRepo
                 .createQueryBuilder('company')
@@ -218,7 +214,7 @@ export default class CompanyService implements ICompanyService {
                 .getOne();
 
             if (company == null) {
-                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound.toString())
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound,"Company not found")
             }
             return CompanyMapper.toCompanyWithImagesDto(company);
         } catch (error) {

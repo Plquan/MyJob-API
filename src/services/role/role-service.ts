@@ -1,11 +1,11 @@
 import IRoleService from "@/interfaces/role/role-interface";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/database-service";
-import { StatusCodes } from "http-status-codes";
 import logger from "@/common/helpers/logger";
 import { ICreateRoleData, IUpdateRoleData, IUpdateRolePermission } from "@/dtos/role/role-dto";
 import { Permission } from "@/entities/permission";
 import { In } from "typeorm";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 
 export default class RoleService implements IRoleService {
     private readonly _context: DatabaseService

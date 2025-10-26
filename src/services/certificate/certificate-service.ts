@@ -2,11 +2,12 @@ import logger from "@/common/helpers/logger";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import { ICreateCertificateData, IUpdateCertificateData } from "@/dtos/certificate/certificate-dto";
 import ICertificateService from "@/interfaces/certificate/certificate-interface";
-import { StatusCodes } from "http-status-codes";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import { VariableSystem } from "@/common/constants/VariableSystem";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
+import { EResumeType } from "@/common/enums/resume/resume-enum";
 
 
 export default class CertificateService implements ICertificateService {
@@ -83,7 +84,7 @@ export default class CertificateService implements ICertificateService {
 
         const onlineResume = await this._context.ResumeRepo.findOne({
           where: {
-            type: VariableSystem.CV_TYPE.CV_ONLINE,
+            type: EResumeType.ONLINE,
             candidate: { userId },
           }
         })

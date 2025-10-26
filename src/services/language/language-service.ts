@@ -4,9 +4,10 @@ import { ICreateLanguageData, IUpdateLanguageData } from "@/dtos/language/langua
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import logger from "@/common/helpers/logger";
-import { StatusCodes } from "http-status-codes";
 import { VariableSystem } from "@/common/constants/VariableSystem";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
+import { EResumeType } from "@/common/enums/resume/resume-enum";
 
 export default class LanguageService implements ILanguageService {
 
@@ -75,7 +76,7 @@ export default class LanguageService implements ILanguageService {
            
           const onlineResume = await this._context.ResumeRepo.findOne({
             where: {
-              type: VariableSystem.CV_TYPE.CV_ONLINE,
+              type: EResumeType.ONLINE,
               candidate: { userId },
             }
           })

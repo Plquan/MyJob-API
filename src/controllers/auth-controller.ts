@@ -16,14 +16,7 @@ export class AuthController {
   @route("/login/candidate")
   async candidateLogin(req: Request, res: Response) {
     const loginData: ILoginData = req.body;
-    const setTokensToCookie = (accessToken: string, refreshToken: string) => {
-      res.cookie("accessToken", accessToken, {
-        secure: true,
-        sameSite: "none",
-        httpOnly: true,
-        maxAge: Number(ENV.ACCESS_TOKEN_EXPIRES_IN) * 1000,
-      });
-
+    const setTokenToCookie = (refreshToken: string) => {
       res.cookie("refreshToken", refreshToken, {
         secure: true,
         sameSite: "none",
@@ -31,8 +24,8 @@ export class AuthController {
         maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
       });
     };
-    const response = await this._authService.candidateLogin(loginData, setTokensToCookie);
-    res.status(response.status).json(response);
+    const response = await this._authService.candidateLogin(loginData, setTokenToCookie);
+    res.status(200).json(response);
   }
 
   @POST()
@@ -40,14 +33,7 @@ export class AuthController {
   async companyLogin(req: Request, res: Response) {
     try {
       const loginData: ILoginData = req.body;
-      const setTokensToCookie = (accessToken: string, refreshToken: string) => {
-        res.cookie("accessToken", accessToken, {
-          secure: true,
-          sameSite: "none",
-          httpOnly: true,
-          maxAge: Number(ENV.ACCESS_TOKEN_EXPIRES_IN) * 1000,
-        });
-
+      const setTokenToCookie = ( refreshToken: string) => {
         res.cookie("refreshToken", refreshToken, {
           secure: true,
           sameSite: "none",
@@ -55,18 +41,18 @@ export class AuthController {
           maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
         });
       };
-      const response = await this._authService.companyLogin(loginData, setTokensToCookie);
-      res.status(response.status).json(response);
+      const response = await this._authService.employerLogin(loginData, setTokenToCookie);
+      res.status(200).json(response);
     } catch (error) {
       throw error
     }
   }
 
   @POST()
-  @route("/register/company")
+  @route("/register/employer")
   async companyRegister(req: Request, res: Response) {
-    const registerData: ICompanyRegisterData = req.body;
-    const response = await this._authService.companyRegister(registerData);
+    const data = req.body;
+    const response = await this._authService.employerRegister(data);
     res.status(201).json(response);
   }
 
@@ -75,7 +61,7 @@ export class AuthController {
   async candidateRegister(req: Request, res: Response) {
     const registerData: ICandidateRegisterData = req.body;
     const response = await this._authService.candidateRegister(registerData);
-    res.status(response.status).json(response);
+    res.status(201).json(response);
   }
 
   @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
@@ -90,14 +76,7 @@ export class AuthController {
   @route("/refresh-token")
   async refreshToken(req: Request, res: Response) {
     const token = req.cookies['refreshToken'];
-    const setTokensToCookie = (accessToken: string, refreshToken: string) => {
-      res.cookie("accessToken", accessToken, {
-        secure: true,
-        sameSite: "none",
-        httpOnly: true,
-        maxAge: Number(ENV.ACCESS_TOKEN_EXPIRES_IN) * 1000,
-      });
-
+    const setTokenToCookie = ( refreshToken: string) => {
       res.cookie("refreshToken", refreshToken, {
         secure: true,
         sameSite: "none",
@@ -105,7 +84,7 @@ export class AuthController {
         maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
       });
     };
-    const response = await this._authService.refreshToken(token, setTokensToCookie)
-    res.status(response.status).json(response);
+    const response = await this._authService.refreshToken(token, setTokenToCookie)
+    res.status(200).json(response);
   }
 }

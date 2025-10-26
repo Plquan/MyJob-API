@@ -4,7 +4,6 @@ import DatabaseService from "../common/database-service"
 import { LocalStorage } from "@/common/constants/local-storage"
 import { VariableSystem } from "@/common/constants/VariableSystem"
 import logger from "@/common/helpers/logger"
-import { StatusCodes } from "http-status-codes"
 import CloudinaryService from "../common/cloudinary-service"
 import { MyJobFile } from "@/entities/myjob-file"
 import { Resume } from "@/entities/resume"
@@ -15,6 +14,8 @@ import { RequestStorage } from "@/common/middlewares/async-local-storage"
 import { UpdateAttachedResumeRequest } from "@/dtos/resume/update-attached-resume-request"
 import { UploadAttachedResumeRequest } from "@/dtos/resume/upload-attached-resume-request"
 import { UpdateOnlineResumeRequest } from "@/dtos/resume/update-online-resume-request"
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum"
+import { EResumeType } from "@/common/enums/resume/resume-enum"
 
 
 export default class ResumeService implements IResumeService {
@@ -157,7 +158,6 @@ export default class ResumeService implements IResumeService {
       }
     }
     async uploadAttachedResume(data: UploadAttachedResumeRequest, file: Express.Multer.File): Promise<IResponseBase> {
-
       const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
       const userId = request?.user.id
 
@@ -304,7 +304,7 @@ export default class ResumeService implements IResumeService {
 
         const onlineResume = await this._context.ResumeRepo.findOne({
           where: {
-            type: VariableSystem.CV_TYPE.CV_ONLINE,
+            type: EResumeType.ONLINE,
             candidate: { userId },
           },
           relations: [

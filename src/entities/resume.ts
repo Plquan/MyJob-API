@@ -19,7 +19,7 @@ import { Certificate } from './certificate';
 import { JobPostActivity } from './job-post-activity';
 import { MyJobFile } from './myjob-file';
 import { Skill } from './skill';
-import { EAcademicLevel, EExperience, EJobType, EPosition, ETypeOfWorkplace } from '../common/enums/resume/resume-enum';
+import { EAcademicLevel, EExperience, EJobType, EPosition, EResumeType, ETypeOfWorkplace } from '../common/enums/resume/resume-enum';
 
 @Entity('resumes')
 export class Resume {
@@ -65,8 +65,8 @@ export class Resume {
   @Column({ type: 'enum', enum: EJobType,nullable: true })
   jobType?: EJobType;
 
-  @Column({ type: 'varchar', length: 10})
-  type!: string;
+  @Column({ type: 'enum', enum: EResumeType})
+  type!: EResumeType;
 
   @Column({ type: 'boolean', default: false })
   selected!: boolean;

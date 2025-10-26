@@ -1,7 +1,6 @@
 import { LocalStorage } from "@/common/constants/local-storage";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import ICandidateService from "@/interfaces/candidate/candidate-interface";
-import { StatusCodes } from "http-status-codes";
 import DatabaseService from "../common/database-service";
 import logger from "@/common/helpers/logger";
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
@@ -10,6 +9,8 @@ import { User } from "@/entities/user";
 import { EntityManager } from "typeorm";
 import { ICandidateData } from "@/dtos/candidate/candidate-dto";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
+import { EResumeType } from "@/common/enums/resume/resume-enum";
 
 export default class CandidateService implements ICandidateService {
 
@@ -130,7 +131,7 @@ export default class CandidateService implements ICandidateService {
             this._context.ResumeRepo.create({
               candidate: newCandidateProfile,
               selected:true,
-              type: VariableSystem.CV_TYPE.CV_ONLINE,
+              type: EResumeType.ONLINE,
             })
           )
 

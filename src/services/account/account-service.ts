@@ -2,13 +2,13 @@ import IAccountService from "@/interfaces/account/account-interface";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import CloudinaryService from "../common/cloudinary-service";
 import logger from "@/common/helpers/logger";
-import { StatusCodes } from "http-status-codes";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import { VariableSystem } from "@/common/constants/VariableSystem";
 import { console } from "inspector";
 import { CloudinaryResourceType } from "@/common/constants/cloudinary-resource-type";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 
 export default class AccountService implements IAccountService {
 

@@ -2,7 +2,7 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import ICareerService from "@/interfaces/career/career-interface";
 import DatabaseService from "../common/database-service";
 import logger from "@/common/helpers/logger";
-import { StatusCodes } from "http-status-codes";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 
 
 export default class CareerService implements ICareerService {

@@ -1,4 +1,5 @@
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { HttpException } from "@/errors/http-exception";
 import IProvinceService from "@/interfaces/province/province-interface";
 import { GET, route } from "awilix-express";
@@ -28,7 +29,7 @@ export class ProvinceController {
     try {
       const provinceId = parseInt(req.params.provinceId);
       if (!provinceId) {
-        throw new HttpException(400, ErrorMessages.INVALID_REQUEST_BODY)
+        throw new HttpException(400, EGlobalError.InvalidInput,"Province id not found")
       }
       const response = await this._provinceService.getDistrictsByProvince(provinceId);
       return res.status(200).json(response);

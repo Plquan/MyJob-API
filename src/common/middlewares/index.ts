@@ -1,9 +1,8 @@
 import { IJwtService } from "@/interfaces/auth/jwt-interface";
 import { asyncLocalStorageMiddleware } from "./async-local-storage";
-import validationMiddleware from "./validation-middleware";
 import AuthenticateMiddleware from "./authenticate-middleware";
 export {
-    asyncLocalStorageMiddleware, validationMiddleware
+    asyncLocalStorageMiddleware
 };
 
 export const Auth = {

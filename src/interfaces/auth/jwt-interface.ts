@@ -1,8 +1,10 @@
+import { EUserRole } from "@/common/enums/user/user-role-enum"
+
 export interface ITokenPayload {
     userId: number
     tokenId?:string
     fullName: string
-    roleName: string
+    roleName: EUserRole
     isStaff: boolean
     isSuperUser: boolean
     companyId?: number

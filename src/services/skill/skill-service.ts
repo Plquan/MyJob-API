@@ -2,11 +2,12 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import logger from "@/common/helpers/logger";
-import { StatusCodes } from "http-status-codes";
 import { VariableSystem } from "@/common/constants/VariableSystem";
 import ISkillService from "@/interfaces/skill/skill-interface";
 import { ICreateSkillData, IUpdateSkillData } from "@/dtos/skill/skill-dto";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
+import { EResumeType } from "@/common/enums/resume/resume-enum";
 
 
 export default class SkillService implements ISkillService {
@@ -76,7 +77,7 @@ export default class SkillService implements ISkillService {
            
           const onlineResume = await this._context.ResumeRepo.findOne({
             where: {
-              type: VariableSystem.CV_TYPE.CV_ONLINE,
+              type: EResumeType.ONLINE,
               candidate: { userId },
             }
           })

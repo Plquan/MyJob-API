@@ -1,7 +1,5 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase"
 import IProvinceService from "@/interfaces/province/province-interface"
 import DatabaseService from "../common/database-service"
-import { StatusCodes } from "http-status-codes"
 import { Province } from "@/entities/province"
 import { District } from "@/entities/district"
 

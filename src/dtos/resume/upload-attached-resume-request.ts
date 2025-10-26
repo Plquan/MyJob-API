@@ -1,4 +1,5 @@
 import { VariableSystem } from '@/common/constants/VariableSystem';
+import { EResumeType } from '@/common/enums/resume/resume-enum';
 import { IsNumber, IsOptional, IsString, IsDefined, Min, Max } from 'class-validator';
 
 export class UploadAttachedResumeRequest {
@@ -56,8 +57,7 @@ export class UploadAttachedResumeRequest {
   @IsOptional()
   jobType?: number;
 
-  @IsString()
   @IsOptional()
-  type: string = VariableSystem.CV_TYPE.CV_ATTACHED;
+  type: EResumeType;
 
 }

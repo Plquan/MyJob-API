@@ -2,7 +2,6 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import IUserService from "@/interfaces/user/user-interface";
 import DatabaseService from "../common/database-service";
 import logger from "@/common/helpers/logger";
-import { StatusCodes } from "http-status-codes";
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { ICreateUser, IUpdateUser, IUserFilter } from "@/dtos/user/user-dto";
 import Extensions from "@/common/ultils/extension";
@@ -11,6 +10,7 @@ import { SelectQueryBuilder } from "typeorm";
 import IRoleService from "@/interfaces/role/role-interface";
 import { GroupRole } from "@/entities/group-role";
 import { CreateUserRequest } from "@/dtos/user/create-user-request";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 
 export default class UserService implements IUserService {
     private readonly _context: DatabaseService

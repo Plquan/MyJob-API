@@ -1,6 +1,5 @@
 import logger from "@/common/helpers/logger";
 import IPackageService from "@/interfaces/package/package-interface";
-import { StatusCodes } from "http-status-codes";
 import DatabaseService from "@/services/common/database-service";
 import { ICreatePackageRequest, IPackageDto, IUpdatePackageRequest } from "@/interfaces/package/package-dto";
 import PackageMapper from "@/mappers/package/package-mapper";
@@ -9,6 +8,8 @@ import { getCurrentUser } from "@/common/helpers/get-current-user";
 import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { Package } from "@/entities/package";
 import { PackageUsage } from "@/entities/package-usage";
+import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
 export default class PackageService implements IPackageService {
     private readonly _context: DatabaseService
@@ -32,7 +33,7 @@ export default class PackageService implements IPackageService {
     async createPackage(data: ICreatePackageRequest): Promise<IPackageDto> {
         try {
             if (!data.name || !data.price || !data.durationInDays) {
-                throw new HttpException(StatusCodes.BAD_REQUEST, "Invalid input")
+                throw new HttpException(StatusCodes.BAD_REQUEST,EGlobalError.InvalidInput, "Invalid input")
             }
             const newPackage = this._context.PackageRepo.create(data)
             await this._context.PackageRepo.save(newPackage)
@@ -46,13 +47,13 @@ export default class PackageService implements IPackageService {
     async updatePackage(data: IUpdatePackageRequest): Promise<IPackageDto> {
         try {
             if (!data.id) {
-                throw new HttpException(StatusCodes.BAD_REQUEST, "Invalid input")
+                throw new HttpException(StatusCodes.BAD_REQUEST,EGlobalError.InvalidInput, "Invalid input")
             }
             const existingPackage = await this._context.PackageRepo.findOne({
                 where: { id: data.id }
             })
             if (!existingPackage) {
-                throw new HttpException(StatusCodes.NOT_FOUND, "Package not found");
+                throw new HttpException(StatusCodes.NOT_FOUND,EGlobalError.ResourceNotFound, "Package not found");
             }
             const updatedPackage = this._context.PackageRepo.merge(existingPackage, data)
             await this._context.PackageRepo.save(updatedPackage)
@@ -67,13 +68,13 @@ export default class PackageService implements IPackageService {
     async deletePackage(packageId: number): Promise<boolean> {
         try {
             if (!packageId) {
-                throw new HttpException(StatusCodes.BAD_REQUEST, "Invalid input")
+                throw new HttpException(StatusCodes.BAD_REQUEST,EGlobalError.InvalidInput, "Invalid input")
             }
             const existingPackage = await this._context.PackageRepo.findOne({
                 where: { id: packageId }
             })
             if (!existingPackage) {
-                throw new HttpException(StatusCodes.NOT_FOUND, "Package not found");
+                throw new HttpException(StatusCodes.NOT_FOUND,EGlobalError.ResourceNotFound, "Package not found");
             }
             await this._context.PackageRepo.remove(existingPackage)
             return true
@@ -89,14 +90,14 @@ export default class PackageService implements IPackageService {
             return await dataSource.transaction(async (manager) => {
                 const companyId = getCurrentUser().companyId;
                 if (!companyId) {
-                    throw new HttpException(StatusCodes.UNAUTHORIZED, ErrorMessages.UNAUTHORIZED);
+                    throw new HttpException(StatusCodes.UNAUTHORIZED,EGlobalError.InvalidInput, ErrorMessages.UNAUTHORIZED);
                 }
                 const [existingPackage, existingPackageUsage] = await Promise.all([
                     manager.getRepository(Package).findOne({ where: { id: packageId } }),
                     manager.getRepository(PackageUsage).findOne({ where: { companyId } }),
                 ]);
                 if (!existingPackage) {
-                    throw new HttpException(StatusCodes.NOT_FOUND, ErrorMessages.NOT_FOUND);
+                    throw new HttpException(StatusCodes.NOT_FOUND,EGlobalError.ResourceNotFound, ErrorMessages.NOT_FOUND);
                 }
                 const packageUsageData = PackageMapper.toCreatePackageUsage(existingPackage, companyId);
                 if (existingPackageUsage) {

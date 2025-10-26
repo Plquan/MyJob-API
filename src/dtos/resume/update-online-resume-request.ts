@@ -1,3 +1,4 @@
+import { EResumeType } from '@/common/enums/resume/resume-enum';
 import {
   IsBoolean,
   IsDefined,
@@ -58,9 +59,8 @@ export class UpdateOnlineResumeRequest {
   @IsOptional()
   jobType?: number;
 
-  @IsString()
   @IsOptional()
-  type?: string;
+  type?: EResumeType;
 
   @IsBoolean()
   @IsDefined()
