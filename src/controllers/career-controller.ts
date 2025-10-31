@@ -4,9 +4,7 @@ import { Request, Response } from "express";
 
 @route("/career")
 export class CareerController {
-    
     private readonly _careerService:ICareerService
-
     constructor(CareerService:ICareerService){
         this._careerService = CareerService
     }

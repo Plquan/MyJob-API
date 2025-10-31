@@ -17,7 +17,7 @@ export class CertificateController {
     @route("/get-certificates")
     async getAllCertificates(req: Request, res:Response) {
         const response = await this._certificateService.getAllCertificates()
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @POST()
@@ -25,7 +25,7 @@ export class CertificateController {
     async createCertificate(req: Request, res:Response) {
         const data = req.body
         const response = await this._certificateService.createCertificate(data)
-        res.status(response.status).json(response)
+        res.status(201).json(response)
     }
 
     @PUT()
@@ -33,7 +33,7 @@ export class CertificateController {
     async updateCertificate(req: Request, res:Response) {
         const data = req.body
         const response = await this._certificateService.updateCertificate(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @DELETE()
@@ -41,7 +41,7 @@ export class CertificateController {
     async deleteCertificate(req: Request, res:Response) {
         const certificateId = parseInt(req.params.certificateId);
         const response = await this._certificateService.deleteCertificate(certificateId)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
 }

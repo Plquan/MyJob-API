@@ -1,10 +1,9 @@
-
 import ISkillService from "@/interfaces/skill/skill-interface"
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware"
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request, Response } from "express"
+import { Auth } from "@/common/middlewares"
 
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+@before(inject(Auth.required))
 @route("/skill")
 export class SkillController {
 

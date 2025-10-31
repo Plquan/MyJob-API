@@ -1,9 +1,9 @@
-import { ICandidateRegisterData, ICompanyRegisterData, ILoginData, } from "@/dtos/auth/auth-dto";
+import { ICandidateRegisterData, ILoginData, } from "@/dtos/auth/auth-dto";
 import IAuthService from "@/interfaces/auth/auth-interface";
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
-import { before, GET, inject, POST, PUT, route } from "awilix-express";
+import { before, GET, inject, POST, route } from "awilix-express";
 import { Request, Response } from "express";
 import { ENV } from "@/common/constants/env";
+import { Auth } from "@/common/middlewares";
 
 @route('/auth')
 export class AuthController {
@@ -64,12 +64,12 @@ export class AuthController {
     res.status(201).json(response);
   }
 
-  @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+  @before(inject(Auth.required))
   @GET()
   @route("/get-me")
   async getMe(req: Request, res: Response) {
     const response = await this._authService.getMe();
-    res.status(response.status).json(response);
+    res.status(200).json(response);
   }
 
   @POST()

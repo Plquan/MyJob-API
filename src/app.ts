@@ -27,7 +27,6 @@ class Application {
   }
     start() {
       const port = process.env.APP_PORT || 5001
-
       this.server.app.use(cors(corsConfig))
       this.server.app.use(cookieParser())
       this.server.app.use(bodyParser.json())
@@ -40,7 +39,6 @@ class Application {
       this.serverInstance = this.server.app.listen(port, () =>
         console.log(`Server is running at http://localhost:${port}`)
       )
-
     }
 
   close() {

@@ -1,4 +1,5 @@
 
+import { EUserRole } from "@/common/enums/user/user-role-enum";
 import { ICompanyData } from "../company/CompanyDto";
 
 export interface ILoginData {
@@ -50,11 +51,14 @@ export interface IFunctionByRole {
 
 export interface ICurrentUser {
   id: number;
+  email: string;
   fullName: string;
-  roleName: string;
-  function: string[]
-  isSuperUser:boolean
-  accessToken: string;
+  roleName: EUserRole;          
+  isStaff: boolean;
+  isActive: boolean;
+  allowSearch: boolean;        
+  avatar?: string | null;     
+  companyId?: number | null;    
 }
 
 export interface  IUserClaim {

@@ -1,14 +1,10 @@
-import { ErrorMessages } from "@/common/constants/ErrorMessages";
-import { UpdateOnlineResumeRequest } from "@/dtos/resume/update-online-resume-request";
-import { UploadAttachedResumeRequest } from "@/dtos/resume/upload-attached-resume-request";
 import IResumeService from "@/interfaces/resume/resume-interface";
-import { asyncLocalStorageMiddleware } from "@/common/middlewares";
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
+import { asyncLocalStorageMiddleware, Auth } from "@/common/middlewares";
 import { GET, route, PUT, before, inject, POST, DELETE } from "awilix-express";
 import { Request, Response } from "express";
 import { uploadFileMiddleware } from "@/common/middlewares/upload-middleware";
 
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+@before(inject(Auth.required))
 @route("/resume")
 export class ResumeController {
     private readonly _resumeService: IResumeService
@@ -21,7 +17,7 @@ export class ResumeController {
     @route("/get-online-resume")
     async getCandidateOnlineResume(req: Request, res: Response) {
         const response = await this._resumeService.getOnlineResume()
-        return res.status(response.status).json(response)
+        return res.status(200).json(response)
     }
 
     @PUT()

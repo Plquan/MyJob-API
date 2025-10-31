@@ -1,4 +1,4 @@
-import { ICandidateRegisterData, ICompanyRegisterData } from "@/dtos/auth/auth-dto";
+import { ICandidateRegisterData, ICompanyRegisterData, ICurrentUser } from "@/dtos/auth/auth-dto";
 import IAuthService from "@/interfaces/auth/auth-interface";
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/database-service";
@@ -13,6 +13,8 @@ import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { EAuthError } from "@/common/enums/error/EAuthError";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { EResumeType } from "@/common/enums/resume/resume-enum";
+import { Company } from "@/entities/company";
+import { User } from "@/entities/user";
 
 export default class AuthService implements IAuthService {
   private readonly _jwtService: IJwtService
@@ -101,6 +103,45 @@ export default class AuthService implements IAuthService {
       throw error
     }
   }
+  async candidateRegister(candidateRegister: ICandidateRegisterData): Promise<boolean> {
+    if (!candidateRegister.email || !candidateRegister.fullName || !candidateRegister.password) {
+      throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
+    }
+    const checkEmail = await this._context.UserRepo.count({
+      where: { email: candidateRegister.email },
+    });
+
+    if (checkEmail) {
+      throw new HttpException(StatusCodes.CONFLICT, EGlobalError.ConflictError, "Email existed")
+    }
+    const dataSource = this._context.getDataSource()
+    try {
+      await dataSource.transaction(async (manager) => {
+        const hashPassword = Extensions.hashPassword(candidateRegister.password)
+        const newUser = await manager.save(this._context.UserRepo.create({
+          email: candidateRegister.email,
+          fullName: candidateRegister.fullName,
+          password: hashPassword,
+          isActive: true,
+          roleName: EUserRole.CANDIDATE,
+        }))
+        const newCandidateProfile = await manager.save(
+          this._context.CandidateRepo.create({ user: newUser })
+        );
+        await manager.save(
+          this._context.ResumeRepo.create({
+            candidate: newCandidateProfile,
+            selected: true,
+            type: EResumeType.ONLINE,
+          })
+        )
+      })
+      return true
+    } catch (error: any) {
+      console.log(`Error in AuthService - candidateRegister transaction: ${error?.message}`);
+      throw error;
+    }
+  }
   async employerLogin(loginRequest: LoginRequest, setTokensToCookie: (refreshToken: string) => void): Promise<string> {
     try {
       const user = await this._context.UserRepo.findOne({
@@ -150,73 +191,40 @@ export default class AuthService implements IAuthService {
       throw error
     }
   }
-  async candidateRegister(candidateRegister: ICandidateRegisterData): Promise<boolean> {
-    if (!candidateRegister.email || !candidateRegister.fullName || !candidateRegister.password) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
-    }
-    const checkEmail = await this._context.UserRepo.count({
-      where: { email: candidateRegister.email },
-    });
-
-    if (checkEmail) {
-      throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ConflictError, "Email existed")
-    }
-    const dataSource = this._context.getDataSource()
+  async employerRegister(companyRegister: ICompanyRegisterData): Promise<boolean> {
+    const dataSource = this._context.getDataSource();
     try {
-      await dataSource.transaction(async (manager) => {
-        const hashPassword = Extensions.hashPassword(candidateRegister.password)
-        const newUser = await manager.save(this._context.UserRepo.create({
-          email: candidateRegister.email,
-          fullName: candidateRegister.fullName,
+      return await dataSource.transaction(async (manager) => {
+        const checkEmail = await manager.count(User, {
+          where: { email: companyRegister.email }
+        });
+        if (checkEmail) {
+          throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists, "Email existed");
+        }
+
+        const hashPassword = Extensions.hashPassword(companyRegister.password);
+
+        const newUser = manager.create(User, {
+          email: companyRegister.email,
+          fullName: companyRegister.fullName,
           password: hashPassword,
           isActive: true,
-          roleName: EUserRole.CANDIDATE,
-        }))
-        const newCandidateProfile = await manager.save(
-          this._context.CandidateRepo.create({ user: newUser })
-        );
-        await manager.save(
-          this._context.ResumeRepo.create({
-            candidate: newCandidateProfile,
-            selected: true,
-            type: EResumeType.ONLINE,
-          })
-        )
-      })
-      return true
+          roleName: EUserRole.EMPLOYER,
+        });
+
+        await manager.save(User, newUser);
+        companyRegister.companyInfo.userId = newUser.id;
+        const companyInfo = manager.create(Company, companyRegister.companyInfo);
+        await manager.save(Company, companyInfo);
+        return true;
+      });
     } catch (error: any) {
-      console.log(`Error in AuthService - candidateRegister transaction: ${error?.message}`);
+      logger.error(error?.message);
+      console.log(`Error in AuthService - employerRegister: ${error?.message}`);
       throw error;
     }
   }
-  async employerRegister(companyRegister: ICompanyRegisterData): Promise<boolean> {
-    try {
-      const checkEmail = await this._context.UserRepo.count({
-        where: { email: companyRegister.email }
-      })
-      if (checkEmail) {
-        throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists, "Email existed")
-      }
-      const hashPassword = Extensions.hashPassword(companyRegister.password);
-      const registerData = {
-        email: companyRegister.email,
-        fullName: companyRegister.fullName,
-        password: hashPassword,
-        isActive: true,
-        roleName: EUserRole.EMPLOYER,
-      }
-      const newUser = await this._context.UserRepo.save(registerData);
-      companyRegister.companyInfo.userId = newUser.id
-      const companyInfo = await this._context.CompanyRepo.create(companyRegister.companyInfo)
-      await this._context.CompanyRepo.save(companyInfo)
-      return true
-    } catch (error) {
-      logger.error(error?.message);
-      console.log(`Error in AuthService - method employer register  with message ${error?.message}`);
-    }
-  }
-
-  async getMe(): Promise<IResponseBase> {
+  async getMe(): Promise<ICurrentUser> {
     try {
       const userId = getCurrentUser().id
       if (!userId) {
@@ -247,28 +255,13 @@ export default class AuthService implements IAuthService {
       }
 
       if (!user) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          success: false,
-          message: "Không tìm thấy thông tin người dùng",
-          data: user
-        };
+       throw new HttpException(StatusCodes.NOT_FOUND,EAuthError.UserNotFound,"User not found")
       }
-
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        data: currentUser,
-      };
-
+      return currentUser
     } catch (error: any) {
       logger.error(error?.message);
       console.log(`Error in AuthService - method getMe()  with message ${error?.message}`);
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Có lỗi xảy ra khi lấy thông tin tài khoản, vui lòng thử lại sau",
-      }
+      throw error
     }
   }
 }

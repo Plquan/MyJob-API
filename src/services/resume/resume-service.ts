@@ -16,6 +16,8 @@ import { UploadAttachedResumeRequest } from "@/dtos/resume/upload-attached-resum
 import { UpdateOnlineResumeRequest } from "@/dtos/resume/update-online-resume-request"
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum"
 import { EResumeType } from "@/common/enums/resume/resume-enum"
+import { HttpException } from "@/errors/http-exception"
+import { EAuthError } from "@/common/enums/error/EAuthError"
 
 
 export default class ResumeService implements IResumeService {
@@ -295,11 +297,7 @@ export default class ResumeService implements IResumeService {
         const userId = request?.user?.id;
 
         if (!userId) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Bạn không có quyền truy cập",
-          }
+          throw new HttpException(StatusCodes.UNAUTHORIZED,EAuthError.UnauthorizedAccess,"User id not found")
         }
 
         const onlineResume = await this._context.ResumeRepo.findOne({

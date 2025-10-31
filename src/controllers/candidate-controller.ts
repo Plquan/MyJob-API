@@ -1,9 +1,8 @@
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
+import { Auth } from "@/common/middlewares";
 import ICandidateService from "@/interfaces/candidate/candidate-interface";
 import { before, GET, inject, PUT, route } from "awilix-express";
 import { Request, Response } from "express";
-
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+@before(inject(Auth.required))
 @route('/candidate')
 export class CandidateController {
     private readonly _candidateService: ICandidateService

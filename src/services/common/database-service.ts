@@ -1,7 +1,6 @@
 import { DataSource, Repository, QueryRunner} from "typeorm";
 import logger from "@/common/helpers/logger";
 import { ENV } from "@/common/constants/env";
-
 import { User } from "@/entities/user";
 import { SavedJobPost } from "@/entities/saved-job-post";
 import { Resume } from "@/entities/resume";
@@ -20,7 +19,6 @@ import { GroupRole } from "@/entities/group-role";
 import { JobPostActivity } from "@/entities/job-post-activity";
 import { JobPost } from "@/entities/job-post";
 import { Language } from "@/entities/language";
-
 import dataSource from "@/ormconfig";
 import { RefreshToken } from "@/entities/refresh-token";
 import { Role } from "@/entities/role";
@@ -33,7 +31,6 @@ import { CompanyImage } from "@/entities/company-image";
 
 class DatabaseService {
   private _dataSource: DataSource;
-
   public UserRepo: Repository<User>;
   public SavedJobPostRepo: Repository<SavedJobPost>;
   public ResumeRepo: Repository<Resume>;
@@ -64,7 +61,6 @@ class DatabaseService {
 
   constructor() {
     this._dataSource = dataSource;
-
     this.UserRepo = this._dataSource.getRepository(User);
     this.SavedJobPostRepo = this._dataSource.getRepository(SavedJobPost);
     this.ResumeRepo = this._dataSource.getRepository(Resume);

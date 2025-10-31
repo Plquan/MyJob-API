@@ -1,6 +1,4 @@
-
-import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
+import { Auth } from "@/common/middlewares";
 import { IGetJobPostsReqParams } from "@/interfaces/jobPost/job-post-dto";
 import IJobPostService from "@/interfaces/jobPost/job-post-interface";
 import { before, GET, inject, POST, PUT, route } from "awilix-express";
@@ -12,7 +10,7 @@ export class JobPostController {
   constructor(JobPostService: IJobPostService) {
     this._jobPostService = JobPostService
   }
-  @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+  @before(inject(Auth.required))
   @POST()
   async createJobPost(req: Request, res: Response) {
     const data = req.body
@@ -20,7 +18,7 @@ export class JobPostController {
     res.status(201).json(response)
   }
 
-  @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+  @before(inject(Auth.required))
   @GET()
   @route("/get-company-job-posts")
   async getCompanyJobPosts(req: Request, res: Response) {
@@ -35,7 +33,7 @@ export class JobPostController {
     const response = await this._jobPostService.getCompanyJobPosts(params);
     res.status(200).json(response)
   }
-  @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+  @before(inject(Auth.required))
   @PUT()
   async updateJobPost(req: Request, res: Response) {
     const data = req.body

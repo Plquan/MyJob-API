@@ -1,10 +1,9 @@
-
 import ILanguageService from "@/interfaces/language/language-interface"
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware"
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request, Response } from "express"
+import { Auth } from "@/common/middlewares"
 
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+@before(inject(Auth.required))
 @route("/language")
 export class LanguageController {
 

@@ -1,23 +1,18 @@
-import { CreateUserRequest } from "@/dtos/user/create-user-request";
 import IUserService from "@/interfaces/user/user-interface";
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware";
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express";
-import { Response,Request } from "express";
-
-
+import { Response, Request } from "express";
+import { Auth } from "@/common/middlewares";
 @route('/user')
 export class UserController {
-    
     private readonly _userService: IUserService
-
     constructor(UserService: IUserService) {
         this._userService = UserService;
     }
-    
+
     @POST()
     @route("/get-all-users")
-       @before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
-    async getAllUsers(req: Request, res: Response){
+    @before(inject(Auth.required))
+    async getAllUsers(req: Request, res: Response) {
         const data = req.body;
         const response = await this._userService.getAllUsers(data);
         return res.status(response.status).json(response);
@@ -55,4 +50,4 @@ export class UserController {
     }
 
 
- }
+}

@@ -1,15 +1,12 @@
 
 import IEducationService from "@/interfaces/education/education-interface"
-import AuthenticateMiddleware from "@/common/middlewares/authenticate-middleware"
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request, Response } from "express"
-
-@before(inject((JwtService) => AuthenticateMiddleware(JwtService)))
+import { Auth } from "@/common/middlewares"
+@before(inject(Auth.required))
 @route("/education")
 export class EducationController {
-
     private readonly _educationService: IEducationService
-    
     constructor(EducationService: IEducationService){
         this._educationService = EducationService
     }
