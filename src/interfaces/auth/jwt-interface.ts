@@ -4,7 +4,7 @@ export interface ITokenPayload {
     userId: number
     tokenId?:string
     fullName: string
-    roleName: EUserRole
+    role: EUserRole
     isStaff: boolean
     isSuperUser: boolean
     companyId?: number

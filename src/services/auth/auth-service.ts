@@ -30,8 +30,6 @@ export default class AuthService implements IAuthService {
       }
       return true
     } catch (error) {
-      logger.error(error?.message);
-      console.log(`Error in AuthService - method refreshToken with message ${error?.message}`);
       throw error;
     }
   }
@@ -42,7 +40,7 @@ export default class AuthService implements IAuthService {
       const payload = this._jwtService.getTokenPayload(oldRefreshToken);
 
       if (!payload.tokenId || !payload.userId || !isValid) {
-        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.TokenGenerationFailed, "Invalid token")
+        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.TokenGenerationFailed,"Token invalid")
       }
 
       delete (payload as any).exp;
@@ -62,35 +60,33 @@ export default class AuthService implements IAuthService {
       setTokenToCookie(refreshToken.token)
       return accessToken.token
     } catch (error) {
-      logger.error(error?.message);
-      console.log(`Error in AuthService - method refreshToken with message ${error?.message}`);
       throw error;
     }
   }
   async candidateLogin(loginRequest: LoginRequest, setTokensToCookie: (refreshToken: string) => void): Promise<string> {
     try {
       const user = await this._context.UserRepo.findOne({
-        where: { email: loginRequest.email, roleName: EUserRole.CANDIDATE },
+        where: { email: loginRequest.email, role: EUserRole.CANDIDATE },
         relations: ['candidate']
       })
 
       if (!user) {
-        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "User not found")
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound,"User not found")
       }
 
       const checkPass = await Extensions.comparePassword(loginRequest.password, user.password);
       if (!checkPass) {
-        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.InvalidPassword, "Invalid password")
+        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.InvalidCredentials,"Invalid password")
       }
 
       if (!user.isActive) {
-        throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UserInactive, "User inactive")
+        throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UserInactive,"User inactive")
       }
 
       const tokenPayload: ITokenPayload = {
         userId: user.id,
-        fullName: user.fullName,
-        roleName: user.roleName,
+        fullName: user.candidate.fullName,
+        role: user.role,
         isStaff: user.isStaff,
         isSuperUser: user.isSuperUser,
         candidateId: user.candidate.id
@@ -110,21 +106,19 @@ export default class AuthService implements IAuthService {
       return accessToken.token
 
     } catch (error) {
-      logger.error(error?.message);
-      console.log(`Error in AuthService - method candidateLogin  with message ${error?.message}`);
       throw error
     }
   }
   async candidateRegister(candidateRegister: ICandidateRegisterData): Promise<boolean> {
     if (!candidateRegister.email || !candidateRegister.fullName || !candidateRegister.password) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
+      throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput,"Invalid input")
     }
     const checkEmail = await this._context.UserRepo.count({
       where: { email: candidateRegister.email },
     });
 
     if (checkEmail) {
-      throw new HttpException(StatusCodes.CONFLICT, EGlobalError.ConflictError, "Email existed")
+      throw new HttpException(StatusCodes.CONFLICT, EGlobalError.ConflictError,"Email existed")
     }
     const dataSource = this._context.getDataSource()
     try {
@@ -132,17 +126,16 @@ export default class AuthService implements IAuthService {
         const hashPassword = Extensions.hashPassword(candidateRegister.password)
         const newUser = await manager.save(this._context.UserRepo.create({
           email: candidateRegister.email,
-          fullName: candidateRegister.fullName,
           password: hashPassword,
           isActive: true,
-          roleName: EUserRole.CANDIDATE,
+          role: EUserRole.CANDIDATE,
         }))
         const newCandidateProfile = await manager.save(
           this._context.CandidateRepo.create({ user: newUser })
         );
         await manager.save(
           this._context.ResumeRepo.create({
-            candidate: newCandidateProfile,
+            candidateId: newCandidateProfile.id,
             selected: true,
             type: EResumeType.ONLINE,
           })
@@ -150,34 +143,33 @@ export default class AuthService implements IAuthService {
       })
       return true
     } catch (error: any) {
-      console.log(`Error in AuthService - candidateRegister transaction: ${error?.message}`);
       throw error;
     }
   }
   async employerLogin(loginRequest: LoginRequest, setTokensToCookie: (refreshToken: string) => void): Promise<string> {
     try {
       const user = await this._context.UserRepo.findOne({
-        where: { email: loginRequest.email, roleName: EUserRole.EMPLOYER },
+        where: { email: loginRequest.email, role: EUserRole.EMPLOYER },
         relations: ['company']
       })
 
       if (!user) {
-        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Employer not found")
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound,"User not found")
       }
 
       const checkPass = await Extensions.comparePassword(loginRequest.password, user.password);
       if (!checkPass) {
-        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.InvalidPassword, "Invalid password")
+        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.InvalidCredentials,"Invalid Password")
       }
 
       if (!user.isActive) {
-        throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UserInactive, "Employer inactive")
+        throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UserInactive,"User inactive")
       }
 
       const tokenPayload: ITokenPayload = {
         userId: user.id,
-        fullName: user.fullName,
-        roleName: user.roleName,
+        fullName: user.company.companyName,
+        role: user.role,
         isStaff: user.isStaff,
         isSuperUser: user.isSuperUser,
         companyId: user.company.id,
@@ -198,8 +190,6 @@ export default class AuthService implements IAuthService {
 
       return accessToken.token
     } catch (error) {
-      logger.error(error?.message);
-      console.log(`Error in AuthService - method login() at ${new Date().getTime} with message ${error?.message}`);
       throw error
     }
   }
@@ -211,7 +201,7 @@ export default class AuthService implements IAuthService {
           where: { email: companyRegister.email }
         });
         if (checkEmail) {
-          throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists, "Email existed");
+          throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists,"User already exist");
         }
 
         const hashPassword = Extensions.hashPassword(companyRegister.password);
@@ -221,7 +211,7 @@ export default class AuthService implements IAuthService {
           fullName: companyRegister.fullName,
           password: hashPassword,
           isActive: true,
-          roleName: EUserRole.EMPLOYER,
+          role: EUserRole.EMPLOYER,
         });
 
         await manager.save(User, newUser);
@@ -231,8 +221,6 @@ export default class AuthService implements IAuthService {
         return true;
       });
     } catch (error: any) {
-      logger.error(error?.message);
-      console.log(`Error in AuthService - employerRegister: ${error?.message}`);
       throw error;
     }
   }
@@ -240,7 +228,7 @@ export default class AuthService implements IAuthService {
     try {
       const userId = getCurrentUser()?.id
       if (!userId) {
-        throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "User id not found");
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"User id not found");
       }
 
       const user = await this._context.UserRepo.findOne({
@@ -257,8 +245,8 @@ export default class AuthService implements IAuthService {
       const currentUser = {
         id: user.id,
         email: user.email,
-        fullName: user.fullName,
-        roleName: user.roleName,
+        fullName: user.role == EUserRole.CANDIDATE ? user.candidate.fullName : user.company.companyName,
+        role: user.role,
         isStaff: user.isStaff,
         isActive: user.isActive,
         allowSearch: user.candidate?.allowSearch ?? true,
@@ -267,12 +255,10 @@ export default class AuthService implements IAuthService {
       }
 
       if (!user) {
-        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.UserNotFound, "User not found")
+        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.UserNotFound,"User not found")
       }
       return currentUser
     } catch (error: any) {
-      logger.error(error?.message);
-      console.log(`Error in AuthService - method getMe()  with message ${error?.message}`);
       throw error
     }
   }

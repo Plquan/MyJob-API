@@ -26,9 +26,6 @@ export class User {
     email!: string;
 
     @Column({ type: "varchar", length: 255})
-    fullName!: string;
-
-    @Column({ type: "varchar", length: 255})
     password!: string;
 
     @Column({type: 'boolean', default: false })
@@ -44,7 +41,7 @@ export class User {
     isStaff!: boolean;
 
     @Column({ type: 'enum', enum: EUserRole})
-    roleName!: EUserRole;
+    role!: EUserRole;
  
     @CreateDateColumn()
     createdAt!: Date;

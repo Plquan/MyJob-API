@@ -54,13 +54,7 @@ export default class CandidateService implements ICandidateService {
         }
         
       } catch (error) {
-         logger.error(error?.message);
-        console.error(`Error in CandidateService - getProfile() at ${new Date().toISOString()} - ${error?.message}`);
-        return {
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-          success: false,
-          message: "Lỗi cập nhật thông tin người dùng, vui lòng thử lại sau",
-        }
+        throw error
       }
     }
     async updateProfile(data: ICandidateData): Promise<IResponseBase> {
