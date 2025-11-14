@@ -1,4 +1,4 @@
-export declare enum StatusCodes {
+export enum StatusCodes {
     CONTINUE = 100,
     SWITCHING_PROTOCOLS = 101,
     PROCESSING = 102,

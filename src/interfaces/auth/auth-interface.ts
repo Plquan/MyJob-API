@@ -1,6 +1,4 @@
-import { IResponseBase } from "../base/IResponseBase";
 import { ILoginData, ICandidateRegisterData,ICompanyRegisterData, ICurrentUser } from "../../dtos/auth/auth-dto";
-
 export default interface IAuthService {
   candidateLogin(userLogin: ILoginData,setTokenToCookie: (refreshToken: string) => void): Promise<string>;
   employerLogin(userLogin: ILoginData,setTokenToCookie: (refreshToken: string) => void): Promise<string>;
@@ -8,4 +6,5 @@ export default interface IAuthService {
   employerRegister(companyRegister: ICompanyRegisterData): Promise<boolean>;
   getMe(): Promise<ICurrentUser>;
   refreshToken(refreshToken: string,setTokensToCookie: (newRefreshToken: string) => void):Promise<string>
+  logout(refreshToken: string):Promise<boolean>
 }

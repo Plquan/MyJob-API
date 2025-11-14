@@ -1,6 +1,7 @@
 import { JobPost } from "@/entities/job-post";
-import { ICreateJobPostReq, IUpdateJobPostReq, JobPostDto } from "@/interfaces/jobPost/job-post-dto";
+import { ICreateJobPostReq, IUpdateJobPostReq, JobPostDto, IJobPostWithCompany } from "@/interfaces/job-post/job-post-dto";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
+import { FileType } from "@/common/enums/file-type/file-types";
 
 export default class JobPostMapper {
   public static toCreateJobPostEntity(dto: ICreateJobPostReq, companyId: number): JobPost {
@@ -93,6 +94,29 @@ export default class JobPostMapper {
 
   public static toJobPostListDto(entities: JobPost[]): JobPostDto[] {
     return entities.map((entity) => this.toJobPostDto(entity));
+  }
+
+  public static toJobPostWithCompanyDto(entity: JobPost): IJobPostWithCompany {
+    const logo = entity.company?.companyImages?.find(ci =>
+      ci.image && ci.image.fileType === FileType.LOGO
+    )?.image;
+
+    return {
+      id: entity.id,
+      jobName: entity.jobName,
+      salaryMin: entity.salaryMin,
+      salaryMax: entity.salaryMax,
+      provinceName: entity.province.name,
+      createdAt: entity.createdAt,
+      company: {
+        companyName: entity.company.companyName,
+        logo: logo?.url,
+      },
+    };
+  }
+
+  public static toJobPostWithCompanyListDto(entities: JobPost[]): IJobPostWithCompany[] {
+    return entities.map((entity) => this.toJobPostWithCompanyDto(entity));
   }
 
 }

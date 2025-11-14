@@ -72,3 +72,16 @@ export interface IGetJobPostsReqParams {
   search: string
   jobPostStatus: EJobPostStatus
 }
+
+export interface IJobPostWithCompany {
+  id: number;
+  jobName: string;
+  salaryMin: number;
+  salaryMax: number;
+  provinceName: string;
+  createdAt: Date;
+  company: {
+    companyName: string;
+    logo?: string;
+  };
+}

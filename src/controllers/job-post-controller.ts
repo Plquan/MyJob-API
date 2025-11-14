@@ -1,6 +1,6 @@
 import { Auth } from "@/common/middlewares";
-import { IGetJobPostsReqParams } from "@/interfaces/jobPost/job-post-dto";
-import IJobPostService from "@/interfaces/jobPost/job-post-interface";
+import { IGetJobPostsReqParams } from "@/interfaces/job-post/job-post-dto";
+import IJobPostService from "@/interfaces/job-post/job-post-interface";
 import { before, GET, inject, POST, PUT, route } from "awilix-express";
 import { Request, Response } from "express";
 

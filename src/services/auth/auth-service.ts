@@ -1,6 +1,5 @@
 import { ICandidateRegisterData, ICompanyRegisterData, ICurrentUser } from "@/dtos/auth/auth-dto";
 import IAuthService from "@/interfaces/auth/auth-interface";
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/database-service";
 import Extensions from "@/common/ultils/extension";
 import logger from "@/common/helpers/logger";
@@ -22,6 +21,19 @@ export default class AuthService implements IAuthService {
   constructor(JwtService: IJwtService, DatabaseService: DatabaseService) {
     this._jwtService = JwtService;
     this._context = DatabaseService;
+  }
+  async logout(refreshToken: string): Promise<boolean> {
+    try {
+      const payload = this._jwtService.getTokenPayload(refreshToken);
+      if (payload) {
+        await this._context.RefreshTokenRepo.delete(payload.tokenId)
+      }
+      return true
+    } catch (error) {
+      logger.error(error?.message);
+      console.log(`Error in AuthService - method refreshToken with message ${error?.message}`);
+      throw error;
+    }
   }
 
   async refreshToken(oldRefreshToken: string, setTokenToCookie: (newRefreshToken: string) => void): Promise<string> {
@@ -226,7 +238,7 @@ export default class AuthService implements IAuthService {
   }
   async getMe(): Promise<ICurrentUser> {
     try {
-      const userId = getCurrentUser().id
+      const userId = getCurrentUser()?.id
       if (!userId) {
         throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "User id not found");
       }
@@ -255,7 +267,7 @@ export default class AuthService implements IAuthService {
       }
 
       if (!user) {
-       throw new HttpException(StatusCodes.NOT_FOUND,EAuthError.UserNotFound,"User not found")
+        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.UserNotFound, "User not found")
       }
       return currentUser
     } catch (error: any) {

@@ -1,4 +1,4 @@
-import { JobPostDto } from "../jobPost/job-post-dto";
+import { JobPostDto } from "../job-post/job-post-dto";
 import { IMyJobFileDto } from "../myjobfile/myjobfile-dto";
 
 

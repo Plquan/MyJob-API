@@ -1,15 +1,16 @@
 import { JobPost } from "@/entities/job-post";
-import IJobPostService from "@/interfaces/jobPost/job-post-interface";
+import IJobPostService from "@/interfaces/job-post/job-post-interface";
 import DatabaseService from "../common/database-service";
-import { ICreateJobPostReq, IGetJobPostsReqParams, IUpdateJobPostReq } from "@/interfaces/jobPost/job-post-dto";
+import { ICreateJobPostReq, IGetJobPostsReqParams, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
 import { HttpException } from "@/errors/http-exception";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { Brackets } from "typeorm";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
-import { ErrorMessages } from "@/common/constants/ErrorMessages";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
+import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
+import { FileType } from "@/common/enums/file-type/file-types";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
@@ -17,8 +18,45 @@ export default class JobPostService implements IJobPostService {
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
-    getJobPosts(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async getJobPosts(params: IGetJobPostsReqParams): Promise<IPaginationResponse> {
+        try {
+            const { page, limit, search, jobPostStatus } = params;
+
+            const query = this._context.JobPostRepo.createQueryBuilder("job")
+                .leftJoinAndSelect("job.company", "company")
+                .leftJoinAndSelect("job.province", "province")
+                .leftJoinAndSelect("company.companyImages", "companyImage")
+                .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
+                .where("job.status = :status", { status: jobPostStatus || EJobPostStatus.APPROVED });
+
+            if (search && search.trim() !== "") {
+                query.andWhere(
+                    new Brackets((qb) => {
+                        qb.where("job.jobName ILIKE :search", { search: `%${search}%` })
+                            .orWhere("company.companyName ILIKE :search", { search: `%${search}%` });
+                    })
+                );
+            }
+
+            const totalItems = await query.getCount();
+            const jobPosts = await query
+                .orderBy("job.createdAt", "DESC")
+                .skip((page - 1) * limit)
+                .take(limit)
+                .getMany();
+
+            return {
+                items: JobPostMapper.toJobPostWithCompanyListDto(jobPosts),
+                page: page,
+                limit,
+                totalItems,
+                totalPages: Math.ceil(totalItems / limit),
+            };
+        } catch (error) {
+            console.log(
+                `Error in JobPostService - method getJobPosts at ${new Date().getTime()} with message ${error?.message}`)
+            throw error
+        }
     }
     deleteJobPost(jobPostId: number): Promise<boolean> {
         throw new Error("Method not implemented.");

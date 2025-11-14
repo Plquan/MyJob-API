@@ -33,7 +33,7 @@ export class AuthController {
   async companyLogin(req: Request, res: Response) {
     try {
       const loginData: ILoginData = req.body;
-      const setTokenToCookie = ( refreshToken: string) => {
+      const setTokenToCookie = (refreshToken: string) => {
         res.cookie("refreshToken", refreshToken, {
           secure: true,
           sameSite: "none",
@@ -76,7 +76,7 @@ export class AuthController {
   @route("/refresh-token")
   async refreshToken(req: Request, res: Response) {
     const token = req.cookies['refreshToken'];
-    const setTokenToCookie = ( refreshToken: string) => {
+    const setTokenToCookie = (refreshToken: string) => {
       res.cookie("refreshToken", refreshToken, {
         secure: true,
         sameSite: "none",
@@ -85,6 +85,19 @@ export class AuthController {
       });
     };
     const response = await this._authService.refreshToken(token, setTokenToCookie)
+    res.status(200).json(response);
+  }
+  
+  @POST()
+  @route("/logout")
+  async logout(req: Request, res: Response) {
+    const token = req.cookies['refreshToken'];
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+    const response = await this._authService.logout(token)
     res.status(200).json(response);
   }
 }
