@@ -44,18 +44,16 @@ function AuthenticateMiddleware(
     }
 
     const payload: ITokenPayload = JwtService.getTokenPayload(accessToken);
-
     req.user = {
       id: payload?.userId,
       fullName: payload?.fullName,
       isSuperUser: payload?.isSuperUser,
-      roleName: payload?.roleName,
+      role: payload?.role,
       function: [],
       accessToken: accessToken,
       companyId: payload?.companyId,
       candidateId: payload?.candidateId,
     };
-
     next();
   };
 }

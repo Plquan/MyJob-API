@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Migration1761745306590 implements MigrationInterface {
-    name = 'Migration1761745306590'
+export class Migration1763094726645 implements MigrationInterface {
+    name = 'Migration1763094726645'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "functions" ("id" SERIAL NOT NULL, "name" character varying(1000) NOT NULL, "codeName" character varying(1000) NOT NULL, CONSTRAINT "PK_203889d2ae5a98ffc137739301e" PRIMARY KEY ("id"))`);
@@ -40,10 +40,10 @@ export class Migration1761745306590 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "resumes" ("id" SERIAL NOT NULL, "candidateId" integer NOT NULL, "careerId" integer, "provinceId" integer, "myJobFileId" integer, "title" character varying(200), "description" text, "salaryMin" numeric(15,0), "salaryMax" numeric(15,0), "position" "public"."resumes_position_enum", "typeOfWorkPlace" "public"."resumes_typeofworkplace_enum", "experience" "public"."resumes_experience_enum", "academicLevel" "public"."resumes_academiclevel_enum", "jobType" "public"."resumes_jobtype_enum", "type" "public"."resumes_type_enum" NOT NULL, "selected" boolean NOT NULL DEFAULT false, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "REL_8b501874a230dec42875f351c4" UNIQUE ("myJobFileId"), CONSTRAINT "PK_9c8677802096d6baece48429d2e" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."candidates_gender_enum" AS ENUM('1', '2', '3')`);
         await queryRunner.query(`CREATE TYPE "public"."candidates_maritalstatus_enum" AS ENUM('1', '2')`);
-        await queryRunner.query(`CREATE TABLE "candidates" ("id" SERIAL NOT NULL, "userId" integer NOT NULL, "provinceId" integer, "districtId" integer, "phone" character varying(15), "birthday" date, "gender" "public"."candidates_gender_enum", "maritalStatus" "public"."candidates_maritalstatus_enum", "address" character varying(255), "allowSearch" boolean NOT NULL DEFAULT false, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "REL_10d0384a816526f8c7f6b1e67b" UNIQUE ("userId"), CONSTRAINT "PK_140681296bf033ab1eb95288abb" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "candidates" ("id" SERIAL NOT NULL, "userId" integer NOT NULL, "provinceId" integer, "districtId" integer, "fullName" character varying(255) NOT NULL, "phone" character varying(15), "birthday" date, "gender" "public"."candidates_gender_enum", "maritalStatus" "public"."candidates_maritalstatus_enum", "address" character varying(255), "allowSearch" boolean NOT NULL DEFAULT false, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "REL_10d0384a816526f8c7f6b1e67b" UNIQUE ("userId"), CONSTRAINT "PK_140681296bf033ab1eb95288abb" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "refresh_tokens" ("id" character varying(255) NOT NULL, "userId" integer NOT NULL, "token" text NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "expiresAt" TIMESTAMP NOT NULL, "revoked" boolean NOT NULL DEFAULT false, CONSTRAINT "PK_7d8bee0204106019488c4c50ffa" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TYPE "public"."users_rolename_enum" AS ENUM('1', '2', '3')`);
-        await queryRunner.query(`CREATE TABLE "users" ("id" SERIAL NOT NULL, "avatarId" integer, "email" character varying(255) NOT NULL, "fullName" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "isVerifyEmail" boolean NOT NULL DEFAULT false, "isActive" boolean NOT NULL DEFAULT false, "isSuperUser" boolean NOT NULL DEFAULT false, "isStaff" boolean NOT NULL DEFAULT false, "roleName" "public"."users_rolename_enum" NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "REL_3e1f52ec904aed992472f2be14" UNIQUE ("avatarId"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TYPE "public"."users_role_enum" AS ENUM('1', '2', '3')`);
+        await queryRunner.query(`CREATE TABLE "users" ("id" SERIAL NOT NULL, "avatarId" integer, "email" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "isVerifyEmail" boolean NOT NULL DEFAULT false, "isActive" boolean NOT NULL DEFAULT false, "isSuperUser" boolean NOT NULL DEFAULT false, "isStaff" boolean NOT NULL DEFAULT false, "role" "public"."users_role_enum" NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "REL_3e1f52ec904aed992472f2be14" UNIQUE ("avatarId"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "package_purchases" ("id" SERIAL NOT NULL, "companyId" integer NOT NULL, "packageId" integer NOT NULL, "startDate" date, "endDate" date NOT NULL, "price" numeric(12,2) NOT NULL, "paymentMethod" character varying(50), "paymentDate" TIMESTAMP, CONSTRAINT "PK_e3515759f2d406414400a471c17" PRIMARY KEY ("id"))`);
         await queryRunner.query(`ALTER TABLE "permissions" ADD CONSTRAINT "FK_6c68d9cc7055d70ddd1e3e9e5e0" FOREIGN KEY ("functionId") REFERENCES "functions"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "permissions" ADD CONSTRAINT "FK_36d7b8e1a331102ec9161e879ce" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -128,7 +128,7 @@ export class Migration1761745306590 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "permissions" DROP CONSTRAINT "FK_6c68d9cc7055d70ddd1e3e9e5e0"`);
         await queryRunner.query(`DROP TABLE "package_purchases"`);
         await queryRunner.query(`DROP TABLE "users"`);
-        await queryRunner.query(`DROP TYPE "public"."users_rolename_enum"`);
+        await queryRunner.query(`DROP TYPE "public"."users_role_enum"`);
         await queryRunner.query(`DROP TABLE "refresh_tokens"`);
         await queryRunner.query(`DROP TABLE "candidates"`);
         await queryRunner.query(`DROP TYPE "public"."candidates_maritalstatus_enum"`);

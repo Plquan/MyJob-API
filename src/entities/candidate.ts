@@ -22,6 +22,9 @@ export class Candidate {
     @Column({ nullable: true })
     districtId?: number;
 
+    @Column({ type: "varchar", length: 255})
+    fullName!: string;
+
     @Column({ type: 'varchar', length: 15, nullable: true })
     phone?: string;
 

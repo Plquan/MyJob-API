@@ -155,7 +155,7 @@ export default class JobPostService implements IJobPostService {
                 where: { id: data.id }
             })
             if (!currentJobPost) {
-                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Company Id not found");
+                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Job post not found");
             }
             const updateJobPostDto = JobPostMapper.toUpdateJobPostEntity(data)
             const updatedJobPost = this._context.JobPostRepo.merge(currentJobPost, updateJobPostDto)

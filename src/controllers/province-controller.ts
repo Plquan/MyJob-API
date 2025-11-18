@@ -28,9 +28,6 @@ export class ProvinceController {
   async getDistrictsByProvince(req: Request, res: Response) {
     try {
       const provinceId = parseInt(req.params.provinceId);
-      if (!provinceId) {
-        throw new HttpException(400, EGlobalError.InvalidInput,"Province id not found")
-      }
       const response = await this._provinceService.getDistrictsByProvince(provinceId);
       return res.status(200).json(response);
     } catch (error) {

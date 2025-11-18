@@ -8,7 +8,7 @@ import container from "./container";
 import { Server } from "./server";
 import { asyncLocalStorageMiddleware } from "@/common/middlewares";
 import { apiLimiter } from "./common/middlewares/RateLimiter";
-import errorMiddleware from "./common/middlewares/exception";
+import errorMiddleware from "./common/middlewares/error-middleware";
 
 
 /**

@@ -53,7 +53,7 @@ export interface ICurrentUser {
   id: number;
   email: string;
   fullName: string;
-  roleName: EUserRole;          
+  role: EUserRole;          
   isStaff: boolean;
   isActive: boolean;
   allowSearch: boolean;        
@@ -61,10 +61,10 @@ export interface ICurrentUser {
   companyId?: number | null;    
 }
 
-export interface  IUserClaim {
+export interface IUserClaim {
   id: number;
   fullName: string;
-  roleName: string;
+  role: string;
   function: string[]
   isSuperUser:boolean
   accessToken: string;

@@ -1,4 +1,4 @@
-import { IResponseBase } from "../base/IResponseBase"
+import { PackageUsage } from "@/entities/package-usage"
 import { ICreatePackageRequest, IPackageDto, IUpdatePackageRequest } from "./package-dto"
 
 export default interface IPackageService {
@@ -8,4 +8,5 @@ export default interface IPackageService {
     updatePackage(data: IUpdatePackageRequest):Promise<IPackageDto>
     deletePackage(packageId: number): Promise<boolean>
     purchasePackage(packageId: number): Promise<boolean>
+    getCompanyPackage():Promise<PackageUsage>
 }
