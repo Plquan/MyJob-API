@@ -1,5 +1,5 @@
 import { IResponseBase } from "../base/IResponseBase";
-import { ICreateLanguageData, IUpdateLanguageData } from "../../dtos/language/language-dto";
+import { ICreateLanguageData, IUpdateLanguageData } from "./language-dto";
 
 export default interface ILanguageService {
     getAllLanguages(): Promise<IResponseBase>

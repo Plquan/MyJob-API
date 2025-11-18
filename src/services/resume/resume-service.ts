@@ -2,7 +2,6 @@ import { IResponseBase } from "@/interfaces/base/IResponseBase"
 import IResumeService from "@/interfaces/resume/resume-interface"
 import DatabaseService from "../common/database-service"
 import { LocalStorage } from "@/common/constants/local-storage"
-import { VariableSystem } from "@/common/constants/VariableSystem"
 import logger from "@/common/helpers/logger"
 import CloudinaryService from "../common/cloudinary-service"
 import { MyJobFile } from "@/entities/myjob-file"
@@ -23,6 +22,7 @@ import ILanguageService from "@/interfaces/language/language-interface"
 import IEducationService from "@/interfaces/education/education-interface"
 import ICertificateService from "@/interfaces/certificate/certificate-interface"
 import ICandidateService from "@/interfaces/candidate/candidate-interface"
+import { FileType } from "@/common/enums/file-type/file-types"
 
 
 export default class ResumeService implements IResumeService {
@@ -95,7 +95,7 @@ export default class ResumeService implements IResumeService {
         if (file) {
           const result = await CloudinaryService.uploadFile(
             file,
-            VariableSystem.FolderType.CV_UPLOAD,
+            FileType.CV_UPLOAD,
             CloudinaryResourceType.RAW,
             attachedResume.myJobFile?.publicId ?? undefined
           );
@@ -212,7 +212,7 @@ export default class ResumeService implements IResumeService {
 
       const result = await CloudinaryService.uploadFile(
         file,
-        VariableSystem.FolderType.CV_UPLOAD,
+        FileType.CV_UPLOAD,
         CloudinaryResourceType.RAW
       )
 
@@ -227,7 +227,7 @@ export default class ResumeService implements IResumeService {
       const newFile = queryRunner.manager.create(MyJobFile, {
         publicId: result.public_id,
         url: result.secure_url,
-        fileType: VariableSystem.CV_TYPE.CV_ATTACHED,
+        fileType: FileType.CV_UPLOAD,
         resourceType: result.resource_type,
         format: getFileCategory(file),
       })

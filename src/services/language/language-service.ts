@@ -1,12 +1,12 @@
 import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import ILanguageService from "@/interfaces/language/language-interface";
-import { ICreateLanguageData, IUpdateLanguageData } from "@/dtos/language/language-dto";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import logger from "@/common/helpers/logger";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { EResumeType } from "@/common/enums/resume/resume-enum";
+import { ICreateLanguageData, IUpdateLanguageData } from "@/interfaces/language/language-dto";
 
 export default class LanguageService implements ILanguageService {
 

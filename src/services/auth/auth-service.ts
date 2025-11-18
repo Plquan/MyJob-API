@@ -71,7 +71,7 @@ export default class AuthService implements IAuthService {
       })
 
       if (!user) {
-        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound,"User not found")
+        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.InvalidCredentials,"User not found")
       }
 
       const checkPass = await Extensions.comparePassword(loginRequest.password, user.password);
@@ -118,7 +118,7 @@ export default class AuthService implements IAuthService {
     });
 
     if (checkEmail) {
-      throw new HttpException(StatusCodes.CONFLICT, EGlobalError.ConflictError,"Email existed")
+      throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists,"Email existed")
     }
     const dataSource = this._context.getDataSource()
     try {
@@ -131,7 +131,7 @@ export default class AuthService implements IAuthService {
           role: EUserRole.CANDIDATE,
         }))
         const newCandidateProfile = await manager.save(
-          this._context.CandidateRepo.create({ user: newUser })
+          this._context.CandidateRepo.create({ userId: newUser.id,fullName: candidateRegister.fullName })
         );
         await manager.save(
           this._context.ResumeRepo.create({

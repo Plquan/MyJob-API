@@ -14,7 +14,7 @@ function errorMiddleware(
   const status = error.status ?? 500;
   const message = status === 500 ? ErrorMessages.INTERNAL_SERVER_ERROR : error.message;
   const errorCode = error.errorCode;
-  response.status(status).send({ message, error: errorCode });
+  response.status(status).send({ message, errorCode: errorCode });
 }
 
 export default errorMiddleware;
