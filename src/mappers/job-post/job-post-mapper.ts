@@ -1,5 +1,5 @@
 import { JobPost } from "@/entities/job-post";
-import { ICreateJobPostReq, IUpdateJobPostReq, JobPostDto, IJobPostWithCompany } from "@/interfaces/job-post/job-post-dto";
+import { ICreateJobPostReq, IUpdateJobPostReq, ICompanyJobPostDto, IJobPostDto } from "@/interfaces/job-post/job-post-dto";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { FileType } from "@/common/enums/file-type/file-types";
 
@@ -58,7 +58,7 @@ export default class JobPostMapper {
     return job;
   }
 
-  public static toJobPostDto(entity: JobPost): JobPostDto {
+  public static toCompanyJobPostDto(entity: JobPost): ICompanyJobPostDto {
     return {
       id: entity.id,
       careerId: entity.careerId,
@@ -80,7 +80,6 @@ export default class JobPostMapper {
       genderRequirement: entity.genderRequirement,
       jobType: entity.jobType,
       isHot: entity.isHot,
-      isUrgent: entity.isUrgent,
       contactPersonName: entity.contactPersonName,
       contactPersonEmail: entity.contactPersonEmail,
       contactPersonPhone: entity.contactPersonPhone,
@@ -92,14 +91,20 @@ export default class JobPostMapper {
     };
   }
 
-  public static toJobPostListDto(entities: JobPost[]): JobPostDto[] {
-    return entities.map((entity) => this.toJobPostDto(entity));
+  public static toListCompanyJobPostDto(entities: JobPost[]): ICompanyJobPostDto[] {
+    return entities.map((entity) => this.toCompanyJobPostDto(entity));
   }
 
-  public static toJobPostWithCompanyDto(entity: JobPost): IJobPostWithCompany {
+  public static toJobPosDto(entity: JobPost, candidateId?: number): IJobPostDto {
     const logo = entity.company?.companyImages?.find(ci =>
       ci.image && ci.image.fileType === FileType.LOGO
     )?.image;
+
+    // If candidateId exists and savedJobPosts is loaded, check if it has any items
+    // (the join already filters by candidateId, so if there are items, the job is saved)
+    const isSaved = candidateId 
+      ? (entity.savedJobPosts?.length ?? 0) > 0
+      : false;
 
     return {
       id: entity.id,
@@ -112,11 +117,15 @@ export default class JobPostMapper {
         companyName: entity.company.companyName,
         logo: logo?.url,
       },
+      isHot: entity.isHot,
+      isNew: true,
+      deadline: entity.deadline,
+      isSaved: isSaved
     };
   }
 
-  public static toJobPostWithCompanyListDto(entities: JobPost[]): IJobPostWithCompany[] {
-    return entities.map((entity) => this.toJobPostWithCompanyDto(entity));
+  public static toListJobPostDto(entities: JobPost[], candidateId?: number): IJobPostDto[] {
+    return entities.map((entity) => this.toJobPosDto(entity, candidateId));
   }
 
 }

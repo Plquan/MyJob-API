@@ -24,18 +24,6 @@ export interface ICompanyRegisterData {
   groupRoleId:number;
 }
 
-export interface IUserLoginResponse {
-  // userInfo: {
-  //   userId: string;
-  //   username: string;
-  //   fullName: string;
-  //   role: {
-  //     roleName: string;
-  //     displayName: string;
-  //   };
-  // };
-  // permissions: IFunctionByRole[];
-}
 
 export interface IUserRegisterResponse {
   username: string;

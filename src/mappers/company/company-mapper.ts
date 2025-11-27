@@ -43,7 +43,7 @@ export class CompanyMapper {
             images: entity.companyImages?.map(ci =>
                 MyjobFileMapper.toMyJobFileDto(ci.image)
             ) ?? [],
-            jobPosts: JobPostMapper.toJobPostListDto(entity.jobPosts)
+            jobPosts: JobPostMapper.toListCompanyJobPostDto(entity.jobPosts)
         };
     }
 

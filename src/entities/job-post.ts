@@ -81,9 +81,6 @@ export class JobPost {
   @Column({ type: 'boolean', default: false })
   isHot!: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  isUrgent!: boolean;
-
   @Column({ type: 'varchar', length: 100, nullable: true })
   contactPersonName?: string;
 

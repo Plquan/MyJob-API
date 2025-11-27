@@ -1,5 +1,5 @@
 import { Auth } from "@/common/middlewares";
-import { IGetJobPostsReqParams } from "@/interfaces/job-post/job-post-dto";
+import { IGetCompanyJobPostsReqParams, IGetJobPostsReqParams } from "@/interfaces/job-post/job-post-dto";
 import IJobPostService from "@/interfaces/job-post/job-post-interface";
 import { before, GET, inject, POST, PUT, route } from "awilix-express";
 import { Request, Response } from "express";
@@ -24,7 +24,7 @@ export class JobPostController {
   async getCompanyJobPosts(req: Request, res: Response) {
     const { page = 1, limit = 10, search, jobPostStatus } = req.query;
 
-    const params: IGetJobPostsReqParams = {
+    const params: IGetCompanyJobPostsReqParams = {
       page: +page,
       limit: +limit,
       search: search.toString(),
@@ -33,6 +33,7 @@ export class JobPostController {
     const response = await this._jobPostService.getCompanyJobPosts(params);
     res.status(200).json(response)
   }
+  
   @before(inject(Auth.required))
   @PUT()
   async updateJobPost(req: Request, res: Response) {
@@ -41,4 +42,28 @@ export class JobPostController {
     res.status(200).json(response)
   }
 
+  @before(inject(Auth.optional))
+  @GET()
+  async getJobPosts(req: Request, res: Response) {
+    const { page = 1, limit = 10, search, jobPostStatus } = req.query;
+
+    const params: IGetCompanyJobPostsReqParams = {
+      page: +page,
+      limit: +limit,
+      search: "",
+      jobPostStatus: +jobPostStatus,
+    };
+    const response = await this._jobPostService.getJobPosts(params);
+    res.status(200).json(response)
+  }
+
+
+  @before(inject(Auth.required))
+  @route("/toggle-save-job-post/:jobPostId")
+  @POST()
+  async toggleSaveJobPost(req: Request, res: Response) {
+    const jobPostId = parseInt(req.params.jobPostId)
+    const response = await this._jobPostService.toggleSaveJobPost(jobPostId);
+    res.status(200).json(response)
+  }
 }

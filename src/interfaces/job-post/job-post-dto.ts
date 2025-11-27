@@ -29,7 +29,7 @@ export interface IUpdateJobPostReq extends Partial<ICreateJobPostReq> {
   id: number;
 }
 
-export interface JobPostDto {
+export interface ICompanyJobPostDto {
   id: number;
   careerId: number;
   companyId: number;
@@ -50,7 +50,6 @@ export interface JobPostDto {
   genderRequirement: EGender;
   jobType: EJobType;
   isHot: boolean;
-  isUrgent: boolean;
   contactPersonName?: string;
   contactPersonEmail?: string;
   contactPersonPhone?: string;
@@ -66,14 +65,30 @@ export interface IJobPostWithImageDto {
   jobName: string;
 }
 
-export interface IGetJobPostsReqParams {
+export interface IGetCompanyJobPostsReqParams {
   page: number
   limit: number
   search: string
   jobPostStatus: EJobPostStatus
 }
 
-export interface IJobPostWithCompany {
+export interface IGetJobPostsReqParams {
+  page: number
+  limit: number
+
+  jobName?: string
+  careerId?: number
+  provinceId?: number
+  jobType?: EJobType;
+  experience?: EExperience;
+  academicLevel?: EAcademicLevel;
+  rangeSalary?: {
+    salaryMin: number
+    salaryMax: number
+  },
+}
+
+export interface IJobPostDto {
   id: number;
   jobName: string;
   salaryMin: number;
@@ -84,4 +99,8 @@ export interface IJobPostWithCompany {
     companyName: string;
     logo?: string;
   };
+  isHot: boolean
+  isNew: boolean
+  deadline: Date
+  isSaved?: boolean
 }
