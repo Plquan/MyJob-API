@@ -34,7 +34,7 @@ export default class CandidateService implements ICandidateService {
 
         const candidateProfile = await this._context.CandidateRepo.findOne({
           where: { userId },
-          relations: ['province', 'district'],
+          relations: ['province'],
          })
 
 
@@ -82,7 +82,6 @@ export default class CandidateService implements ICandidateService {
 
         this._context.CandidateRepo.merge(candidateProfile, {
           provinceId: data.provinceId,
-          districtId: data.districtId,
           phone: data.phone,
           birthday: data.birthday,
           gender: data.gender,
@@ -94,7 +93,7 @@ export default class CandidateService implements ICandidateService {
 
         const updatedProfile = await this._context.CandidateRepo.findOne({
             where: { id: candidateProfile.id },
-            relations: ['district', 'province'],
+            relations: ['province'],
           })
 
         return {

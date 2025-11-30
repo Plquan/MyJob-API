@@ -15,7 +15,6 @@ import { SavedJobPost } from './saved-job-post';
 import { JobPostActivity } from './job-post-activity';
 import { EPosition, ETypeOfWorkplace, EExperience, EAcademicLevel, EJobType } from '../common/enums/resume/resume-enum';
 import { EJobPostStatus } from '../common/enums/job/EJobPostStatus';
-import { District } from './district';
 import { EGender } from '../common/enums/candidate/candidate-enum';
 
 @Entity('job_post')
@@ -32,9 +31,6 @@ export class JobPost {
 
   @Column()
   provinceId!: number;
-
-  @Column()
-  districtId!: number;
 
   @Column({ type: 'varchar', length: 200 })
   jobName!: string;
@@ -113,10 +109,6 @@ export class JobPost {
   @ManyToOne(() => Province, { onDelete: 'CASCADE' })
   @JoinColumn({ name: "provinceId" })
   province!: Province;
-
-  @ManyToOne(() => District, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: "districtId" })
-  district!: District;
 
   @OneToMany(() => SavedJobPost, savedJob => savedJob.jobPost)
   savedJobPosts!: SavedJobPost[];

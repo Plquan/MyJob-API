@@ -22,7 +22,6 @@ import { Language } from "@/entities/language";
 import dataSource from "@/ormconfig";
 import { RefreshToken } from "@/entities/refresh-token";
 import { Role } from "@/entities/role";
-import { District } from "@/entities/district";
 import { Skill } from "@/entities/skill";
 import { Package } from "@/entities/package";
 import { PackagePurchases } from "@/entities/package-purchases";
@@ -52,7 +51,6 @@ class DatabaseService {
   public LanguageRepo: Repository<Language>;
   public RefreshTokenRepo: Repository<RefreshToken>
   public RoleRepo: Repository<Role>;
-  public DistrictRepo: Repository<District>
   public PackageRepo: Repository<Package>
   public PackagePurchasesRepo: Repository<PackagePurchases>
   public PackageUsageRepo: Repository<PackageUsage>
@@ -82,7 +80,6 @@ class DatabaseService {
     this.LanguageRepo = this._dataSource.getRepository(Language);
     this.RefreshTokenRepo = this._dataSource.getRepository(RefreshToken);
     this.RoleRepo = this._dataSource.getRepository(Role);
-    this.DistrictRepo = this._dataSource.getRepository(District);
     this.PackageRepo = this._dataSource.getRepository(Package);
     this.PackagePurchasesRepo = this._dataSource.getRepository(PackagePurchases);
     this.PackageUsageRepo = this._dataSource.getRepository(PackageUsage);

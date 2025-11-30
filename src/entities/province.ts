@@ -1,5 +1,4 @@
-import { Entity,Column,PrimaryGeneratedColumn,OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { District } from "./district";
+import { Entity,Column,PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('provinces')
 export class Province {
@@ -15,7 +14,4 @@ export class Province {
 
     @UpdateDateColumn()
     updatedAt!: Date;
-
-    @OneToMany(() => District, (district) => district.province)
-    districts!: District[];
 }

@@ -9,7 +9,6 @@ export default class JobPostMapper {
     job.careerId = dto.careerId;
     job.companyId = companyId;
     job.provinceId = dto.provinceId;
-    job.districtId = dto.districtId;
     job.jobName = dto.jobName;
     job.deadline = dto.deadline;
     job.quantity = dto.quantity;
@@ -36,7 +35,6 @@ export default class JobPostMapper {
     const job = new JobPost();
     job.careerId = dto.careerId;
     job.provinceId = dto.provinceId;
-    job.districtId = dto.districtId;
     job.jobName = dto.jobName;
     job.deadline = dto.deadline;
     job.quantity = dto.quantity;
@@ -64,7 +62,6 @@ export default class JobPostMapper {
       careerId: entity.careerId,
       companyId: entity.companyId,
       provinceId: entity.provinceId,
-      districtId: entity.districtId,
       jobName: entity.jobName,
       deadline: entity.deadline,
       quantity: entity.quantity,

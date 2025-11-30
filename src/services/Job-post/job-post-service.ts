@@ -36,7 +36,7 @@ export default class JobPostService implements IJobPostService {
                 return true
             }
             else {
-                await this._context.SavedJobPostRepo.remove(savedJobPost)
+                await this._context.SavedJobPostRepo.delete(savedJobPost.id)
                 return false
             }
         } catch (error) {
@@ -98,7 +98,6 @@ export default class JobPostService implements IJobPostService {
         if (
             !dto.careerId ||
             !dto.provinceId ||
-            !dto.districtId ||
             !dto.jobName ||
             !dto.deadline ||
             !dto.quantity ||

@@ -28,25 +28,11 @@ import { FileType } from "@/common/enums/file-type/file-types"
 export default class ResumeService implements IResumeService {
 
   private readonly _context: DatabaseService
-  private readonly _skillService: ISkillService
-  private readonly _languageService: ILanguageService
-  private readonly _educationService: IEducationService
-  private readonly _certificateService: ICertificateService
-  private readonly _candidateService: ICandidateService
 
-  constructor(DatabaseService: DatabaseService,
-    SkillService: ISkillService,
-    LanguageService: ILanguageService,
-    EducationService: IEducationService,
-    CertificateService: ICertificateService,
-    CandidateService: ICandidateService
-  ) {
+
+  constructor(DatabaseService: DatabaseService) {
     this._context = DatabaseService
-    this._skillService = SkillService
-    this._certificateService = CertificateService
-    this._languageService = LanguageService
-    this._educationService = EducationService
-    this._candidateService = CandidateService
+
   }
   async getAttachedResumeById(attchedResumeId: number): Promise<IResponseBase> {
     try {
@@ -318,7 +304,7 @@ export default class ResumeService implements IResumeService {
       const userId = request?.user?.id;
 
       if (!userId) {
-        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess,"User Id not found")
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "User Id not found")
       }
 
       const onlineResume = await this._context.ResumeRepo.findOne({
@@ -328,10 +314,6 @@ export default class ResumeService implements IResumeService {
         },
         relations: [
           'candidate',
-          'candidate.user',
-          'candidate.user.avatar',
-          'candidate.province',
-          'candidate.district',
           'educations',
           'certificates',
           'experiences',

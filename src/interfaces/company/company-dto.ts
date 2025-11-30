@@ -5,7 +5,6 @@ import { IMyJobFileDto } from "../myjobfile/myjobfile-dto";
 export interface ICompanyDto {
   id: number;
   provinceId?: number;
-  districtId?: number;
   userId: number;
   companyName: string;
   companyEmail: string;
@@ -38,7 +37,6 @@ export interface ICompanyDetail extends ICompanyWithImagesDto {
 export interface IUpdateCompanyRequest {
   id: number;
   provinceId: number;
-  districtId: number;
   userId: number;
   companyName: string;
   companyEmail: string;

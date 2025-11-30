@@ -5,7 +5,6 @@ import { EAcademicLevel, EExperience, EJobType, EPosition, ETypeOfWorkplace } fr
 export interface ICreateJobPostReq {
   careerId: number;
   provinceId: number;
-  districtId: number;
   jobName: string;
   deadline: Date;
   quantity: number;
@@ -34,7 +33,6 @@ export interface ICompanyJobPostDto {
   careerId: number;
   companyId: number;
   provinceId: number;
-  districtId: number;
   jobName: string;
   deadline?: Date;
   quantity?: number;
