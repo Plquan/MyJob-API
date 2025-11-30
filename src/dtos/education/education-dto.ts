@@ -3,8 +3,8 @@ export interface ICreateEducationData {
   degreeName: string
   major: string
   trainingPlace: string
-  startDate: Date 
-  completedDate?: Date 
+  startDate: Date
+  completedDate?: Date
   description?: string
 }
 
@@ -13,7 +13,20 @@ export interface IUpdateEducationData {
   degreeName: string
   major: string
   trainingPlace: string
-  startDate: Date 
-  completedDate?: Date 
+  startDate: Date
+  completedDate?: Date
   description?: string
+}
+
+export interface IEducationDto {
+  id: number;
+  resumeId: number;
+  degreeName: string;
+  major: string;
+  trainingPlace: string;
+  startDate: Date;
+  completedDate?: Date;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

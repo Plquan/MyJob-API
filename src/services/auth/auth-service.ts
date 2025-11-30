@@ -2,7 +2,6 @@ import { ICandidateRegisterData, ICompanyRegisterData, ICurrentUser } from "@/dt
 import IAuthService from "@/interfaces/auth/auth-interface";
 import DatabaseService from "../common/database-service";
 import Extensions from "@/common/ultils/extension";
-import logger from "@/common/helpers/logger";
 import { IJwtService, ITokenPayload } from "@/interfaces/auth/jwt-interface";
 import { EUserRole } from "@/common/enums/user/user-role-enum";
 import { LoginRequest } from "@/dtos/auth/login-request";

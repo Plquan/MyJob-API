@@ -10,7 +10,6 @@ export class CompanyMapper {
         return {
             id: entity.id,
             provinceId: entity.provinceId,
-            districtId: entity.districtId,
             userId: entity.userId,
             companyName: entity.companyName,
             companyEmail: entity.companyEmail,

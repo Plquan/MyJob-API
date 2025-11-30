@@ -17,12 +17,10 @@ import { StatusCodes } from "@/common/enums/status-code/status-code.enum"
 import { EResumeType } from "@/common/enums/resume/resume-enum"
 import { HttpException } from "@/errors/http-exception"
 import { EAuthError } from "@/common/enums/error/EAuthError"
-import ISkillService from "@/interfaces/skill/skill-interface"
-import ILanguageService from "@/interfaces/language/language-interface"
-import IEducationService from "@/interfaces/education/education-interface"
-import ICertificateService from "@/interfaces/certificate/certificate-interface"
-import ICandidateService from "@/interfaces/candidate/candidate-interface"
 import { FileType } from "@/common/enums/file-type/file-types"
+import { ResumeMapper } from "@/mappers/resume/resume-mapper"
+import { IOnlineResumeDto } from "@/dtos/resume/resume-dto"
+import { EGlobalError } from "@/common/enums/error/EGlobalError"
 
 
 export default class ResumeService implements IResumeService {
@@ -298,7 +296,7 @@ export default class ResumeService implements IResumeService {
       }
     }
   }
-  async getOnlineResume(): Promise<IResponseBase> {
+  async getOnlineResume(): Promise<IOnlineResumeDto> {
     try {
       const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
       const userId = request?.user?.id;
@@ -323,58 +321,17 @@ export default class ResumeService implements IResumeService {
       })
 
       if (!onlineResume) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          success: false,
-          message: "Không tìm thấy hồ sơ trực tuyến",
-        }
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Online Resume not found")
       }
-
-      const {
-        candidate,
-        educations,
-        certificates,
-        experiences,
-        languages,
-        skills,
-        ...resumeData
-      } = onlineResume;
-
-      const userInfo = {
-        fullName: candidate.user.candidate.fullName,
-        email: candidate.user.email,
-        avatar: candidate.user.avatar,
-      }
-
-      const { user: _removedUser, ...candidateInfo } = candidate;
-
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "Lấy hồ sơ thành công",
-        data: {
-          userInfo,
-          resume: resumeData,
-          candidate: candidateInfo,
-          educations,
-          certificates,
-          experiences,
-          languages,
-          skills,
-        },
-      }
-
+      onlineResume.educations?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      onlineResume.certificates?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      onlineResume.experiences?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      onlineResume.languages?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      onlineResume.skills?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      
+      return ResumeMapper.toOnlineResumeDto(onlineResume);
     } catch (error) {
-      logger.error(error?.message);
-      console.error(
-        `Error in CandidateService - method getOnlineResume at ${new Date().toISOString()} with message: ${error?.message}`
-      )
-
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi lấy hồ sơ cá nhân, vui lòng thử lại sau",
-      }
+      throw error
     }
   }
   async updateOnlineResume(data: UpdateOnlineResumeRequest): Promise<IResponseBase> {
