@@ -9,14 +9,13 @@ export interface ICandidateData {
   address?: string
 }
 
-
 export interface ICandidateDto {
   id: number;
   userId: number;
   provinceId?: number;
   fullName: string;
   phone?: string;
-  birthday?: string | Date;
+  birthday?: Date;
   gender?: EGender;
   maritalStatus?: EMartialStatus;
   address?: string;

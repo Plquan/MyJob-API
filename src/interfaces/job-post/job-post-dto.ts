@@ -87,18 +87,38 @@ export interface IGetJobPostsReqParams {
 }
 
 export interface IJobPostDto {
-  id: number;
-  jobName: string;
+  id: number
+  jobName: string
+  provinceId: number
+  company: {
+    companyName: string
+    logo?: string
+    coverImage?: string
+    images: string[]
+  }
+  isSaved: boolean
+  isApplied: boolean
+  isNew: boolean
+  deadline?: Date;
+  quantity?: number;
+  jobDescription?: string;
+  jobRequirement?: string;
+  benefitsEnjoyed?: string;
   salaryMin: number;
   salaryMax: number;
-  provinceName: string;
+  position: EPosition;
+  typeOfWorkPlace: ETypeOfWorkplace;
+  experience: EExperience;
+  academicLevel: EAcademicLevel;
+  genderRequirement: EGender;
+  jobType: EJobType;
+  isHot: boolean;
+  contactPersonName?: string;
+  contactPersonEmail?: string;
+  contactPersonPhone?: string;
+  views: number;
+  applications: number;
   createdAt: Date;
-  company: {
-    companyName: string;
-    logo?: string;
-  };
-  isHot: boolean
-  isNew: boolean
-  deadline: Date
-  isSaved?: boolean
+  updatedAt: Date;
+  status: EJobPostStatus;
 }

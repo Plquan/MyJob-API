@@ -33,7 +33,7 @@ export class JobPostController {
     const response = await this._jobPostService.getCompanyJobPosts(params);
     res.status(200).json(response)
   }
-  
+
   @before(inject(Auth.required))
   @PUT()
   async updateJobPost(req: Request, res: Response) {
@@ -46,7 +46,6 @@ export class JobPostController {
   @GET()
   async getJobPosts(req: Request, res: Response) {
     const { page = 1, limit = 10, search, jobPostStatus } = req.query;
-
     const params: IGetCompanyJobPostsReqParams = {
       page: +page,
       limit: +limit,
@@ -64,6 +63,15 @@ export class JobPostController {
   async toggleSaveJobPost(req: Request, res: Response) {
     const jobPostId = parseInt(req.params.jobPostId)
     const response = await this._jobPostService.toggleSaveJobPost(jobPostId);
+    res.status(200).json(response)
+  }
+
+  @before(inject(Auth.optional))
+  @route("/:jobPostId")
+  @GET()
+  async getJobPostById(req: Request, res: Response) {
+    const jobPostId = parseInt(req.params.jobPostId)
+    const response = await this._jobPostService.getJobPostById(jobPostId);
     res.status(200).json(response)
   }
 }

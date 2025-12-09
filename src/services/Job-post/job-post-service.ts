@@ -1,7 +1,7 @@
 import { JobPost } from "@/entities/job-post";
 import IJobPostService from "@/interfaces/job-post/job-post-interface";
 import DatabaseService from "../common/database-service";
-import { ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
+import { ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
 import { HttpException } from "@/errors/http-exception";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
@@ -9,7 +9,6 @@ import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { Brackets } from "typeorm";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
-import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { FileType } from "@/common/enums/file-type/file-types";
 
 export default class JobPostService implements IJobPostService {
@@ -17,6 +16,30 @@ export default class JobPostService implements IJobPostService {
 
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
+    }
+    async getJobPostById(jobPostId: number): Promise<IJobPostDto> {
+        const candidateId = getCurrentUser()?.candidateId
+        if (!candidateId) {
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.UnauthorizedAccess, "Unauthorize")
+        }
+        try {
+            const jobPost = await this._context.JobPostRepo.createQueryBuilder("job")
+                .leftJoinAndSelect("job.company", "company")
+                .leftJoinAndSelect("company.companyImages", "companyImage")
+                .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
+                .leftJoin("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
+                    candidateId: candidateId ?? null
+                })
+                .leftJoin("job.jobPostActivities", "jobPostActivity", "jobPostActivity.candidateId = :candidateId AND jobPostActivity.jobPostId = :jobPostId", {
+                    candidateId: candidateId ?? null,
+                    jobPostId
+                })
+                .where("job.id = :jobPostId", { jobPostId })
+                .getOne()
+            return JobPostMapper.toJobPosDto(jobPost)
+        } catch (error) {
+            throw error
+        }
     }
     async toggleSaveJobPost(jobPostId: number): Promise<boolean> {
         try {
@@ -49,15 +72,23 @@ export default class JobPostService implements IJobPostService {
             const candidateId = getCurrentUser()?.candidateId;
 
             const query = this._context.JobPostRepo.createQueryBuilder("job")
+                .select([
+                    "job.id",
+                    "job.jobName",
+                    "job.salaryMin",
+                    "job.salaryMax",
+                    "job.provinceId",
+                    "job.createdAt",
+                    "job.isHot",
+                    "job.deadline"
+                ])
                 .leftJoinAndSelect("job.company", "company")
-                .leftJoinAndSelect("job.province", "province")
                 .leftJoinAndSelect("company.companyImages", "companyImage")
                 .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
+                .leftJoin("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
+                    candidateId: candidateId ?? null
+                })
             // .where("job.status = :status", { status:  EJobPostStatus.APPROVED });
-
-            if (candidateId) {
-                query.leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", { candidateId });
-            }
 
             if (jobName && jobName.trim() !== "") {
                 query.andWhere(
@@ -82,6 +113,7 @@ export default class JobPostService implements IJobPostService {
             //     totalItems,
             //     totalPages: Math.ceil(totalItems / limit),
             // } as IPaginationResponse
+            console.log(jobPosts)
 
             return JobPostMapper.toListJobPostDto(jobPosts, candidateId)
 
