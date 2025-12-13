@@ -122,3 +122,12 @@ export interface IJobPostDto {
   updatedAt: Date;
   status: EJobPostStatus;
 }
+
+
+export interface IApplyJobRequest {
+  jobPostId: number;
+  resumeId: number;
+  fullName: string;
+  email: string;
+  phone: string;
+}

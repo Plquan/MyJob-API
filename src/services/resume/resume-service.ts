@@ -6,7 +6,6 @@ import logger from "@/common/helpers/logger"
 import CloudinaryService from "../common/cloudinary-service"
 import { MyJobFile } from "@/entities/myjob-file"
 import { Resume } from "@/entities/resume"
-import { Candidate } from "@/entities/candidate"
 import { CloudinaryResourceType } from "@/common/constants/cloudinary-resource-type"
 import { getFileCategory } from "@/common/ultils/fileUltils"
 import { RequestStorage } from "@/common/middlewares/async-local-storage"
@@ -19,8 +18,9 @@ import { HttpException } from "@/errors/http-exception"
 import { EAuthError } from "@/common/enums/error/EAuthError"
 import { FileType } from "@/common/enums/file-type/file-types"
 import { ResumeMapper } from "@/mappers/resume/resume-mapper"
-import { IOnlineResumeDto } from "@/dtos/resume/resume-dto"
+import { IOnlineResumeDto, IResumeDto } from "@/dtos/resume/resume-dto"
 import { EGlobalError } from "@/common/enums/error/EGlobalError"
+import { getCurrentUser } from "@/common/helpers/get-current-user"
 
 
 export default class ResumeService implements IResumeService {
@@ -32,34 +32,19 @@ export default class ResumeService implements IResumeService {
     this._context = DatabaseService
 
   }
-  async getAttachedResumeById(attchedResumeId: number): Promise<IResponseBase> {
+  async getResumeById(attchedResumeId: number): Promise<IResumeDto> {
     try {
 
-      const attachResume = await this._context.ResumeRepo.findOne({
+      const resume = await this._context.ResumeRepo.findOne({
         where: { id: attchedResumeId },
         relations: ['myJobFile']
       })
-
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "Lấy thông tin hồ sơ đính kèm thành công",
-        data: attachResume
-      }
-
+      return resume
     } catch (error) {
-      logger.error(error?.message);
-      console.error(
-        `Error in ResumeService - method getAttachedResumeById() at ${new Date().toISOString()} with message: ${error?.message}`
-      )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi lấy hồ sơ đính kèm, vui lòng thử lại sau",
-      }
+      throw error
     }
   }
-  async updateAttachedResume(data: UpdateAttachedResumeRequest, file?: Express.Multer.File): Promise<IResponseBase> {
+  async updateAttachedResume(data: UpdateAttachedResumeRequest, file?: Express.Multer.File): Promise<IResumeDto> {
     try {
       const attachedResume = await this._context.ResumeRepo.findOne({
         where: { id: data.id },
@@ -67,11 +52,7 @@ export default class ResumeService implements IResumeService {
       });
 
       if (!attachedResume) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          message: "Không tìm thấy hồ sơ đính kèm",
-          success: false,
-        }
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Attached Resume not found")
       }
 
       const dataSource = this._context.getDataSource();
@@ -85,7 +66,7 @@ export default class ResumeService implements IResumeService {
           );
 
           if (!result?.public_id || !result?.secure_url) {
-            throw new Error("Tải lên tệp thất bại");
+            throw new HttpException(StatusCodes.INTERNAL_SERVER_ERROR, EGlobalError.ServerError, "Upload file failed")
           }
 
           if (attachedResume.myJobFile) {
@@ -98,82 +79,36 @@ export default class ResumeService implements IResumeService {
         manager.merge(Resume, attachedResume, data);
         await manager.save(attachedResume);
       })
-
-      const updatedAttachedResume = await this.getAttachedResumeById(data.id)
-
-      if (!updatedAttachedResume.data) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          message: "Không tìm thấy hồ sơ đã tạo",
-          success: false
-        }
-      }
-
-      return {
-        status: StatusCodes.OK,
-        message: "Cập nhật hồ sơ thành công",
-        success: true,
-        data: updatedAttachedResume.data
-      }
-
+      const updatedAttachedResume = await this.getResumeById(data.id)
+      return updatedAttachedResume
     } catch (error) {
-      logger.error(error?.message);
-      console.error(
-        `Error in ResumeService - method updateAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
-      );
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi cập nhật hồ sơ đính kèm, vui lòng thử lại sau",
-      };
+      throw error
     }
   }
-  async deleteAttachedResume(attachedResumeId: number): Promise<IResponseBase> {
+  async deleteResume(attachedResumeId: number): Promise<boolean> {
     try {
       const attachedResume = await this._context.ResumeRepo.findOne({
         where: { id: attachedResumeId },
         relations: ['myJobFile']
       })
       if (!attachedResume) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          message: "Không tìm thấy hồ sơ đính kèm",
-          success: false,
-        }
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Attached Resume not found")
       }
       if (attachedResume.myJobFile?.id) {
         await this._context.MyJobFileRepo.softDelete(attachedResume.myJobFile.id)
       }
       await this._context.ResumeRepo.delete(attachedResumeId)
 
-      return {
-        status: StatusCodes.OK,
-        message: "Xóa hồ sơ đính kèm thành công",
-        success: true,
-      }
+      return true
 
     } catch (error) {
-      logger.error(error?.message)
-      console.error(
-        `Error in ResumeService - method deleteAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
-      )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi xóa hồ sơ đính kèm, vui lòng thử lại sau",
-      }
+      throw error
     }
   }
-  async uploadAttachedResume(data: UploadAttachedResumeRequest, file: Express.Multer.File): Promise<IResponseBase> {
-    const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
-    const userId = request?.user.id
-
-    if (!userId) {
-      return {
-        status: StatusCodes.UNAUTHORIZED,
-        success: false,
-        message: "Bạn không có quyền truy cập",
-      }
+  async createResume(data: UploadAttachedResumeRequest, file: Express.Multer.File,candidateId: number): Promise<IResumeDto> {
+    
+    if (!candidateId) {
+      throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Candidate id not found")
     }
 
     const queryRunner = this._context.createQueryRunner()
@@ -181,18 +116,6 @@ export default class ResumeService implements IResumeService {
     await queryRunner.startTransaction()
 
     try {
-      const candidateProfile = await queryRunner.manager.findOne(Candidate, {
-        where: { userId },
-      })
-
-      if (!candidateProfile) {
-        await queryRunner.rollbackTransaction();
-        return {
-          status: StatusCodes.NOT_FOUND,
-          message: "Không tìm thấy hồ sơ ứng viên",
-          success: false,
-        }
-      }
 
       const result = await CloudinaryService.uploadFile(
         file,
@@ -202,11 +125,7 @@ export default class ResumeService implements IResumeService {
 
       if (!result?.public_id || !result?.secure_url) {
         await queryRunner.rollbackTransaction()
-        return {
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-          success: false,
-          message: "Tải lên tệp thất bại",
-        }
+        throw new HttpException(StatusCodes.INTERNAL_SERVER_ERROR, EGlobalError.ServerError, "Upload file failed")
       }
       const newFile = queryRunner.manager.create(MyJobFile, {
         publicId: result.public_id,
@@ -216,84 +135,41 @@ export default class ResumeService implements IResumeService {
         format: getFileCategory(file),
       })
       await queryRunner.manager.save(MyJobFile, newFile)
-      data.candidateId = candidateProfile.id
+      data.candidateId = candidateId
       data.myJobFileId = newFile.id
+      data.type = EResumeType.ATTACHED
 
       const newAttachedResume = queryRunner.manager.create(Resume, data)
       await queryRunner.manager.save(Resume, newAttachedResume)
-
       await queryRunner.commitTransaction()
-
-      const createdAttachedResume = await this.getAttachedResumeById(newAttachedResume.id)
-
-      if (!createdAttachedResume) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          message: "Không tìm thấy hồ sơ đã tạo",
-          success: false
-        }
-      }
-
-      return {
-        status: StatusCodes.CREATED,
-        message: "Thêm hồ sơ đính kèm thành công",
-        success: true,
-        data: createdAttachedResume.data
-      }
-
+      const createdAttachedResume = await this.getResumeById(newAttachedResume.id)
+      return createdAttachedResume
     } catch (error) {
       await queryRunner.rollbackTransaction()
-      logger.error(error?.message)
-      console.error(
-        `Error in ResumeService - method uploadAttachedResume() at ${new Date().toISOString()} with message: ${error?.message}`
-      )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi thêm hồ sơ đính kèm, vui lòng thử lại sau",
-      }
+      throw error
     } finally {
       await queryRunner.release()
     }
   }
-  async getAllAttachedResumes(): Promise<IResponseBase> {
+  async getResumes(): Promise<IResumeDto[]> {
     try {
-      const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
-      const userId = request?.user?.id;
 
-      if (!userId) {
-        return {
-          status: StatusCodes.UNAUTHORIZED,
-          success: false,
-          message: "Bạn không có quyền truy cập",
-        };
+      const user = getCurrentUser()
+      if (!user) {
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "User not found")
       }
 
-      const uploadResumes = await this._context.ResumeRepo.find({
-        where: { candidate: { userId } },
+      const resumes = await this._context.ResumeRepo.find({
+        where: { candidateId: user.candidateId },
         relations: ['myJobFile'],
         order: {
           createdAt: 'DESC',
         }
       })
 
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "Lấy danh sách hồ sơ tải lên thành công",
-        data: uploadResumes
-      }
-
+      return resumes
     } catch (error) {
-      logger.error(error?.message);
-      console.error(
-        `Error in ResumeService - method getAllUploadResumes() at ${new Date().toISOString()} with message: ${error?.message}`
-      )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi lấy hồ sơ tải lên, vui lòng thử lại sau",
-      }
+      throw error
     }
   }
   async getOnlineResume(): Promise<IOnlineResumeDto> {
@@ -328,7 +204,7 @@ export default class ResumeService implements IResumeService {
       onlineResume.experiences?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       onlineResume.languages?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       onlineResume.skills?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      
+
       return ResumeMapper.toOnlineResumeDto(onlineResume);
     } catch (error) {
       throw error

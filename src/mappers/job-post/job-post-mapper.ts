@@ -1,7 +1,8 @@
 import { JobPost } from "@/entities/job-post";
-import { ICreateJobPostReq, IUpdateJobPostReq, ICompanyJobPostDto, IJobPostDto } from "@/interfaces/job-post/job-post-dto";
+import { ICreateJobPostReq, IUpdateJobPostReq, ICompanyJobPostDto, IJobPostDto, IApplyJobRequest } from "@/interfaces/job-post/job-post-dto";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { FileType } from "@/common/enums/file-type/file-types";
+import { JobPostActivity } from "@/entities/job-post-activity";
 
 export default class JobPostMapper {
   public static toCreateJobPostEntity(dto: ICreateJobPostReq, companyId: number): JobPost {
@@ -121,11 +122,15 @@ export default class JobPostMapper {
       ? (Date.now() - entity.createdAt.getTime()) < oneDayMs
       : false;
 
+    const isApplied = candidateId
+      ? (entity.jobPostActivities?.length ?? 0) > 0
+      : false;
+
     return {
       id: entity.id,
       isNew: isNew,
       isSaved: isSaved,
-      isApplied: false,
+      isApplied: isApplied,
       provinceId: entity.provinceId,
       jobName: entity.jobName,
       deadline: entity.deadline,
@@ -162,5 +167,4 @@ export default class JobPostMapper {
   public static toListJobPostDto(entities: JobPost[], candidateId?: number): IJobPostDto[] {
     return entities.map((entity) => this.toJobPosDto(entity, candidateId));
   }
-
 }

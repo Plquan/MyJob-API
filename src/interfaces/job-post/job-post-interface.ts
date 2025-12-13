@@ -1,5 +1,5 @@
 import { JobPost } from "@/entities/job-post";
-import { ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "./job-post-dto";
+import { IApplyJobRequest, ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "./job-post-dto";
 import { IPaginationResponse } from "../base/IPaginationBase";
 
 export  default interface IJobPostService {

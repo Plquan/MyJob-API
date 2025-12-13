@@ -18,6 +18,7 @@ import SkillService from "./services/skill/skill-service"
 import { BackgroundService } from "./services/common/background-service"
 import PackageService from "./services/package/package-service"
 import JobPostService from "./services/Job-post/job-post-service"
+import JobPostActivityService from "./services/job-post-activity/job-post-activity-service"
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -43,7 +44,7 @@ container.register({
   SkillService: asClass(SkillService).scoped(),
   PackageService: asClass(PackageService).scoped(),
   JobPostService: asClass(JobPostService).scoped(),
-
+  JobPostActivityService: asClass(JobPostActivityService).scoped(),
 })
   container.resolve("JwtService")
   container.resolve("DatabaseService")

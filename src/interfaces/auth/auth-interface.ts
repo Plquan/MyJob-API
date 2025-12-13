@@ -1,7 +1,6 @@
-import { ILoginData, ICandidateRegisterData,ICompanyRegisterData, ICurrentUser } from "../../dtos/auth/auth-dto";
+import { ILoginData, ICandidateRegisterData,ICompanyRegisterData, ICurrentUser, ILoginRequest } from "../../dtos/auth/auth-dto";
 export default interface IAuthService {
-  candidateLogin(userLogin: ILoginData,setTokenToCookie: (refreshToken: string) => void): Promise<string>;
-  employerLogin(userLogin: ILoginData,setTokenToCookie: (refreshToken: string) => void): Promise<string>;
+  login(userLogin: ILoginRequest,setTokenToCookie: (refreshToken: string) => void): Promise<string>;
   candidateRegister(candidateRegister: ICandidateRegisterData): Promise<boolean>;
   employerRegister(companyRegister: ICompanyRegisterData): Promise<boolean>;
   getMe(): Promise<ICurrentUser>;

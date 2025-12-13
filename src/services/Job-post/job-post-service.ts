@@ -1,7 +1,7 @@
 import { JobPost } from "@/entities/job-post";
 import IJobPostService from "@/interfaces/job-post/job-post-interface";
 import DatabaseService from "../common/database-service";
-import { ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
+import { IApplyJobRequest, ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
 import { HttpException } from "@/errors/http-exception";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
@@ -17,26 +17,26 @@ export default class JobPostService implements IJobPostService {
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
+
     async getJobPostById(jobPostId: number): Promise<IJobPostDto> {
         const candidateId = getCurrentUser()?.candidateId
-        if (!candidateId) {
-            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.UnauthorizedAccess, "Unauthorize")
-        }
         try {
             const jobPost = await this._context.JobPostRepo.createQueryBuilder("job")
                 .leftJoinAndSelect("job.company", "company")
                 .leftJoinAndSelect("company.companyImages", "companyImage")
                 .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
-                .leftJoin("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
+                .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
                     candidateId: candidateId ?? null
                 })
-                .leftJoin("job.jobPostActivities", "jobPostActivity", "jobPostActivity.candidateId = :candidateId AND jobPostActivity.jobPostId = :jobPostId", {
-                    candidateId: candidateId ?? null,
-                    jobPostId
-                })
+                .leftJoinAndSelect(
+                    "job.jobPostActivities",
+                    "jobPostActivity",
+                    "jobPostActivity.candidateId = :candidateId",
+                    { candidateId: candidateId ?? null }
+                )
                 .where("job.id = :jobPostId", { jobPostId })
                 .getOne()
-            return JobPostMapper.toJobPosDto(jobPost)
+            return JobPostMapper.toJobPosDto(jobPost, candidateId);
         } catch (error) {
             throw error
         }
@@ -85,7 +85,7 @@ export default class JobPostService implements IJobPostService {
                 .leftJoinAndSelect("job.company", "company")
                 .leftJoinAndSelect("company.companyImages", "companyImage")
                 .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
-                .leftJoin("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
+                .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
                     candidateId: candidateId ?? null
                 })
             // .where("job.status = :status", { status:  EJobPostStatus.APPROVED });
@@ -113,13 +113,10 @@ export default class JobPostService implements IJobPostService {
             //     totalItems,
             //     totalPages: Math.ceil(totalItems / limit),
             // } as IPaginationResponse
-            console.log(jobPosts)
 
             return JobPostMapper.toListJobPostDto(jobPosts, candidateId)
 
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method getJobPosts at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }
@@ -192,8 +189,6 @@ export default class JobPostService implements IJobPostService {
                 totalPages: Math.ceil(totalItems / limit),
             };
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method getCompanyJobPosts at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }
@@ -208,8 +203,6 @@ export default class JobPostService implements IJobPostService {
             await this._context.JobPostRepo.save(newJobPost)
             return newJobPost
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method CreateJobPost at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }
@@ -226,8 +219,6 @@ export default class JobPostService implements IJobPostService {
             await this._context.JobPostRepo.save(updatedJobPost)
             return updatedJobPost
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method UpdateJobPost at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }

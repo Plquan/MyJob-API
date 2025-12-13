@@ -35,7 +35,6 @@ export default class UserService implements IUserService {
                 .select([
                     'user.id AS "id"',
                     'user.email AS "email"',
-                    'user.fullName AS "fullName"',
                     'user.isVerifyEmail AS "isVerifyEmail"',
                     'user.isActive AS "isActive"',
                     'user.isSuperUser AS "isSuperUser"',

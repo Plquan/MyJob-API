@@ -36,3 +36,36 @@ export interface IOnlineResumeDto {
   languages?: ILanguageDto[];
   skills?: ISkillDto[]; 
 }
+
+
+export interface UploadAttachedResumeRequest {
+  provinceId: number;
+  careerId: number;
+  candidateId: number;
+  myJobFileId: number;
+  title: string;
+  description: string;
+  salaryMin: number;
+  salaryMax: number;
+  position: number;
+  typeOfWorkPlace: number;
+  experience: number;
+  academicLevel?: number;
+  jobType: number;
+  type: EResumeType;
+}
+
+export interface UpdateAttachedResumeRequest {
+  id: number;
+  provinceId: number;
+  careerId: number;
+  title?: string;
+  description?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  position?: number;
+  typeOfWorkPlace?: number;
+  experience?: number;
+  academicLevel?: number;
+  jobType?: number;
+}

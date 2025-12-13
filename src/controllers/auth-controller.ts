@@ -13,30 +13,16 @@ export class AuthController {
   }
 
   @POST()
-  @route("/login/candidate")
+  @route("/login")
   async candidateLogin(req: Request, res: Response) {
-    const loginData: ILoginData = req.body;
+    const data = req.body;
     const setTokenToCookie = (refreshToken: string) => {
       res.cookie("refreshToken", refreshToken, TOKEN_OPTIONS);
     };
-    const response = await this._authService.candidateLogin(loginData, setTokenToCookie);
+    const response = await this._authService.login(data, setTokenToCookie);
     res.status(200).json(response);
   }
 
-  @POST()
-  @route("/login/company")
-  async companyLogin(req: Request, res: Response) {
-    try {
-      const loginData: ILoginData = req.body;
-      const setTokenToCookie = (refreshToken: string) => {
-        res.cookie("refreshToken", refreshToken, TOKEN_OPTIONS);
-      };
-      const response = await this._authService.employerLogin(loginData, setTokenToCookie);
-      res.status(200).json(response);
-    } catch (error) {
-      throw error
-    }
-  }
 
   @POST()
   @route("/register/employer")
