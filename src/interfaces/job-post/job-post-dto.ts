@@ -124,10 +124,3 @@ export interface IJobPostDto {
 }
 
 
-export interface IApplyJobRequest {
-  jobPostId: number;
-  resumeId: number;
-  fullName: string;
-  email: string;
-  phone: string;
-}

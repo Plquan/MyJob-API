@@ -5,6 +5,7 @@ import { ICertificateDto } from "../certificate/certificate-dto";
 import { IExperienceDto } from "../experience/experience-dto";
 import { ILanguageDto } from "../language/language-dto";
 import { ISkillDto } from "../skill/skill-dto";
+import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto";
 
 export interface IResumeDto {
   id: number;
@@ -25,6 +26,7 @@ export interface IResumeDto {
   selected: boolean;
   createdAt: Date;
   updatedAt: Date;
+  myJobFile?: IMyJobFileDto
 }
 
 export interface IOnlineResumeDto {

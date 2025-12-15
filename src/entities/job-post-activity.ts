@@ -10,6 +10,7 @@ import {
 import { JobPost } from './job-post';
 import { Resume } from './resume';
 import { Candidate } from './candidate';
+import { EJobPostActivityStatus } from '@/common/enums/job/EJobPostActivity';
   
  @Entity('job_post_activities')
 export class JobPostActivity {
@@ -34,8 +35,8 @@ export class JobPostActivity {
   @Column({ type: 'varchar', length: 15, nullable: true })
   phone?: string;
 
-  @Column({ type: 'int' }) 
-  status!: number;
+  @Column({ type: 'enum', enum: EJobPostActivityStatus})
+  status!: EJobPostActivityStatus;
 
   @Column({ type: 'boolean', default: false }) 
   isSentMail!: boolean;

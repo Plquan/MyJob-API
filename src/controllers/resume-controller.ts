@@ -33,7 +33,7 @@ export class ResumeController {
     @route("/create-resume")
     async uploadAttachedResume(req: Request, res: Response) {
         const file = req.file
-        const data = req.body
+        const data = JSON.parse(req.body.data)
         const candidateId = req.user.candidateId
         const response = await this._resumeService.createResume(data, file, candidateId)
         return res.status(201).json(response)

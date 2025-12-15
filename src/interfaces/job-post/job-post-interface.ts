@@ -1,9 +1,9 @@
 import { JobPost } from "@/entities/job-post";
-import { IApplyJobRequest, ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "./job-post-dto";
+import { ICompanyJobPostDto, ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "./job-post-dto";
 import { IPaginationResponse } from "../base/IPaginationBase";
 
 export  default interface IJobPostService {
-    getCompanyJobPosts(req: IGetCompanyJobPostsReqParams): Promise<IPaginationResponse>
+    getCompanyJobPosts(req: IGetCompanyJobPostsReqParams): Promise<IPaginationResponse<ICompanyJobPostDto>>
     createJobPost(data: ICreateJobPostReq): Promise<JobPost>
     updateJobPost(data: IUpdateJobPostReq): Promise<JobPost>
     deleteJobPost(jobPostId: number): Promise<boolean>

@@ -1,5 +1,5 @@
 import { JobPost } from "@/entities/job-post";
-import { ICreateJobPostReq, IUpdateJobPostReq, ICompanyJobPostDto, IJobPostDto, IApplyJobRequest } from "@/interfaces/job-post/job-post-dto";
+import { ICreateJobPostReq, IUpdateJobPostReq, ICompanyJobPostDto, IJobPostDto } from "@/interfaces/job-post/job-post-dto";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { FileType } from "@/common/enums/file-type/file-types";
 import { JobPostActivity } from "@/entities/job-post-activity";

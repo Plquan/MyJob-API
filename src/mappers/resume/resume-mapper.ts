@@ -6,6 +6,7 @@ import { ExperienceMapper } from "../experience/experience-mapper";
 import { LanguageMapper } from "../language/language-mapper";
 import { SkillMapper } from "../skill/skill-mapper";
 import { CertificateMapper } from "../certificate/certificate-mapper";
+import MyjobFileMapper from "../myjob-file/myjob-file-mapper";
 
 export class ResumeMapper {
     public static toResumeDto(entity: Resume): IResumeDto {
@@ -28,6 +29,7 @@ export class ResumeMapper {
             selected: entity.selected,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
+            myJobFile: MyjobFileMapper.toMyJobFileDto(entity.myJobFile)
         };
     }
 

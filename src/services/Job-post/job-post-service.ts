@@ -1,7 +1,7 @@
 import { JobPost } from "@/entities/job-post";
 import IJobPostService from "@/interfaces/job-post/job-post-interface";
 import DatabaseService from "../common/database-service";
-import { IApplyJobRequest, ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
+import { ICompanyJobPostDto, ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
 import { HttpException } from "@/errors/http-exception";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
@@ -148,7 +148,7 @@ export default class JobPostService implements IJobPostService {
             throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
         }
     }
-    async getCompanyJobPosts(params: IGetCompanyJobPostsReqParams): Promise<IPaginationResponse> {
+    async getCompanyJobPosts(params: IGetCompanyJobPostsReqParams): Promise<IPaginationResponse<ICompanyJobPostDto>> {
         try {
             const { page, limit, search, jobPostStatus } = params;
             const companyId = getCurrentUser().companyId;
@@ -183,8 +183,6 @@ export default class JobPostService implements IJobPostService {
 
             return {
                 items: JobPostMapper.toListCompanyJobPostDto(jobPosts),
-                page: page,
-                limit,
                 totalItems,
                 totalPages: Math.ceil(totalItems / limit),
             };

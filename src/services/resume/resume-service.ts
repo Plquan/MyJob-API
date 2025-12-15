@@ -87,17 +87,39 @@ export default class ResumeService implements IResumeService {
   }
   async deleteResume(attachedResumeId: number): Promise<boolean> {
     try {
-      const attachedResume = await this._context.ResumeRepo.findOne({
+      const user = getCurrentUser()
+
+      if(!user){
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "User not found")
+      }
+
+      const resume = await this._context.ResumeRepo.findOne({
         where: { id: attachedResumeId },
         relations: ['myJobFile']
       })
-      if (!attachedResume) {
+      if (!resume) {
         throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Attached Resume not found")
       }
-      if (attachedResume.myJobFile?.id) {
-        await this._context.MyJobFileRepo.softDelete(attachedResume.myJobFile.id)
+      if (resume.type == EResumeType.ONLINE) {
+        throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.DeleteFailed, "Cannot delete online resume")
+      }
+      if (resume.myJobFile?.id) {
+        await this._context.MyJobFileRepo.softDelete(resume.myJobFile.id)
       }
       await this._context.ResumeRepo.delete(attachedResumeId)
+
+      if (resume.selected == true) {
+        const onlineResume = await this._context.ResumeRepo.findOne({
+          where: { candidateId: user.candidateId, type: EResumeType.ONLINE },
+        })
+        onlineResume.selected = true
+        if (onlineResume) {
+          await this._context.ResumeRepo.update(
+            { id: onlineResume.id },
+            { selected: true }
+          );
+        }
+      }
 
       return true
 
@@ -105,8 +127,7 @@ export default class ResumeService implements IResumeService {
       throw error
     }
   }
-  async createResume(data: UploadAttachedResumeRequest, file: Express.Multer.File,candidateId: number): Promise<IResumeDto> {
-    
+  async createResume(data: UploadAttachedResumeRequest, file: Express.Multer.File, candidateId: number): Promise<IResumeDto> {
     if (!candidateId) {
       throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Candidate id not found")
     }
@@ -163,7 +184,7 @@ export default class ResumeService implements IResumeService {
         where: { candidateId: user.candidateId },
         relations: ['myJobFile'],
         order: {
-          createdAt: 'DESC',
+          createdAt: 'ASC',
         }
       })
 

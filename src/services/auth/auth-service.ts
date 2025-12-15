@@ -70,17 +70,13 @@ export default class AuthService implements IAuthService {
       if (!request.email || !request.password) {
         throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
       }
-
-      const relations =
-        request.role === EUserRole.EMPLOYER
-          ? ['company']
-          : request.role === EUserRole.CANDIDATE
-            ? ['candidate']
-            : [];
       const user = await this._context.UserRepo.findOne({
         where: { email: request.email, role: request.role },
-        relations
-      })
+        relations: {
+          company: request.role === EUserRole.EMPLOYER,
+          candidate: request.role === EUserRole.CANDIDATE,
+        },
+      });
 
       if (!user) {
         throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.InvalidCredentials, "User not found")
@@ -97,13 +93,18 @@ export default class AuthService implements IAuthService {
 
       const tokenPayload: ITokenPayload = {
         userId: user.id,
-        fullName: user.candidate.fullName,
         role: user.role,
         isStaff: user.isStaff,
         isSuperUser: user.isSuperUser,
-        candidateId: user.candidate.id,
-        companyId: user.company.id
-      }
+        fullName:
+          user.role === EUserRole.CANDIDATE
+            ? user.candidate?.fullName
+            : user.role === EUserRole.EMPLOYER
+              ? user.company?.companyName
+              : user.email,
+        candidateId: user.candidate?.id,
+        companyId: user.company?.id
+      };
 
       const accessToken = this._jwtService.generateAccessToken(tokenPayload)
       const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
