@@ -1,11 +1,10 @@
-import { JobPostDto } from "../job-post/job-post-dto";
+import { ICompanyJobPostDto } from "../job-post/job-post-dto";
 import { IMyJobFileDto } from "../myjobfile/myjobfile-dto";
 
 
 export interface ICompanyDto {
   id: number;
   provinceId?: number;
-  districtId?: number;
   userId: number;
   companyName: string;
   companyEmail: string;
@@ -30,7 +29,7 @@ export interface ICompanyWithImagesDto {
 }
 
 export interface ICompanyDetail extends ICompanyWithImagesDto {
-  jobPosts?: JobPostDto[];
+  jobPosts?: ICompanyJobPostDto[];
 }
 
 
@@ -38,7 +37,6 @@ export interface ICompanyDetail extends ICompanyWithImagesDto {
 export interface IUpdateCompanyRequest {
   id: number;
   provinceId: number;
-  districtId: number;
   userId: number;
   companyName: string;
   companyEmail: string;

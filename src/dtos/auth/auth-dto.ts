@@ -1,6 +1,8 @@
 
 import { EUserRole } from "@/common/enums/user/user-role-enum";
 import { ICompanyData } from "../company/CompanyDto";
+import { ICompanyDto } from "@/interfaces/company/company-dto";
+import { ICandidateDto } from "../candidate/candidate-dto";
 
 export interface ILoginData {
   email: string;
@@ -24,18 +26,6 @@ export interface ICompanyRegisterData {
   groupRoleId:number;
 }
 
-export interface IUserLoginResponse {
-  // userInfo: {
-  //   userId: string;
-  //   username: string;
-  //   fullName: string;
-  //   role: {
-  //     roleName: string;
-  //     displayName: string;
-  //   };
-  // };
-  // permissions: IFunctionByRole[];
-}
 
 export interface IUserRegisterResponse {
   username: string;
@@ -50,15 +40,15 @@ export interface IFunctionByRole {
 }
 
 export interface ICurrentUser {
-  id: number;
-  email: string;
-  fullName: string;
-  role: EUserRole;          
-  isStaff: boolean;
-  isActive: boolean;
-  allowSearch: boolean;        
-  avatar?: string | null;     
-  companyId?: number | null;    
+  id: number
+  email: string
+  role: EUserRole        
+  isStaff: boolean
+  isActive: boolean
+  allowSearch: boolean        
+  avatar?: string   
+  company?: ICompanyDto   
+  candidate?: ICandidateDto
 }
 
 export interface IUserClaim {
@@ -69,3 +59,10 @@ export interface IUserClaim {
   isSuperUser:boolean
   accessToken: string;
 };
+
+
+export interface ILoginRequest {
+  email: string
+  password:string
+  role: EUserRole
+}

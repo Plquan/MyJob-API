@@ -1,7 +1,7 @@
 import { JobPost } from "@/entities/job-post";
 import IJobPostService from "@/interfaces/job-post/job-post-interface";
 import DatabaseService from "../common/database-service";
-import { ICreateJobPostReq, IGetJobPostsReqParams, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
+import { ICompanyJobPostDto, ICreateJobPostReq, IGetCompanyJobPostsReqParams, IGetJobPostsReqParams, IJobPostDto, IUpdateJobPostReq } from "@/interfaces/job-post/job-post-dto";
 import { HttpException } from "@/errors/http-exception";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
@@ -9,7 +9,6 @@ import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { Brackets } from "typeorm";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
-import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { FileType } from "@/common/enums/file-type/file-types";
 
 export default class JobPostService implements IJobPostService {
@@ -18,22 +17,84 @@ export default class JobPostService implements IJobPostService {
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
-    async getJobPosts(params: IGetJobPostsReqParams): Promise<IPaginationResponse> {
-        try {
-            const { page, limit, search, jobPostStatus } = params;
 
-            const query = this._context.JobPostRepo.createQueryBuilder("job")
+    async getJobPostById(jobPostId: number): Promise<IJobPostDto> {
+        const candidateId = getCurrentUser()?.candidateId
+        try {
+            const jobPost = await this._context.JobPostRepo.createQueryBuilder("job")
                 .leftJoinAndSelect("job.company", "company")
-                .leftJoinAndSelect("job.province", "province")
                 .leftJoinAndSelect("company.companyImages", "companyImage")
                 .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
-                .where("job.status = :status", { status: jobPostStatus || EJobPostStatus.APPROVED });
+                .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
+                    candidateId: candidateId ?? null
+                })
+                .leftJoinAndSelect(
+                    "job.jobPostActivities",
+                    "jobPostActivity",
+                    "jobPostActivity.candidateId = :candidateId",
+                    { candidateId: candidateId ?? null }
+                )
+                .where("job.id = :jobPostId", { jobPostId })
+                .getOne()
+            return JobPostMapper.toJobPosDto(jobPost, candidateId);
+        } catch (error) {
+            throw error
+        }
+    }
+    async toggleSaveJobPost(jobPostId: number): Promise<boolean> {
+        try {
+            const candidateId = getCurrentUser()?.candidateId
+            if (!candidateId) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.UnauthorizedAccess, "Unauthorize")
+            }
+            const savedJobPost = await this._context.SavedJobPostRepo.findOne({
+                where: { jobPostId, candidateId }
+            })
+            if (!savedJobPost) {
+                const newSavedJobPost = this._context.SavedJobPostRepo.create({
+                    candidateId,
+                    jobPostId
+                })
+                await this._context.SavedJobPostRepo.save(newSavedJobPost)
+                return true
+            }
+            else {
+                await this._context.SavedJobPostRepo.delete(savedJobPost.id)
+                return false
+            }
+        } catch (error) {
+            throw error
+        }
+    }
+    async getJobPosts(params: IGetJobPostsReqParams): Promise<any> {
+        try {
+            const { page, limit, jobName } = params;
+            const candidateId = getCurrentUser()?.candidateId;
 
-            if (search && search.trim() !== "") {
+            const query = this._context.JobPostRepo.createQueryBuilder("job")
+                .select([
+                    "job.id",
+                    "job.jobName",
+                    "job.salaryMin",
+                    "job.salaryMax",
+                    "job.provinceId",
+                    "job.createdAt",
+                    "job.isHot",
+                    "job.deadline"
+                ])
+                .leftJoinAndSelect("job.company", "company")
+                .leftJoinAndSelect("company.companyImages", "companyImage")
+                .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
+                .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
+                    candidateId: candidateId ?? null
+                })
+            // .where("job.status = :status", { status:  EJobPostStatus.APPROVED });
+
+            if (jobName && jobName.trim() !== "") {
                 query.andWhere(
                     new Brackets((qb) => {
-                        qb.where("job.jobName ILIKE :search", { search: `%${search}%` })
-                            .orWhere("company.companyName ILIKE :search", { search: `%${search}%` });
+                        qb.where("job.jobName ILIKE :search", { search: `%${jobName}%` })
+                            .orWhere("company.companyName ILIKE :search", { search: `%${jobName}%` });
                     })
                 );
             }
@@ -45,16 +106,17 @@ export default class JobPostService implements IJobPostService {
                 .take(limit)
                 .getMany();
 
-            return {
-                items: JobPostMapper.toJobPostWithCompanyListDto(jobPosts),
-                page: page,
-                limit,
-                totalItems,
-                totalPages: Math.ceil(totalItems / limit),
-            };
+            // return {
+            //     items: JobPostMapper.toListJobPostDto(jobPosts),
+            //     page: page,
+            //     limit,
+            //     totalItems,
+            //     totalPages: Math.ceil(totalItems / limit),
+            // } as IPaginationResponse
+
+            return JobPostMapper.toListJobPostDto(jobPosts, candidateId)
+
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method getJobPosts at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }
@@ -65,7 +127,6 @@ export default class JobPostService implements IJobPostService {
         if (
             !dto.careerId ||
             !dto.provinceId ||
-            !dto.districtId ||
             !dto.jobName ||
             !dto.deadline ||
             !dto.quantity ||
@@ -84,15 +145,15 @@ export default class JobPostService implements IJobPostService {
             !dto.contactPersonEmail ||
             !dto.contactPersonPhone
         ) {
-            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput,"Invalid input")
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
         }
     }
-    async getCompanyJobPosts(params: IGetJobPostsReqParams): Promise<IPaginationResponse> {
+    async getCompanyJobPosts(params: IGetCompanyJobPostsReqParams): Promise<IPaginationResponse<ICompanyJobPostDto>> {
         try {
             const { page, limit, search, jobPostStatus } = params;
             const companyId = getCurrentUser().companyId;
             if (!companyId) {
-                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Company Id not found");
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Company Id not found");
             }
 
             const query = this._context.JobPostRepo.createQueryBuilder("job")
@@ -121,15 +182,11 @@ export default class JobPostService implements IJobPostService {
                 .getMany();
 
             return {
-                items: JobPostMapper.toJobPostListDto(jobPosts),
-                page: page,
-                limit,
+                items: JobPostMapper.toListCompanyJobPostDto(jobPosts),
                 totalItems,
                 totalPages: Math.ceil(totalItems / limit),
             };
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method getCompanyJobPosts at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }
@@ -138,14 +195,12 @@ export default class JobPostService implements IJobPostService {
             this.validateJobPost(data)
             const companyId = getCurrentUser().companyId
             if (!companyId) {
-                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Company Id not found");
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Company Id not found");
             }
             const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId))
             await this._context.JobPostRepo.save(newJobPost)
             return newJobPost
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method CreateJobPost at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }
@@ -155,15 +210,13 @@ export default class JobPostService implements IJobPostService {
                 where: { id: data.id }
             })
             if (!currentJobPost) {
-                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"Job post not found");
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Job post not found");
             }
             const updateJobPostDto = JobPostMapper.toUpdateJobPostEntity(data)
             const updatedJobPost = this._context.JobPostRepo.merge(currentJobPost, updateJobPostDto)
             await this._context.JobPostRepo.save(updatedJobPost)
             return updatedJobPost
         } catch (error) {
-            console.log(
-                `Error in JobPostService - method UpdateJobPost at ${new Date().getTime()} with message ${error?.message}`)
             throw error
         }
     }

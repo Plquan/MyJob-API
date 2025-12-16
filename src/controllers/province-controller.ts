@@ -1,6 +1,3 @@
-import { ErrorMessages } from "@/common/constants/ErrorMessages";
-import { EGlobalError } from "@/common/enums/error/EGlobalError";
-import { HttpException } from "@/errors/http-exception";
 import IProvinceService from "@/interfaces/province/province-interface";
 import { GET, route } from "awilix-express";
 import { Request, Response } from "express";
@@ -21,19 +18,6 @@ export class ProvinceController {
     catch (error) {
       throw error
     }
-  }
-
-  @GET()
-  @route("/get-districts/:provinceId")
-  async getDistrictsByProvince(req: Request, res: Response) {
-    try {
-      const provinceId = parseInt(req.params.provinceId);
-      const response = await this._provinceService.getDistrictsByProvince(provinceId);
-      return res.status(200).json(response);
-    } catch (error) {
-      throw error
-    }
-
   }
 
 }

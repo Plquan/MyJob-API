@@ -1,5 +1,5 @@
 export interface ICreateExperienceData {
-    resumeId:number,
+    resumeId: number,
     jobName: string
     companyName: string
     startDate: Date
@@ -14,4 +14,16 @@ export interface IUpdateExperienceData {
     startDate: Date
     endDate: Date
     description?: string
+}
+
+export interface IExperienceDto {
+    id: number
+    resumeId: number
+    jobName: string
+    companyName: string
+    startDate: Date
+    endDate: Date
+    description?: string
+    createdAt: Date
+    updatedAt: Date
 }

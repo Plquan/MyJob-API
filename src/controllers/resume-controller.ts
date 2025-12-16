@@ -28,16 +28,15 @@ export class ResumeController {
         return res.status(response.status).json(response)
     }
 
-    @before([
-        uploadFileMiddleware,
-        asyncLocalStorageMiddleware()])
+    @before([uploadFileMiddleware])
     @POST()
-    @route("/upload-attached-resume")
+    @route("/create-resume")
     async uploadAttachedResume(req: Request, res: Response) {
         const file = req.file
-        const data = req.body
-        const response = await this._resumeService.uploadAttachedResume(data, file)
-        return res.status(response.status).json(response)
+        const data = JSON.parse(req.body.data)
+        const candidateId = req.user.candidateId
+        const response = await this._resumeService.createResume(data, file, candidateId)
+        return res.status(201).json(response)
     }
 
     @before([
@@ -49,34 +48,28 @@ export class ResumeController {
         const file = req.file
         const data = req.body
         const response = await this._resumeService.updateAttachedResume(data, file)
-        return res.status(response.status).json(response)
+        return res.status(200).json(response)
     }
 
     @GET()
-    @route("/get-attached-resumes")
+    @route("/get-resumes")
     async getAllAttachedResumes(req: Request, res: Response) {
-        const response = await this._resumeService.getAllAttachedResumes()
-        return res.status(response.status).json(response)
+        const response = await this._resumeService.getResumes()
+        return res.status(200).json(response)
     }
 
     @DELETE()
-    @route("/delete-attached-resume/:attachedResumeId")
+    @route("/delete-resume/:attachedResumeId")
     async deleteAttachedResume(req: Request, res: Response) {
         const attachedResumeId = parseInt(req.params.attachedResumeId)
-        if (!attachedResumeId) {
-            // throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
-        }
-        const response = await this._resumeService.deleteAttachedResume(attachedResumeId)
-        return res.status(response.status).json(response)
+        const response = await this._resumeService.deleteResume(attachedResumeId)
+        return res.status(204).json(response)
     }
 
     @PUT()
     @route("/set-selected-resume/:resumeId")
     async setSelectedResume(req: Request, res: Response) {
         const resumeId = parseInt(req.params.resumeId)
-        if (!resumeId) {
-            // throw new HttpException(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_REQUEST_BODY);
-        }
         const response = await this._resumeService.setSelectedResume(resumeId)
         return res.status(response.status).json(response)
     }

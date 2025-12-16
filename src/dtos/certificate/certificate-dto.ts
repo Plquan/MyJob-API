@@ -13,3 +13,14 @@ export interface IUpdateCertificateData {
     startDate: Date
     expirationDate?: Date 
 }
+
+export interface ICertificateDto {
+  id: number
+  resumeId: number
+  name: string
+  trainingPlace: string
+  startDate: Date
+  expirationDate?: Date
+  createdAt: Date
+  updatedAt: Date
+}

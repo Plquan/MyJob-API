@@ -1,11 +1,9 @@
-import { ICandidateRegisterData, ICompanyRegisterData, ICurrentUser } from "@/dtos/auth/auth-dto";
+import { ICandidateRegisterData, ICompanyRegisterData, ICurrentUser, ILoginRequest } from "@/dtos/auth/auth-dto";
 import IAuthService from "@/interfaces/auth/auth-interface";
 import DatabaseService from "../common/database-service";
 import Extensions from "@/common/ultils/extension";
-import logger from "@/common/helpers/logger";
 import { IJwtService, ITokenPayload } from "@/interfaces/auth/jwt-interface";
 import { EUserRole } from "@/common/enums/user/user-role-enum";
-import { LoginRequest } from "@/dtos/auth/login-request";
 import { HttpException } from "@/errors/http-exception";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
@@ -40,7 +38,7 @@ export default class AuthService implements IAuthService {
       const payload = this._jwtService.getTokenPayload(oldRefreshToken);
 
       if (!payload.tokenId || !payload.userId || !isValid) {
-        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.TokenGenerationFailed,"Token invalid")
+        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.TokenGenerationFailed, "Token invalid")
       }
 
       delete (payload as any).exp;
@@ -48,6 +46,7 @@ export default class AuthService implements IAuthService {
 
       const accessToken = this._jwtService.generateAccessToken(payload)
       const refreshToken = this._jwtService.generateRefreshToken(payload)
+
       const userRefreshToken = {
         id: refreshToken.tokenId,
         userId: payload.userId,
@@ -55,42 +54,57 @@ export default class AuthService implements IAuthService {
         token: refreshToken.token,
         expiresAt: refreshToken.expiresAtUtc
       }
+
       await this._context.RefreshTokenRepo.delete({ id: payload.tokenId });
       await this._context.RefreshTokenRepo.save(userRefreshToken)
+
       setTokenToCookie(refreshToken.token)
       return accessToken.token
     } catch (error) {
       throw error;
     }
   }
-  async candidateLogin(loginRequest: LoginRequest, setTokensToCookie: (refreshToken: string) => void): Promise<string> {
+  async login(request: ILoginRequest, setTokensToCookie: (refreshToken: string) => void): Promise<string> {
     try {
+
+      if (!request.email || !request.password) {
+        throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
+      }
       const user = await this._context.UserRepo.findOne({
-        where: { email: loginRequest.email, role: EUserRole.CANDIDATE },
-        relations: ['candidate']
-      })
+        where: { email: request.email, role: request.role },
+        relations: {
+          company: request.role === EUserRole.EMPLOYER,
+          candidate: request.role === EUserRole.CANDIDATE,
+        },
+      });
 
       if (!user) {
-        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.InvalidCredentials,"User not found")
+        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.InvalidCredentials, "User not found")
       }
 
-      const checkPass = await Extensions.comparePassword(loginRequest.password, user.password);
+      const checkPass = await Extensions.comparePassword(request.password, user.password);
       if (!checkPass) {
-        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.InvalidCredentials,"Invalid password")
+        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.InvalidCredentials, "Invalid password")
       }
 
       if (!user.isActive) {
-        throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UserInactive,"User inactive")
+        throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UserInactive, "User inactive")
       }
 
       const tokenPayload: ITokenPayload = {
         userId: user.id,
-        fullName: user.candidate.fullName,
         role: user.role,
         isStaff: user.isStaff,
         isSuperUser: user.isSuperUser,
-        candidateId: user.candidate.id
-      }
+        fullName:
+          user.role === EUserRole.CANDIDATE
+            ? user.candidate?.fullName
+            : user.role === EUserRole.EMPLOYER
+              ? user.company?.companyName
+              : user.email,
+        candidateId: user.candidate?.id,
+        companyId: user.company?.id
+      };
 
       const accessToken = this._jwtService.generateAccessToken(tokenPayload)
       const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
@@ -101,24 +115,24 @@ export default class AuthService implements IAuthService {
         token: refreshToken.token,
         expiresAt: refreshToken.expiresAtUtc
       }
+
       await this._context.RefreshTokenRepo.save(userRefreshToken)
       setTokensToCookie(refreshToken.token)
       return accessToken.token
-
     } catch (error) {
       throw error
     }
   }
   async candidateRegister(candidateRegister: ICandidateRegisterData): Promise<boolean> {
     if (!candidateRegister.email || !candidateRegister.fullName || !candidateRegister.password) {
-      throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput,"Invalid input")
+      throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input")
     }
     const checkEmail = await this._context.UserRepo.count({
       where: { email: candidateRegister.email },
     });
 
     if (checkEmail) {
-      throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists,"Email existed")
+      throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists, "Email existed")
     }
     const dataSource = this._context.getDataSource()
     try {
@@ -131,7 +145,7 @@ export default class AuthService implements IAuthService {
           role: EUserRole.CANDIDATE,
         }))
         const newCandidateProfile = await manager.save(
-          this._context.CandidateRepo.create({ userId: newUser.id,fullName: candidateRegister.fullName })
+          this._context.CandidateRepo.create({ userId: newUser.id, fullName: candidateRegister.fullName })
         );
         await manager.save(
           this._context.ResumeRepo.create({
@@ -146,53 +160,6 @@ export default class AuthService implements IAuthService {
       throw error;
     }
   }
-  async employerLogin(loginRequest: LoginRequest, setTokensToCookie: (refreshToken: string) => void): Promise<string> {
-    try {
-      const user = await this._context.UserRepo.findOne({
-        where: { email: loginRequest.email, role: EUserRole.EMPLOYER },
-        relations: ['company']
-      })
-
-      if (!user) {
-        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound,"User not found")
-      }
-
-      const checkPass = await Extensions.comparePassword(loginRequest.password, user.password);
-      if (!checkPass) {
-        throw new HttpException(StatusCodes.BAD_REQUEST, EAuthError.InvalidCredentials,"Invalid Password")
-      }
-
-      if (!user.isActive) {
-        throw new HttpException(StatusCodes.FORBIDDEN, EAuthError.UserInactive,"User inactive")
-      }
-
-      const tokenPayload: ITokenPayload = {
-        userId: user.id,
-        fullName: user.company.companyName,
-        role: user.role,
-        isStaff: user.isStaff,
-        isSuperUser: user.isSuperUser,
-        companyId: user.company.id,
-      };
-
-      const accessToken = this._jwtService.generateAccessToken(tokenPayload)
-      const refreshToken = this._jwtService.generateRefreshToken(tokenPayload)
-
-      const userRefreshToken = {
-        id: refreshToken.tokenId,
-        userId: user.id,
-        revoked: false,
-        token: refreshToken.token,
-        expiresAt: refreshToken.expiresAtUtc
-      }
-      await this._context.RefreshTokenRepo.save(userRefreshToken)
-      setTokensToCookie(refreshToken.token)
-
-      return accessToken.token
-    } catch (error) {
-      throw error
-    }
-  }
   async employerRegister(companyRegister: ICompanyRegisterData): Promise<boolean> {
     const dataSource = this._context.getDataSource();
     try {
@@ -201,7 +168,7 @@ export default class AuthService implements IAuthService {
           where: { email: companyRegister.email }
         });
         if (checkEmail) {
-          throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists,"User already exist");
+          throw new HttpException(StatusCodes.CONFLICT, EAuthError.UserAlreadyExists, "User already exist");
         }
 
         const hashPassword = Extensions.hashPassword(companyRegister.password);
@@ -228,7 +195,7 @@ export default class AuthService implements IAuthService {
     try {
       const userId = getCurrentUser()?.id
       if (!userId) {
-        throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess,"User id not found");
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "User id not found");
       }
 
       const user = await this._context.UserRepo.findOne({
@@ -242,21 +209,22 @@ export default class AuthService implements IAuthService {
         },
       })
 
+      if (!user) {
+        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.UserNotFound, "User not found")
+      }
+
       const currentUser = {
         id: user.id,
         email: user.email,
-        fullName: user.role == EUserRole.CANDIDATE ? user.candidate.fullName : user.company.companyName,
         role: user.role,
         isStaff: user.isStaff,
         isActive: user.isActive,
         allowSearch: user.candidate?.allowSearch ?? true,
         avatar: user.avatar?.url,
-        companyId: user?.company?.id,
+        company: user?.company,
+        candidate: user?.candidate
       }
 
-      if (!user) {
-        throw new HttpException(StatusCodes.NOT_FOUND, EAuthError.UserNotFound,"User not found")
-      }
       return currentUser
     } catch (error: any) {
       throw error

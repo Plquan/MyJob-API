@@ -1,7 +1,8 @@
 import { JobPost } from "@/entities/job-post";
-import { ICreateJobPostReq, IUpdateJobPostReq, JobPostDto, IJobPostWithCompany } from "@/interfaces/job-post/job-post-dto";
+import { ICreateJobPostReq, IUpdateJobPostReq, ICompanyJobPostDto, IJobPostDto } from "@/interfaces/job-post/job-post-dto";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { FileType } from "@/common/enums/file-type/file-types";
+import { JobPostActivity } from "@/entities/job-post-activity";
 
 export default class JobPostMapper {
   public static toCreateJobPostEntity(dto: ICreateJobPostReq, companyId: number): JobPost {
@@ -9,7 +10,6 @@ export default class JobPostMapper {
     job.careerId = dto.careerId;
     job.companyId = companyId;
     job.provinceId = dto.provinceId;
-    job.districtId = dto.districtId;
     job.jobName = dto.jobName;
     job.deadline = dto.deadline;
     job.quantity = dto.quantity;
@@ -36,7 +36,6 @@ export default class JobPostMapper {
     const job = new JobPost();
     job.careerId = dto.careerId;
     job.provinceId = dto.provinceId;
-    job.districtId = dto.districtId;
     job.jobName = dto.jobName;
     job.deadline = dto.deadline;
     job.quantity = dto.quantity;
@@ -58,13 +57,12 @@ export default class JobPostMapper {
     return job;
   }
 
-  public static toJobPostDto(entity: JobPost): JobPostDto {
+  public static toCompanyJobPostDto(entity: JobPost): ICompanyJobPostDto {
     return {
       id: entity.id,
       careerId: entity.careerId,
       companyId: entity.companyId,
       provinceId: entity.provinceId,
-      districtId: entity.districtId,
       jobName: entity.jobName,
       deadline: entity.deadline,
       quantity: entity.quantity,
@@ -80,7 +78,6 @@ export default class JobPostMapper {
       genderRequirement: entity.genderRequirement,
       jobType: entity.jobType,
       isHot: entity.isHot,
-      isUrgent: entity.isUrgent,
       contactPersonName: entity.contactPersonName,
       contactPersonEmail: entity.contactPersonEmail,
       contactPersonPhone: entity.contactPersonPhone,
@@ -88,35 +85,86 @@ export default class JobPostMapper {
       applications: (entity as any).applications ?? 0,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
-      status: entity.status ?? EJobPostStatus.PENDING_APPROVAL,
+      status: entity.status,
     };
   }
 
-  public static toJobPostListDto(entities: JobPost[]): JobPostDto[] {
-    return entities.map((entity) => this.toJobPostDto(entity));
+  public static toListCompanyJobPostDto(entities: JobPost[]): ICompanyJobPostDto[] {
+    return entities.map((entity) => this.toCompanyJobPostDto(entity));
   }
 
-  public static toJobPostWithCompanyDto(entity: JobPost): IJobPostWithCompany {
-    const logo = entity.company?.companyImages?.find(ci =>
-      ci.image && ci.image.fileType === FileType.LOGO
-    )?.image;
+  public static toJobPosDto(entity: JobPost, candidateId?: number): IJobPostDto {
+    let logo: string | undefined
+    let coverImage: string | undefined
+    const images: string[] = []
+
+    entity.company?.companyImages?.forEach(ci => {
+      if (!ci.image) return
+      switch (ci.image.fileType) {
+        case FileType.LOGO:
+          logo = ci.image.url
+          break
+        case FileType.COVER_IMAGE:
+          coverImage = ci.image.url
+          break
+        case FileType.COMPANY_IMAGE:
+          images.push(ci.image.url)
+          break
+      }
+    })
+
+    const isSaved = candidateId
+      ? (entity.savedJobPosts?.length ?? 0) > 0
+      : false;
+
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const isNew = entity.createdAt
+      ? (Date.now() - entity.createdAt.getTime()) < oneDayMs
+      : false;
+
+    const isApplied = candidateId
+      ? (entity.jobPostActivities?.length ?? 0) > 0
+      : false;
 
     return {
       id: entity.id,
+      isNew: isNew,
+      isSaved: isSaved,
+      isApplied: isApplied,
+      provinceId: entity.provinceId,
       jobName: entity.jobName,
+      deadline: entity.deadline,
+      quantity: entity.quantity,
+      jobDescription: entity.jobDescription,
+      jobRequirement: entity.jobRequirement,
+      benefitsEnjoyed: entity.benefitsEnjoyed,
       salaryMin: entity.salaryMin,
       salaryMax: entity.salaryMax,
-      provinceName: entity.province.name,
+      position: entity.position,
+      typeOfWorkPlace: entity.typeOfWorkPlace,
+      experience: entity.experience,
+      academicLevel: entity.academicLevel,
+      genderRequirement: entity.genderRequirement,
+      jobType: entity.jobType,
+      isHot: entity.isHot,
+      contactPersonName: entity.contactPersonName,
+      contactPersonEmail: entity.contactPersonEmail,
+      contactPersonPhone: entity.contactPersonPhone,
+      views: entity.views,
+      applications: (entity as any).applications ?? 0,
       createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      status: entity.status,
       company: {
         companyName: entity.company.companyName,
-        logo: logo?.url,
+        logo: logo,
+        coverImage: coverImage,
+        images: images
       },
     };
   }
 
-  public static toJobPostWithCompanyListDto(entities: JobPost[]): IJobPostWithCompany[] {
-    return entities.map((entity) => this.toJobPostWithCompanyDto(entity));
+  public static toListJobPostDto(entities: JobPost[], candidateId?: number): IJobPostDto[] {
+    return entities.map((entity) => this.toJobPosDto(entity, candidateId));
   }
-
 }

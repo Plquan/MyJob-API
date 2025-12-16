@@ -10,7 +10,6 @@ export class CompanyMapper {
         return {
             id: entity.id,
             provinceId: entity.provinceId,
-            districtId: entity.districtId,
             userId: entity.userId,
             companyName: entity.companyName,
             companyEmail: entity.companyEmail,
@@ -43,7 +42,7 @@ export class CompanyMapper {
             images: entity.companyImages?.map(ci =>
                 MyjobFileMapper.toMyJobFileDto(ci.image)
             ) ?? [],
-            jobPosts: JobPostMapper.toJobPostListDto(entity.jobPosts)
+            jobPosts: JobPostMapper.toListCompanyJobPostDto(entity.jobPosts)
         };
     }
 

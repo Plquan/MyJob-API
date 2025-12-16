@@ -2,8 +2,8 @@ import { ICandidateRegisterData, ILoginData, } from "@/dtos/auth/auth-dto";
 import IAuthService from "@/interfaces/auth/auth-interface";
 import { before, GET, inject, POST, route } from "awilix-express";
 import { Request, Response } from "express";
-import { ENV } from "@/common/constants/env";
 import { Auth } from "@/common/middlewares";
+import { COOKIE_OPTIONS, TOKEN_OPTIONS } from "@/common/constants/cookie-options";
 
 @route('/auth')
 export class AuthController {
@@ -13,40 +13,16 @@ export class AuthController {
   }
 
   @POST()
-  @route("/login/candidate")
+  @route("/login")
   async candidateLogin(req: Request, res: Response) {
-    const loginData: ILoginData = req.body;
+    const data = req.body;
     const setTokenToCookie = (refreshToken: string) => {
-      res.cookie("refreshToken", refreshToken, {
-        secure: true,
-        sameSite: "none",
-        httpOnly: true,
-        maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
-      });
+      res.cookie("refreshToken", refreshToken, TOKEN_OPTIONS);
     };
-    const response = await this._authService.candidateLogin(loginData, setTokenToCookie);
+    const response = await this._authService.login(data, setTokenToCookie);
     res.status(200).json(response);
   }
 
-  @POST()
-  @route("/login/company")
-  async companyLogin(req: Request, res: Response) {
-    try {
-      const loginData: ILoginData = req.body;
-      const setTokenToCookie = (refreshToken: string) => {
-        res.cookie("refreshToken", refreshToken, {
-          secure: true,
-          sameSite: "none",
-          httpOnly: true,
-          maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
-        });
-      };
-      const response = await this._authService.employerLogin(loginData, setTokenToCookie);
-      res.status(200).json(response);
-    } catch (error) {
-      throw error
-    }
-  }
 
   @POST()
   @route("/register/employer")
@@ -77,12 +53,7 @@ export class AuthController {
   async refreshToken(req: Request, res: Response) {
     const token = req.cookies['refreshToken'];
     const setTokenToCookie = (refreshToken: string) => {
-      res.cookie("refreshToken", refreshToken, {
-        secure: true,
-        sameSite: "none",
-        httpOnly: true,
-        maxAge: Number(ENV.REFRESH_TOKEN_EXPIRES_IN) * 1000,
-      });
+      res.cookie("refreshToken", refreshToken, TOKEN_OPTIONS);
     };
     const response = await this._authService.refreshToken(token, setTokenToCookie)
     res.status(200).json(response);
@@ -92,11 +63,7 @@ export class AuthController {
   @route("/logout")
   async logout(req: Request, res: Response) {
     const token = req.cookies['refreshToken'];
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-    });
+    res.clearCookie('refreshToken', COOKIE_OPTIONS);
     const response = await this._authService.logout(token)
     res.status(200).json(response);
   }

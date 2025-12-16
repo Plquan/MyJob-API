@@ -1,4 +1,4 @@
-import { ENV } from "@/common/constants/env";
+import { ENV } from "../../common/constants/env";
 import bcrypt from "bcrypt";
 const hashPassword = (plaintextPassword: string): string => {
   const salt = bcrypt.genSaltSync(Number(ENV.PASSWORD_SALT));

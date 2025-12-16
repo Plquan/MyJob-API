@@ -1,7 +1,5 @@
-export interface IPaginationResponse {
-  items: any[];
-  page: number;
-  limit: number;
+export interface IPaginationResponse<T> {
+  items: T[];
   totalItems: number;
   totalPages: number;
 }

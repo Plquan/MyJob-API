@@ -5,7 +5,6 @@ import { EAcademicLevel, EExperience, EJobType, EPosition, ETypeOfWorkplace } fr
 export interface ICreateJobPostReq {
   careerId: number;
   provinceId: number;
-  districtId: number;
   jobName: string;
   deadline: Date;
   quantity: number;
@@ -29,12 +28,11 @@ export interface IUpdateJobPostReq extends Partial<ICreateJobPostReq> {
   id: number;
 }
 
-export interface JobPostDto {
+export interface ICompanyJobPostDto {
   id: number;
   careerId: number;
   companyId: number;
   provinceId: number;
-  districtId: number;
   jobName: string;
   deadline?: Date;
   quantity?: number;
@@ -50,7 +48,6 @@ export interface JobPostDto {
   genderRequirement: EGender;
   jobType: EJobType;
   isHot: boolean;
-  isUrgent: boolean;
   contactPersonName?: string;
   contactPersonEmail?: string;
   contactPersonPhone?: string;
@@ -66,22 +63,64 @@ export interface IJobPostWithImageDto {
   jobName: string;
 }
 
-export interface IGetJobPostsReqParams {
+export interface IGetCompanyJobPostsReqParams {
   page: number
   limit: number
   search: string
   jobPostStatus: EJobPostStatus
 }
 
-export interface IJobPostWithCompany {
-  id: number;
-  jobName: string;
+export interface IGetJobPostsReqParams {
+  page: number
+  limit: number
+
+  jobName?: string
+  careerId?: number
+  provinceId?: number
+  jobType?: EJobType;
+  experience?: EExperience;
+  academicLevel?: EAcademicLevel;
+  rangeSalary?: {
+    salaryMin: number
+    salaryMax: number
+  },
+}
+
+export interface IJobPostDto {
+  id: number
+  jobName: string
+  provinceId: number
+  company: {
+    companyName: string
+    logo?: string
+    coverImage?: string
+    images: string[]
+  }
+  isSaved: boolean
+  isApplied: boolean
+  isNew: boolean
+  deadline?: Date;
+  quantity?: number;
+  jobDescription?: string;
+  jobRequirement?: string;
+  benefitsEnjoyed?: string;
   salaryMin: number;
   salaryMax: number;
-  provinceName: string;
+  position: EPosition;
+  typeOfWorkPlace: ETypeOfWorkplace;
+  experience: EExperience;
+  academicLevel: EAcademicLevel;
+  genderRequirement: EGender;
+  jobType: EJobType;
+  isHot: boolean;
+  contactPersonName?: string;
+  contactPersonEmail?: string;
+  contactPersonPhone?: string;
+  views: number;
+  applications: number;
   createdAt: Date;
-  company: {
-    companyName: string;
-    logo?: string;
-  };
+  updatedAt: Date;
+  status: EJobPostStatus;
 }
+
+
