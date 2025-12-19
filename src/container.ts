@@ -19,6 +19,7 @@ import { BackgroundService } from "./services/common/background-service"
 import PackageService from "./services/package/package-service"
 import JobPostService from "./services/Job-post/job-post-service"
 import JobPostActivityService from "./services/job-post-activity/job-post-activity-service"
+import ChatService from "./services/chat/chat-service"
 
 const container = createContainer({
     injectionMode: InjectionMode.CLASSIC,
@@ -45,6 +46,7 @@ container.register({
   PackageService: asClass(PackageService).scoped(),
   JobPostService: asClass(JobPostService).scoped(),
   JobPostActivityService: asClass(JobPostActivityService).scoped(),
+  ChatService: asClass(ChatService).scoped(),
 })
   container.resolve("JwtService")
   container.resolve("DatabaseService")

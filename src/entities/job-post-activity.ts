@@ -10,7 +10,7 @@ import {
 import { JobPost } from './job-post';
 import { Resume } from './resume';
 import { Candidate } from './candidate';
-import { EJobPostActivityStatus } from '@/common/enums/job/EJobPostActivity';
+import { EJobPostActivityStatus } from '../common/enums/job/EJobPostActivity';
   
  @Entity('job_post_activities')
 export class JobPostActivity {
