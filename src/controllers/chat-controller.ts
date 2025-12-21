@@ -90,5 +90,31 @@ export class ChatController {
             throw error;
         }
     }
+
+    @POST()
+    @route("/search-employers")
+    @before(inject(Auth.required))
+    async searchEmployers(req: Request, res: Response) {
+        try {
+            const data = req.body;
+            const employers = await this._chatService.searchEmployers(data);
+            return res.status(StatusCodes.OK).json(employers);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    @POST()
+    @route("/get-unread-count")
+    @before(inject(Auth.required))
+    async getUnreadCount(req: Request, res: Response) {
+        try {
+            const data = req.body;
+            const count = await this._chatService.getUnreadCount(data);
+            return res.status(StatusCodes.OK).json({ count });
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 

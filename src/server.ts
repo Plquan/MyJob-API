@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 
 /**
  * Express server application class.
@@ -6,4 +7,9 @@ import express from 'express';
  */
 export class Server {
   public app = express();
+  public httpServer: http.Server;
+
+  constructor() {
+    this.httpServer = http.createServer(this.app);
+  }
 }

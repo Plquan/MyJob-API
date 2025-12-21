@@ -1,5 +1,5 @@
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
-import { ICreateConversation, ISendMessage, IGetMessages, IGetConversations, IMarkAsRead } from "@/dtos/chat/chat-dto";
+import { ICreateConversation, ISendMessage, IGetMessages, IGetConversations, IMarkAsRead, ISearchEmployers, IEmployerSearchResult, IGetUnreadCount } from "@/dtos/chat/chat-dto";
 import { Conversation } from "@/entities/conversation";
 import { Message } from "@/entities/message";
 
@@ -10,5 +10,7 @@ export default interface IChatService {
     getConversations(data: IGetConversations): Promise<IPaginationResponse<Conversation>>;
     markAsRead(data: IMarkAsRead): Promise<void>;
     deleteConversation(conversationId: number, userId: number): Promise<void>;
+    searchEmployers(data: ISearchEmployers): Promise<IEmployerSearchResult[]>;
+    getUnreadCount(data: IGetUnreadCount): Promise<number>;
 }
 
