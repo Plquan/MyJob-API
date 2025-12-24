@@ -2,14 +2,13 @@ import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import IChatService from "@/interfaces/chat/chat-interface";
 import DatabaseService from "../common/database-service";
 import logger from "@/common/helpers/logger";
-import { ICreateConversation, ISendMessage, IGetMessages, IGetConversations, IMarkAsRead, ISearchEmployers, IEmployerSearchResult, IGetUnreadCount } from "@/dtos/chat/chat-dto";
+import { ICreateConversation, ISendMessage, IGetMessages, IGetConversations, IMarkAsRead, IGetUnreadCount } from "@/dtos/chat/chat-dto";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { Conversation } from "@/entities/conversation";
 import { Message } from "@/entities/message";
 import { HttpException } from "@/errors/http-exception";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import SocketService from "../common/socket-service";
-import { EUserRole } from "@/common/enums/user/user-role-enum";
 
 export default class ChatService implements IChatService {
     private readonly _context: DatabaseService;
@@ -229,43 +228,6 @@ export default class ChatService implements IChatService {
 
             await this._context.ConversationRepo.remove(conversation);
         } catch (error: any) {
-            throw error;
-        }
-    }
-
-    async searchEmployers(data: ISearchEmployers): Promise<IEmployerSearchResult[]> {
-        try {
-            const { keyword = '', limit = 10 } = data;
-
-            let query = this._context.UserRepo
-                .createQueryBuilder('user')
-                .leftJoinAndSelect('user.company', 'company')
-                .leftJoinAndSelect('user.avatar', 'avatar')
-                .where('user.role = :role', { role: EUserRole.EMPLOYER })
-                .andWhere('user.isActive = :isActive', { isActive: true });
-
-            // Tìm kiếm theo tên công ty hoặc email
-            if (keyword) {
-                query = query.andWhere(
-                    '(LOWER(company.companyName) LIKE LOWER(:keyword) OR LOWER(user.email) LIKE LOWER(:keyword))',
-                    { keyword: `%${keyword}%` }
-                );
-            }
-
-            const users = await query
-                .take(limit)
-                .getMany();
-
-            return users.map(user => ({
-                id: user.id,
-                email: user.email,
-                companyName: user.company?.companyName || 'N/A',
-                companyId: user.company?.id || 0,
-                avatar: user.avatar?.url
-            }));
-        } catch (error: any) {
-            logger.error(error?.message);
-            console.log(`Error in ChatService - method searchEmployers() at ${new Date().getTime()} with message ${error?.message}`);
             throw error;
         }
     }

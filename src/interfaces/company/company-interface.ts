@@ -2,11 +2,12 @@ import { IResponseBase } from "../base/IResponseBase";
 import { ICompanyData } from "../../dtos/company/CompanyDto";
 import { MyJobFileDto } from "@/dtos/myjob-file/myjob-file-dto";
 import { IMyJobFileDto } from "../myjobfile/myjobfile-dto";
-import { ICompanyDetail, ICompanyDto, ICompanyWithImagesDto, IUpdateCompanyRequest } from "./company-dto";
+import { ICompanyDetail, ICompanyDto, ICompanyWithImagesDto, IUpdateCompanyRequest, IGetCompaniesReqParams } from "./company-dto";
+import { IPaginationResponse } from "../base/IPaginationBase";
 
 export default interface ICompanyService {
     createCompanyInfo(data: ICompanyData): Promise<IResponseBase>
-    getCompanies(): Promise<ICompanyWithImagesDto[]>
+    getCompanies(params: IGetCompaniesReqParams): Promise<IPaginationResponse<ICompanyWithImagesDto>>
     getCompanyById(companyId: number): Promise<ICompanyWithImagesDto>
     uploadCompanyLogo(image: Express.Multer.File): Promise<IMyJobFileDto>
     uploadCompanyCoverImage(image: Express.Multer.File): Promise<IMyJobFileDto>
@@ -15,4 +16,5 @@ export default interface ICompanyService {
     updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto>
     getCompanyDetail(companyId: number):Promise<ICompanyDetail>
     toggleFollowCompany(companyId: number): Promise<boolean>
+    getSavedCompanies(): Promise<ICompanyWithImagesDto[]>
 }

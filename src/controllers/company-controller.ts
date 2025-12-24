@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/common/helpers/get-current-user"
 import { asyncLocalStorageMiddleware, Auth } from "@/common/middlewares"
 import { uploadFileMiddleware, uploadMultiFileMiddleware } from "@/common/middlewares/upload-middleware"
 import ICompanyService from "@/interfaces/company/company-interface"
+import { IGetCompaniesReqParams } from "@/interfaces/company/company-dto"
 import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request, Response } from "express"
 
@@ -68,7 +69,13 @@ export class CompanyController {
     @before(inject(Auth.optional))
     @GET()
     async getCompanies(req: Request, res: Response) {
-        const response = await this._companyService.getCompanies()
+        const { page = 1, limit = 10, companyName } = req.query;
+        const params: IGetCompaniesReqParams = {
+            page: +page,
+            limit: +limit,
+            companyName: companyName?.toString(),
+        };
+        const response = await this._companyService.getCompanies(params)
         res.status(200).json(response)
     }
 
@@ -85,6 +92,14 @@ export class CompanyController {
     async toggleFollowCompany(req: Request, res: Response) {
         const companyId = Number(req.query.companyId)
         const response = await this._companyService.toggleFollowCompany(companyId)
+        res.status(200).json(response)
+    }
+
+    @before(inject(Auth.required))
+    @GET()
+    @route("/saved-companies")
+    async getSavedCompanies(req: Request, res: Response) {
+        const response = await this._companyService.getSavedCompanies()
         res.status(200).json(response)
     }
 

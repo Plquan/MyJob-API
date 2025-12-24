@@ -66,7 +66,7 @@ export default class JobPostService implements IJobPostService {
             throw error
         }
     }
-    async getJobPosts(params: IGetJobPostsReqParams): Promise<any> {
+    async getJobPosts(params: IGetJobPostsReqParams): Promise<IPaginationResponse<IJobPostDto>> {
         try {
             const { page, limit, jobName } = params;
             const candidateId = getCurrentUser()?.candidateId;
@@ -84,19 +84,14 @@ export default class JobPostService implements IJobPostService {
                 ])
                 .leftJoinAndSelect("job.company", "company")
                 .leftJoinAndSelect("company.companyImages", "companyImage")
-                .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType", { fileType: FileType.LOGO })
+                .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType AND image.deletedAt IS NULL", { fileType: FileType.LOGO })
                 .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
                     candidateId: candidateId ?? null
                 })
             // .where("job.status = :status", { status:  EJobPostStatus.APPROVED });
 
             if (jobName && jobName.trim() !== "") {
-                query.andWhere(
-                    new Brackets((qb) => {
-                        qb.where("job.jobName ILIKE :search", { search: `%${jobName}%` })
-                            .orWhere("company.companyName ILIKE :search", { search: `%${jobName}%` });
-                    })
-                );
+                query.andWhere("job.jobName ILIKE :search", { search: `%${jobName}%` });
             }
 
             const totalItems = await query.getCount();
@@ -106,15 +101,11 @@ export default class JobPostService implements IJobPostService {
                 .take(limit)
                 .getMany();
 
-            // return {
-            //     items: JobPostMapper.toListJobPostDto(jobPosts),
-            //     page: page,
-            //     limit,
-            //     totalItems,
-            //     totalPages: Math.ceil(totalItems / limit),
-            // } as IPaginationResponse
-
-            return JobPostMapper.toListJobPostDto(jobPosts, candidateId)
+            return {
+                items: JobPostMapper.toListJobPostDto(jobPosts, candidateId),
+                totalItems,
+                totalPages: Math.ceil(totalItems / limit),
+            };
 
         } catch (error) {
             throw error
@@ -218,6 +209,48 @@ export default class JobPostService implements IJobPostService {
             return updatedJobPost
         } catch (error) {
             throw error
+        }
+    }
+    async getSavedJobPosts(): Promise<IJobPostDto[]> {
+        try {
+            const user = getCurrentUser();
+            if (!user) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate Id not found");
+            }
+            console.log(user)
+
+            const candidateId = user.candidateId;
+
+            const subQuery = this._context.SavedJobPostRepo
+                .createQueryBuilder("savedJobPost")
+                .select("savedJobPost.jobPostId")
+                .where("savedJobPost.candidateId = :candidateId",  { candidateId });
+
+            const jobPosts = await this._context.JobPostRepo
+                .createQueryBuilder("job")
+                .select([
+                    "job.id",
+                    "job.jobName",
+                    "job.salaryMin",
+                    "job.salaryMax",
+                    "job.provinceId",
+                    "job.createdAt",
+                    "job.isHot",
+                    "job.deadline"
+                ])
+                .where(`job.id IN (${subQuery.getQuery()})`)
+                .setParameters(subQuery.getParameters())
+                .leftJoinAndSelect("job.company", "company")
+                .leftJoinAndSelect("company.companyImages", "companyImage")
+                .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType AND image.deletedAt IS NULL", { fileType: FileType.LOGO })
+                .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", { candidateId })
+                .leftJoinAndSelect("job.jobPostActivities", "jobPostActivity", "jobPostActivity.candidateId = :candidateId", { candidateId })
+                .orderBy("job.createdAt", "DESC")
+                .getMany();
+
+            return JobPostMapper.toListJobPostDto(jobPosts, candidateId);
+        } catch (error) {
+            throw error;
         }
     }
 

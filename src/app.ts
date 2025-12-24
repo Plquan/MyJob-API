@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from 'cors';
 import 'dotenv/config';
+import os from 'os';
 import { corsConfig } from "@/common/configs/cors-config";
 import container from "./container";
 import { Server } from "./server";
@@ -30,7 +31,9 @@ class Application {
   }
   
   start() {
-    const port = process.env.APP_PORT || 5001
+    const port = Number(process.env.APP_PORT) || 5001;
+    const host = process.env.APP_HOST || '0.0.0.0';
+    
     this.server.app.use(cors(corsConfig))
     this.server.app.use(cookieParser())
     this.server.app.use(bodyParser.json())
@@ -51,9 +54,19 @@ class Application {
       }
     });
     
-    this.serverInstance = this.server.httpServer.listen(port, () =>
-      console.log(`Server is running at http://localhost:${port}`)
-    )
+    this.serverInstance = this.server.httpServer.listen(port, host, () => {
+      console.log(`Server is running at http://localhost:${port}`);
+      console.log(`Server is also accessible at http://${host}:${port}`);
+      // Get local IP addresses
+      const networkInterfaces = os.networkInterfaces();
+      Object.keys(networkInterfaces).forEach((interfaceName) => {
+        networkInterfaces[interfaceName]?.forEach((iface: any) => {
+          if (iface.family === 'IPv4' && !iface.internal) {
+            console.log(`Server accessible at http://${iface.address}:${port}`);
+          }
+        });
+      });
+    })
   }
 
   close() {
