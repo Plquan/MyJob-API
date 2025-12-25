@@ -26,19 +26,6 @@ export interface IMarkAsRead {
     userId: number;
 }
 
-export interface ISearchEmployers {
-    keyword?: string;
-    limit?: number;
-}
-
-export interface IEmployerSearchResult {
-    id: number;
-    email: string;
-    companyName: string;
-    companyId: number;
-    avatar?: string;
-}
-
 export interface IGetUnreadCount {
     userId: number;
 }

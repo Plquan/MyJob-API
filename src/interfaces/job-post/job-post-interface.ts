@@ -7,7 +7,8 @@ export  default interface IJobPostService {
     createJobPost(data: ICreateJobPostReq): Promise<JobPost>
     updateJobPost(data: IUpdateJobPostReq): Promise<JobPost>
     deleteJobPost(jobPostId: number): Promise<boolean>
-    getJobPosts(params: IGetJobPostsReqParams): Promise<any>
+    getJobPosts(params: IGetJobPostsReqParams): Promise<IPaginationResponse<IJobPostDto>>
     toggleSaveJobPost(jobPostId: number): Promise<boolean>
     getJobPostById(jobPostId: number): Promise<IJobPostDto>
+    getSavedJobPosts(): Promise<IJobPostDto[]>
 }

@@ -45,12 +45,11 @@ export class JobPostController {
   @before(inject(Auth.optional))
   @GET()
   async getJobPosts(req: Request, res: Response) {
-    const { page = 1, limit = 10, search, jobPostStatus } = req.query;
-    const params: IGetCompanyJobPostsReqParams = {
+    const { page = 1, limit = 10, jobName } = req.query;
+    const params: IGetJobPostsReqParams = {
       page: +page,
       limit: +limit,
-      search: "",
-      jobPostStatus: +jobPostStatus,
+      jobName: jobName?.toString(),
     };
     const response = await this._jobPostService.getJobPosts(params);
     res.status(200).json(response)
@@ -72,6 +71,14 @@ export class JobPostController {
   async getJobPostById(req: Request, res: Response) {
     const jobPostId = parseInt(req.params.jobPostId)
     const response = await this._jobPostService.getJobPostById(jobPostId);
+    res.status(200).json(response)
+  }
+
+  @before(inject(Auth.required))
+  @GET()
+  @route("/saved-job-posts")
+  async getSavedJobPosts(req: Request, res: Response) {
+    const response = await this._jobPostService.getSavedJobPosts();
     res.status(200).json(response)
   }
 }

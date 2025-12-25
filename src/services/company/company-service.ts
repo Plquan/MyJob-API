@@ -15,7 +15,8 @@ import { getCurrentUser } from "@/common/helpers/get-current-user";
 import { CompanyImage } from "@/entities/company-image";
 import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto";
 import { CompanyMapper } from "@/mappers/company/company-mapper";
-import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest } from "@/interfaces/company/company-dto";
+import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest, IGetCompaniesReqParams } from "@/interfaces/company/company-dto";
+import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { EAuthError } from "@/common/enums/error/EAuthError";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
@@ -25,6 +26,33 @@ export default class CompanyService implements ICompanyService {
 
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
+    }
+    async getSavedCompanies(): Promise<ICompanyWithImagesDto[]> {
+        try {
+            const candidateId = getCurrentUser()?.candidateId;
+            if (!candidateId) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate Id not found");
+            }
+
+            const companies = await this._context.CompanyRepo
+                .createQueryBuilder('company')
+                .innerJoin('company.followedCompanies', 'followedCompany', 'followedCompany.candidateId = :candidateId', { candidateId })
+                .leftJoinAndSelect('company.companyImages', 'companyImage')
+                .leftJoinAndSelect('companyImage.image', 'myJobFile',
+                    "myJobFile.fileType IN (:...types) AND myJobFile.deletedAt IS NULL",
+                    { types: [FileType.LOGO, FileType.COVER_IMAGE] })
+                .getMany();
+
+            const companyDtos = companies.map(company => {
+                const dto = CompanyMapper.toCompanyWithImagesDto(company);
+                dto.isFollowed = true;
+                return dto;
+            });
+
+            return companyDtos;
+        } catch (error) {
+            throw error;
+        }
     }
     async toggleFollowCompany(companyId: number): Promise<boolean> {
         try {
@@ -213,14 +241,26 @@ export default class CompanyService implements ICompanyService {
             throw error;
         }
     }
-    async getCompanies(): Promise<ICompanyWithImagesDto[]> {
+    async getCompanies(params: IGetCompaniesReqParams): Promise<IPaginationResponse<ICompanyWithImagesDto>> {
         try {
-            const companies = await this._context.CompanyRepo
+            const { page, limit, companyName } = params;
+            
+            const query = this._context.CompanyRepo
                 .createQueryBuilder('company')
                 .leftJoinAndSelect('company.companyImages', 'companyImage')
                 .leftJoinAndSelect('companyImage.image', 'myJobFile',
-                    "myJobFile.fileType IN (:...types)",
-                    { types: [FileType.LOGO, FileType.COVER_IMAGE] })
+                    "myJobFile.fileType IN (:...types) AND myJobFile.deletedAt IS NULL",
+                    { types: [FileType.LOGO, FileType.COVER_IMAGE] });
+
+            if (companyName && companyName.trim() !== "") {
+                query.where("company.companyName ILIKE :search", { search: `%${companyName}%` });
+            }
+
+            const totalItems = await query.getCount();
+            const companies = await query
+                .orderBy("company.createdAt", "DESC")
+                .skip((page - 1) * limit)
+                .take(limit)
                 .getMany();
 
             const candidateId = getCurrentUser()?.candidateId
@@ -242,7 +282,11 @@ export default class CompanyService implements ICompanyService {
                 return dto;
             });
 
-            return companyDtos;
+            return {
+                items: companyDtos,
+                totalItems,
+                totalPages: Math.ceil(totalItems / limit),
+            };
         } catch (error) {
             throw error;
         }

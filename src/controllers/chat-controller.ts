@@ -92,19 +92,6 @@ export class ChatController {
     }
 
     @POST()
-    @route("/search-employers")
-    @before(inject(Auth.required))
-    async searchEmployers(req: Request, res: Response) {
-        try {
-            const data = req.body;
-            const employers = await this._chatService.searchEmployers(data);
-            return res.status(StatusCodes.OK).json(employers);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    @POST()
     @route("/get-unread-count")
     @before(inject(Auth.required))
     async getUnreadCount(req: Request, res: Response) {

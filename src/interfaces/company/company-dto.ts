@@ -57,3 +57,9 @@ export interface ICreateFollowedCompany {
   companyId: number
   candidateId: number
 }
+
+export interface IGetCompaniesReqParams {
+  page: number;
+  limit: number;
+  companyName?: string;
+}

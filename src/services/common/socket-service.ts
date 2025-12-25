@@ -14,7 +14,7 @@ export default class SocketService {
     constructor(httpServer: HttpServer) {
         this.io = new SocketServer(httpServer, {
             cors: {
-                origin: process.env.CLIENT_URL || "http://localhost:5173",
+                origin: "*",
                 methods: ["GET", "POST"],
                 credentials: true
             }
@@ -24,7 +24,6 @@ export default class SocketService {
     }
 
     private initialize() {
-        // Middleware để xác thực socket connection
         this.io.use((socket: AuthSocket, next) => {
             try {
                 const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
