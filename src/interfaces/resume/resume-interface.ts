@@ -2,7 +2,8 @@ import { IResponseBase } from "../base/IResponseBase"
 import { UpdateAttachedResumeRequest } from "../../dtos/resume/update-attached-resume-request"
 import { UpdateOnlineResumeRequest } from "../../dtos/resume/update-online-resume-request"
 import { UploadAttachedResumeRequest } from "../../dtos/resume/upload-attached-resume-request"
-import { IOnlineResumeDto, IResumeDto } from "@/dtos/resume/resume-dto"
+import { IOnlineResumeDto, IResumeDto, ISearchResumesReqParams } from "@/dtos/resume/resume-dto"
+import { IPaginationResponse } from "../base/IPaginationBase"
 
 export default interface IResumeService {
    getOnlineResume(): Promise<IOnlineResumeDto>
@@ -13,4 +14,5 @@ export default interface IResumeService {
    updateAttachedResume(data: UpdateAttachedResumeRequest,file: Express.Multer.File): Promise<IResumeDto>
    deleteResume(attchedResumeId: number): Promise<boolean>
    setSelectedResume(resumeId: number): Promise<IResponseBase>
+   searchResumes(params: ISearchResumesReqParams): Promise<IPaginationResponse<IResumeDto>>
 }

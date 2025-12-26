@@ -10,6 +10,7 @@ export class JobPostController {
   constructor(JobPostService: IJobPostService) {
     this._jobPostService = JobPostService
   }
+  
   @before(inject(Auth.required))
   @POST()
   async createJobPost(req: Request, res: Response) {

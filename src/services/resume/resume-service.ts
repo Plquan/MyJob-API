@@ -18,9 +18,10 @@ import { HttpException } from "@/errors/http-exception"
 import { EAuthError } from "@/common/enums/error/EAuthError"
 import { FileType } from "@/common/enums/file-type/file-types"
 import { ResumeMapper } from "@/mappers/resume/resume-mapper"
-import { IOnlineResumeDto, IResumeDto } from "@/dtos/resume/resume-dto"
+import { IOnlineResumeDto, IResumeDto, ISearchResumesReqParams } from "@/dtos/resume/resume-dto"
 import { EGlobalError } from "@/common/enums/error/EGlobalError"
 import { getCurrentUser } from "@/common/helpers/get-current-user"
+import { IPaginationResponse } from "@/interfaces/base/IPaginationBase"
 
 
 export default class ResumeService implements IResumeService {
@@ -324,6 +325,73 @@ export default class ResumeService implements IResumeService {
         success: false,
         message: "Lỗi cập nhật hồ sơ người dùng, vui lòng thử lại sau",
       }
+    }
+  }
+
+  async searchResumes(params: ISearchResumesReqParams): Promise<IPaginationResponse<IResumeDto>> {
+    try {
+      const { page, limit, title, provinceId, careerId, position, typeOfWorkPlace, experience, academicLevel, jobType, gender, maritalStatus } = params;
+
+      const query = this._context.ResumeRepo.createQueryBuilder("resume")
+        .leftJoinAndSelect("resume.candidate", "candidate")
+        .where("resume.type = :type", { type: EResumeType.ONLINE })
+        .andWhere("candidate.allowSearch = :allowSearch", { allowSearch: true });
+
+      if (title && title.trim() !== "") {
+        query.andWhere("resume.title ILIKE :title", { title: `%${title}%` });
+      }
+
+      if (provinceId) {
+        query.andWhere("resume.provinceId = :provinceId", { provinceId });
+      }
+
+      if (careerId) {
+        query.andWhere("resume.careerId = :careerId", { careerId });
+      }
+
+      if (position) {
+        query.andWhere("resume.position = :position", { position });
+      }
+
+      if (typeOfWorkPlace) {
+        query.andWhere("resume.typeOfWorkPlace = :typeOfWorkPlace", { typeOfWorkPlace });
+      }
+
+      if (experience) {
+        query.andWhere("resume.experience = :experience", { experience });
+      }
+
+      if (academicLevel) {
+        query.andWhere("resume.academicLevel = :academicLevel", { academicLevel });
+      }
+
+      if (jobType) {
+        query.andWhere("resume.jobType = :jobType", { jobType });
+      }
+
+      if (gender) {
+        query.andWhere("candidate.gender = :gender", { gender });
+      }
+
+      if (maritalStatus) {
+        query.andWhere("candidate.maritalStatus = :maritalStatus", { maritalStatus });
+      }
+
+      const totalItems = await query.getCount();
+      const resumes = await query
+        .orderBy("resume.updatedAt", "DESC")
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany();
+
+      return {
+        items: ResumeMapper.toListResumeDto(resumes),
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+      };
+
+    } catch (error) {
+      throw error;
     }
   }
 }

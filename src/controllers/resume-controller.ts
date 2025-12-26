@@ -3,6 +3,7 @@ import { asyncLocalStorageMiddleware, Auth } from "@/common/middlewares";
 import { GET, route, PUT, before, inject, POST, DELETE } from "awilix-express";
 import { Request, Response } from "express";
 import { uploadFileMiddleware } from "@/common/middlewares/upload-middleware";
+import { ISearchResumesReqParams } from "@/dtos/resume/resume-dto";
 
 @before(inject(Auth.required))
 @route("/resume")
@@ -72,6 +73,43 @@ export class ResumeController {
         const resumeId = parseInt(req.params.resumeId)
         const response = await this._resumeService.setSelectedResume(resumeId)
         return res.status(response.status).json(response)
+    }
+
+    @GET()
+    @route("/search-resumes")
+    async searchResumes(req: Request, res: Response) {
+        const { 
+            page = 1, 
+            limit = 10, 
+            title, 
+            provinceId, 
+            careerId, 
+            position, 
+            typeOfWorkPlace, 
+            experience, 
+            academicLevel, 
+            jobType,
+            gender,
+            maritalStatus
+        } = req.query;
+
+        const params: ISearchResumesReqParams = {
+            page: +page,
+            limit: +limit,
+            title: title?.toString(),
+            provinceId: provinceId ? +provinceId : undefined,
+            careerId: careerId ? +careerId : undefined,
+            position: position ? +position : undefined,
+            typeOfWorkPlace: typeOfWorkPlace ? +typeOfWorkPlace : undefined,
+            experience: experience ? +experience : undefined,
+            academicLevel: academicLevel ? +academicLevel : undefined,
+            jobType: jobType ? +jobType : undefined,
+            gender: gender ? +gender : undefined,
+            maritalStatus: maritalStatus ? +maritalStatus : undefined,
+        };
+
+        const response = await this._resumeService.searchResumes(params);
+        return res.status(200).json(response);
     }
 
 }
