@@ -23,7 +23,8 @@ export default class PackageService implements IPackageService {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "employer not found")
             }
             const companyPackage = await this._context.PackageUsageRepo.findOne({
-                where: { companyId: employer.companyId }
+                where: { companyId: employer.companyId },
+                relations: ['package']
             })
             return companyPackage
         } catch (error) {

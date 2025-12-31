@@ -33,4 +33,19 @@ export class CandidateController {
         const response = await this._candidateService.allowSearch(status)
         return res.status(response.status).json(response)
     }
+
+    @GET()
+    @route("/activity-statistics")
+    async getUserActivityStatistics(req: Request, res: Response) {
+        const response = await this._candidateService.getUserActivityStatistics()
+        return res.status(response.status).json(response)
+    }
+
+    @GET()
+    @route("/recommended-jobs")
+    async getRecommendedJobs(req: Request, res: Response) {
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 10
+        const response = await this._candidateService.getRecommendedJobs(limit)
+        return res.status(response.status).json(response)
+    }
 }

@@ -6,7 +6,6 @@ export interface IPackageDto {
   jobHotDurationInDays: number;
   highlightCompanyDurationInDays: number;
   candidateSearchLimit: number;
-  cvSearchLimit: number;
   jobPostLimit: number;
   description?: string;
   isActive: boolean;
@@ -21,7 +20,6 @@ export interface ICreatePackageRequest {
   jobHotDurationInDays?: number;
   highlightCompanyDurationInDays?: number;
   candidateSearchLimit?: number;
-  cvSearchLimit?: number;
   jobPostLimit?: number;
   description?: string;
 }

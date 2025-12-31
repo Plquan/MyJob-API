@@ -12,7 +12,6 @@ export default class PackageMapper {
       jobHotDurationInDays: entity.jobHotDurationInDays,
       highlightCompanyDurationInDays: entity.highlightCompanyDurationInDays,
       candidateSearchLimit: entity.candidateSearchLimit,
-      cvSearchLimit: entity.cvSearchLimit,
       jobPostLimit: entity.jobPostLimit,
       description: entity.description,
       isActive: entity.isActive,
@@ -29,9 +28,12 @@ export default class PackageMapper {
     const usage = new PackageUsage();
     usage.packageId = entity.id;
     usage.companyId = companyId;
-    usage.candidateSearchUsed = entity.candidateSearchLimit;
-    usage.cvSearchUsed = entity.cvSearchLimit;
-    usage.jobPostUsed = entity.jobPostLimit;
+    usage.candidateSearchUsed = 0;
+    usage.jobPostUsed = 0;
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + entity.durationInDays);
+    usage.expiryDate = expiryDate;
+    
     return usage;
   }
 

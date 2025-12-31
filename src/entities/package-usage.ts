@@ -18,10 +18,10 @@ export class PackageUsage {
   candidateSearchUsed: number;
 
   @Column({ type: "int" })
-  cvSearchUsed: number;
-
-  @Column({ type: "int" })
   jobPostUsed: number;
+
+  @Column({ type: "timestamp", nullable: true })
+  expiryDate?: Date;
 
   @ManyToOne(() => Package, { onDelete: "CASCADE" })
   @JoinColumn({ name: "packageId" })
