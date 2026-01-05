@@ -15,7 +15,7 @@ export class UserController {
     async getAllUsers(req: Request, res: Response) {
         const data = req.body;
         const response = await this._userService.getAllUsers(data);
-        return res.status(response.status).json(response);
+        return res.status(200).json(response);
     }
 
     @GET()
@@ -23,7 +23,7 @@ export class UserController {
     async getUserById(req: Request, res: Response) {
         const userId = parseInt(req.params.userId);
         const response = await this._userService.getUserById(userId);
-        return res.status(response.status).json(response);
+        return res.status(200).json(response);
     }
 
     @PUT()
@@ -31,22 +31,15 @@ export class UserController {
     async updateUser(req: Request, res: Response) {
         const data = req.body;
         const response = await this._userService.updateUser(data);
-        return res.status(response.status).json(response);
+        return res.status(200).json(response);
     }
 
-    @POST()
-    @route("/create-user")
-    async createUser(req: Request, res: Response) {
-        const data = req.body;
-        const response = await this._userService.createUser(data);
-        return res.status(response.status).json(response);
-    }
     @DELETE()
     @route("/delete-user/:userId")
     async deleteUser(req: Request, res: Response) {
         const userId = parseInt(req.params.userId);
         const response = await this._userService.deleteUser(userId);
-        return res.status(response.status).json(response);
+        return res.status(200).json(response);
     }
 
 

@@ -4,15 +4,27 @@ import { getCurrentUser } from "@/common/helpers/get-current-user";
 import { HttpException } from "@/errors/http-exception";
 import IJobPostActivityService from "@/interfaces/job-post-activity/job-post-activity-interface";
 import DatabaseService from "../common/database-service";
-import { JobPostActivityMapper } from "@/mappers/job-post-activity/job-post-activity-service";
-import { IApplyJobRequest, IGetJobPostActivityRequest, IJobPostActivityDto } from "@/interfaces/job-post-activity/job-post-activity-dto";
+import { JobPostActivityMapper } from "@/mappers/job-post-activity/job-post-activity-mapper";
+import { IApplyJobRequest, IGetJobPostActivityRequest, IJobPostActivityDto, ISendEmailToActivityRequest } from "@/interfaces/job-post-activity/job-post-activity-dto";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
+import { EmailService } from "../common/email-service";
 
 export default class JobPostActivityService implements IJobPostActivityService {
     private readonly _context: DatabaseService
 
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
+    }
+    async getJobActivityById(jobPostActivityId: number): Promise<IJobPostActivityDto> {
+        try {
+            const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
+                where: { id: jobPostActivityId },
+                relations: ["resume","resume.myJobFile", "resume.candidate", "candidate.avatar"]
+            })
+            return JobPostActivityMapper.toJobPostActivityDto(jobPostActivity)
+        } catch (error) {
+            throw error
+        }
     }
     async deleteJobPostActivity(jobPostActivityId: number): Promise<boolean> {
         try {
@@ -95,6 +107,54 @@ export default class JobPostActivityService implements IJobPostActivityService {
             return true
         } catch (error) {
             throw error
+        }
+    }
+
+    async sendEmailToCandidate(jobPostActivityId: number, request: ISendEmailToActivityRequest): Promise<boolean> {
+        try {
+            const user = getCurrentUser();
+            if (!user || !user.companyId) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "user not found");
+            }
+
+            // Lấy thông tin job post activity
+            const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
+                where: { id: jobPostActivityId },
+                relations: ["jobPost", "jobPost.company", "candidate"]
+            });
+
+            if (!jobPostActivity) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Job post activity not found");
+            }
+
+            // Kiểm tra quyền: chỉ employer của công ty đó mới được gửi mail
+            if (jobPostActivity.jobPost.companyId !== user.companyId) {
+                throw new HttpException(StatusCodes.FORBIDDEN, EGlobalError.UnauthorizedAccess, "Forbidden");
+            }
+
+            // Kiểm tra đã gửi mail chưa
+            if (jobPostActivity.isSentMail) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Email already sent");
+            }
+
+            // Gửi email
+            await EmailService.sendHtmlEmail(
+                request.to,
+                request.subject,
+                request.content,
+                {
+                    useTemplate: true,
+                }
+            );
+
+            // Cập nhật trạng thái đã gửi mail
+            await this._context.JobPostActivityRepo.update(jobPostActivityId, {
+                isSentMail: true
+            });
+
+            return true;
+        } catch (error) {
+            throw error;
         }
     }
 

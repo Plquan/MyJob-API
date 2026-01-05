@@ -17,7 +17,7 @@ export class LanguageController {
     @route("/get-languages")
     async getAllLanguages(req: Request, res: Response){
         const response = await this._languageService.getAllLanguages()
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @POST()
@@ -25,7 +25,7 @@ export class LanguageController {
     async createLanguage(req: Request, res: Response){
         const data = req.body
         const response = await this._languageService.createLanguage(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @PUT()
@@ -33,7 +33,7 @@ export class LanguageController {
     async updateLanguage(req: Request, res: Response){
         const data = req.body
         const response = await this._languageService.updateLanguage(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @DELETE()
@@ -41,6 +41,6 @@ export class LanguageController {
     async deleteLanguage(req: Request, res: Response){
         const languageId = parseInt(req.params.languageId);
         const response = await this._languageService.deleteLanguage(languageId)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 }

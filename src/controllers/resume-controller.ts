@@ -26,7 +26,7 @@ export class ResumeController {
     async updateOnlineResume(req: Request, res: Response) {
         const data = req.body
         const response = await this._resumeService.updateOnlineResume(data)
-        return res.status(response.status).json(response)
+        return res.status(200).json(response)
     }
 
     @before([uploadFileMiddleware])
@@ -72,22 +72,22 @@ export class ResumeController {
     async setSelectedResume(req: Request, res: Response) {
         const resumeId = parseInt(req.params.resumeId)
         const response = await this._resumeService.setSelectedResume(resumeId)
-        return res.status(response.status).json(response)
+        return res.status(200).json(response)
     }
 
     @GET()
     @route("/search-resumes")
     async searchResumes(req: Request, res: Response) {
-        const { 
-            page = 1, 
-            limit = 10, 
-            title, 
-            provinceId, 
-            careerId, 
-            position, 
-            typeOfWorkPlace, 
-            experience, 
-            academicLevel, 
+        const {
+            page = 1,
+            limit = 10,
+            title,
+            provinceId,
+            careerId,
+            position,
+            typeOfWorkPlace,
+            experience,
+            academicLevel,
             jobType,
             gender,
             maritalStatus
@@ -111,5 +111,22 @@ export class ResumeController {
         const response = await this._resumeService.searchResumes(params);
         return res.status(200).json(response);
     }
+
+    @GET()
+    @route("/get-resume-for-download/:resumeId")
+    async getResumeForDownload(req: Request, res: Response) {
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.getResumeForDownload(resumeId)
+        return res.status(200).json(response)
+    }
+
+    @GET()
+    @route("/:resumeId")
+    async getResumeById(req: Request, res: Response) {
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.getResumeById(resumeId)
+        return res.status(200).json(response)
+    }
+
 
 }

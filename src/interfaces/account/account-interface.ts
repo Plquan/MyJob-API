@@ -1,5 +1,5 @@
-import { IResponseBase } from "../base/IResponseBase";
+import { IMyJobFileDto } from "../myjobfile/myjobfile-dto";
 
 export default interface IAccountService { 
-    updateAvatar(file: Express.Multer.File): Promise<IResponseBase>;
+    updateAvatar(file: Express.Multer.File): Promise<IMyJobFileDto>;
 }

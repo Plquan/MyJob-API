@@ -1,6 +1,8 @@
 import { EGender, EMartialStatus } from "@/common/enums/candidate/candidate-enum"
+import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto"
 
 export interface ICandidateData {
+  fullName?:string 
   provinceId?: number
   phone?: string
   birthday?: Date
@@ -21,4 +23,5 @@ export interface ICandidateDto {
   address?: string;
   createdAt: Date;
   updatedAt: Date;
+  avatar?:IMyJobFileDto
 }

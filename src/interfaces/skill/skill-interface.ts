@@ -1,9 +1,8 @@
-import { IResponseBase } from "../base/IResponseBase";
-import { ICreateSkillData, IUpdateSkillData } from "../../dtos/skill/skill-dto";
+import { ICreateSkillData, IUpdateSkillData, ISkillDto } from "../../dtos/skill/skill-dto";
 
 export default interface ISkillService {
-    getAllSkills():Promise<IResponseBase>
-    createSkill(data: ICreateSkillData): Promise<IResponseBase>
-    updateSkill(data: IUpdateSkillData): Promise<IResponseBase>
-    deleteSkill(id: number): Promise<IResponseBase>
+    getAllSkills():Promise<ISkillDto[]>
+    createSkill(data: ICreateSkillData): Promise<ISkillDto>
+    updateSkill(data: IUpdateSkillData): Promise<ISkillDto>
+    deleteSkill(id: number): Promise<boolean>
 }

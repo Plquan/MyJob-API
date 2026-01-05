@@ -33,11 +33,29 @@ export class JobPostController {
         })
         return res.status(200).json(response);
     }
+
+    @GET()
+    @route("/:jobPostActivityId")
+    async getJobPostActivityId(req: Request, res: Response) {
+        const jobPostActivityId = parseInt(req.params.jobPostActivityId)
+        const response = await this._jobPostActivityService.getJobActivityById(jobPostActivityId)
+        return res.status(200).json(response);
+    }
+
     @DELETE()
     @route("/:jobPostActivityId")
     async deleteJobPostActivityId(req: Request, res: Response) {
         const jobPostActivityId = parseInt(req.params.jobPostActivityId)
         const response = await this._jobPostActivityService.deleteJobPostActivity(jobPostActivityId)
         return res.status(204).json(response);
+    }
+
+    @POST()
+    @route("/:jobPostActivityId/send-email")
+    async sendEmailToCandidate(req: Request, res: Response) {
+        const jobPostActivityId = parseInt(req.params.jobPostActivityId);
+        const data = req.body;
+        const response = await this._jobPostActivityService.sendEmailToCandidate(jobPostActivityId, data);
+        return res.status(200).json(response);
     }
 }

@@ -1,10 +1,7 @@
 import { LocalStorage } from "@/common/constants/local-storage";
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import ICandidateService from "@/interfaces/candidate/candidate-interface";
 import DatabaseService from "../common/database-service";
 import logger from "@/common/helpers/logger";
-import { ErrorMessages } from "@/common/constants/ErrorMessages";
-import { VariableSystem } from "@/common/constants/VariableSystem";
 import { User } from "@/entities/user";
 import { EntityManager, Between, In } from "typeorm";
 import { ICandidateData } from "@/dtos/candidate/candidate-dto";
@@ -15,6 +12,11 @@ import { IUserActivityStatistics, IMonthlyActivity } from "@/interfaces/candidat
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import JobPostMapper from "@/mappers/job-post/job-post-mapper";
 import { FileType } from "@/common/enums/file-type/file-types";
+import { ICandidateDto } from "@/dtos/candidate/candidate-dto";
+import { IJobPostDto } from "@/interfaces/job-post/job-post-dto";
+import { HttpException } from "@/errors/http-exception";
+import { EAuthError } from "@/common/enums/error/EAuthError";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
 export default class CandidateService implements ICandidateService {
 
@@ -23,17 +25,13 @@ export default class CandidateService implements ICandidateService {
     constructor(DatabaseService:DatabaseService){
         this._context = DatabaseService
     }
-    async getProfile(): Promise<IResponseBase> {
+    async getProfile(): Promise<ICandidateDto> {
       try {
         const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
         const userId = request?.user?.id;
 
         if (!userId) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Bạn không có quyền truy cập"
-          }
+          throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
         }
 
         const candidateProfile = await this._context.CandidateRepo.findOne({
@@ -41,57 +39,32 @@ export default class CandidateService implements ICandidateService {
           relations: ['province'],
          })
 
-
         if(!candidateProfile){
-           return {
-            status: StatusCodes.NOT_FOUND,
-            success:false,
-            message:"Không tìm thấy hồ sơ ứng viên"
-           }
+          throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ ứng viên");
         }
 
-        return {
-          status: StatusCodes.OK,
-          success:true,
-          message:"Lấy thông tin ứng viên thành công",
-          data:candidateProfile
-        }
+        return candidateProfile as ICandidateDto;
         
       } catch (error) {
         throw error
       }
     }
-    async updateProfile(data: ICandidateData): Promise<IResponseBase> {
+    async updateProfile(data: ICandidateData): Promise<ICandidateDto> {
       try {
         const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
         const userId = request?.user?.id;
 
         if (!userId) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Bạn không có quyền truy cập"
-          }
+          throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
         }
 
          const candidateProfile =  await this._context.CandidateRepo.findOne({ where: { userId } })
 
         if (!candidateProfile) {
-          return {
-            status: StatusCodes.NOT_FOUND,
-            success: false,
-            message: "Không tìm thấy thông tin người dùng"
-          }
+          throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy thông tin người dùng");
         }
 
-        this._context.CandidateRepo.merge(candidateProfile, {
-          provinceId: data.provinceId,
-          phone: data.phone,
-          birthday: data.birthday,
-          gender: data.gender,
-          maritalStatus: data.maritalStatus,
-          address: data.address,
-        })
+        this._context.CandidateRepo.merge(candidateProfile, data)
 
         await this._context.CandidateRepo.save(candidateProfile)
 
@@ -100,24 +73,13 @@ export default class CandidateService implements ICandidateService {
             relations: ['province'],
           })
 
-        return {
-          status: StatusCodes.OK,
-          success: true,
-          message: "Cập nhật thông tin thành công",
-          data: updatedProfile
-        }
+        return updatedProfile as ICandidateDto;
 
       } catch (error) {
-        logger.error(error?.message);
-        console.error(`Error in CandidateService - updateCandidateProfile() at ${new Date().toISOString()} - ${error?.message}`);
-        return {
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-          success: false,
-          message: "Lỗi cập nhật thông tin người dùng, vui lòng thử lại sau",
-        }
+        throw error
       }
     }
-    async createProfile(user: User,manager: EntityManager): Promise<IResponseBase> {
+    async createProfile(user: User,manager: EntityManager): Promise<ICandidateDto> {
         try {
 
          const newCandidateProfile = await manager.save(
@@ -132,33 +94,20 @@ export default class CandidateService implements ICandidateService {
             })
           )
 
-          return {
-            status: StatusCodes.CREATED,
-            success: true,
-            message: "Tạo hồ sơ ứng viên thành công",
-          };
+          return newCandidateProfile as ICandidateDto;
         } catch (error: any) {
           logger.error(error?.message);
           console.log(`Error in CandidateService - method createCandidateProfile() at ${new Date().getTime()} with message ${error?.message}`);
-
-          return {
-            status: StatusCodes.INTERNAL_SERVER_ERROR,
-            success: false,
-            message: ErrorMessages.INTERNAL_SERVER_ERROR,
-          }
+          throw error;
         }
     }
-    async allowSearch(status: boolean): Promise<IResponseBase> {
+    async allowSearch(status: boolean): Promise<boolean> {
     try {
        const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
         const userId = request?.user?.id;
 
         if (!userId) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Bạn không có quyền truy cập"
-          }
+          throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
         }
 
         const candidate = await this._context.CandidateRepo.findOne({
@@ -166,45 +115,28 @@ export default class CandidateService implements ICandidateService {
         })
 
         if(!candidate){
-          return {
-             status: StatusCodes.NOT_FOUND,
-             success: false,
-             message: "Không tìm thấy hồ sơ"
-          }
+          throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ");
         }
 
         candidate.allowSearch = status
         await this._context.CandidateRepo.save(candidate)
 
-        return {
-          status: StatusCodes.OK,
-          success: true,
-          message: "Cập nhật thành công"
-        }
+        return true;
       
      } catch (error) {
        logger.error(error?.message);
-          console.log(`Error in CandidateService - method createCandidateProfile() at ${new Date().getTime()} with message ${error?.message}`);
-
-          return {
-            status: StatusCodes.INTERNAL_SERVER_ERROR,
-            success: false,
-            message: "Lỗi hệ thống, vui lòng thử lại sau",
-          }
+       console.log(`Error in CandidateService - method allowSearch() at ${new Date().getTime()} with message ${error?.message}`);
+       throw error;
       }
     } 
 
-    async getUserActivityStatistics(): Promise<IResponseBase> {
+    async getUserActivityStatistics(): Promise<IUserActivityStatistics> {
       try {
         const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
         const userId = request?.user?.id;
 
         if (!userId) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Bạn không có quyền truy cập"
-          }
+          throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
         }
 
         const candidate = await this._context.CandidateRepo.findOne({
@@ -212,11 +144,7 @@ export default class CandidateService implements ICandidateService {
         });
 
         if (!candidate) {
-          return {
-            status: StatusCodes.NOT_FOUND,
-            success: false,
-            message: "Không tìm thấy hồ sơ ứng viên"
-          }
+          throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ ứng viên");
         }
 
         // Get total counts
@@ -282,35 +210,22 @@ export default class CandidateService implements ICandidateService {
           monthlyActivity
         };
 
-        return {
-          status: StatusCodes.OK,
-          success: true,
-          message: "Lấy thống kê hoạt động thành công",
-          data: statistics
-        };
+        return statistics;
 
       } catch (error) {
         logger.error(error?.message);
         console.error(`Error in CandidateService - getUserActivityStatistics() at ${new Date().toISOString()} - ${error?.message}`);
-        return {
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-          success: false,
-          message: "Lỗi lấy thống kê hoạt động, vui lòng thử lại sau",
-        }
+        throw error;
       }
     }
 
-    async getRecommendedJobs(limit: number = 10): Promise<IResponseBase> {
+    async getRecommendedJobs(limit: number = 10): Promise<IJobPostDto[]> {
       try {
         const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
         const userId = request?.user?.id;
 
         if (!userId) {
-          return {
-            status: StatusCodes.UNAUTHORIZED,
-            success: false,
-            message: "Bạn không có quyền truy cập"
-          }
+          throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
         }
 
         const candidate = await this._context.CandidateRepo.findOne({
@@ -318,11 +233,7 @@ export default class CandidateService implements ICandidateService {
         });
 
         if (!candidate) {
-          return {
-            status: StatusCodes.NOT_FOUND,
-            success: false,
-            message: "Không tìm thấy hồ sơ ứng viên"
-          }
+          throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ ứng viên");
         }
 
         // Get selected resume with all related data
@@ -335,12 +246,7 @@ export default class CandidateService implements ICandidateService {
         });
 
         if (!selectedResume) {
-          return {
-            status: StatusCodes.OK,
-            success: true,
-            message: "Chưa có resume được chọn",
-            data: []
-          }
+          return []
         }
 
         // Build query for recommended jobs
@@ -447,21 +353,12 @@ export default class CandidateService implements ICandidateService {
           JobPostMapper.toJobPosDto(job, candidate.id)
         );
 
-        return {
-          status: StatusCodes.OK,
-          success: true,
-          message: "Lấy danh sách việc làm gợi ý thành công",
-          data: recommendedJobs
-        };
+        return recommendedJobs;
 
       } catch (error) {
         logger.error(error?.message);
         console.error(`Error in CandidateService - getRecommendedJobs() at ${new Date().toISOString()} - ${error?.message}`);
-        return {
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-          success: false,
-          message: "Lỗi lấy danh sách việc làm gợi ý, vui lòng thử lại sau",
-        }
+        throw error;
       }
     }
     

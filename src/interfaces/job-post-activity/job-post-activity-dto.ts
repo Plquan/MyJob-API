@@ -30,3 +30,8 @@ export interface IApplyJobRequest {
     phone: string;
 }
 
+export interface ISendEmailToActivityRequest {
+    to: string;
+    subject: string;
+    content: string;
+}

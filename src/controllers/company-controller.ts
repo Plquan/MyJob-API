@@ -103,4 +103,16 @@ export class CompanyController {
         res.status(200).json(response)
     }
 
+    @before(inject(Auth.required))
+    @GET()
+    @route("/employer-statistics")
+    async getEmployerStatistics(req: Request, res: Response) {
+        const { startDate, endDate } = req.query;
+        const response = await this._companyService.getEmployerStatistics({
+            startDate: startDate as string | undefined,
+            endDate: endDate as string | undefined
+        })
+        res.status(200).json(response)
+    }
+
 }

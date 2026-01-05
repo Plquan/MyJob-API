@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, DeleteDateColumn, OneToMany } from 'typeorm';
-import { User } from './user';
+import { Candidate } from './candidate';
 import { Resume } from './resume';
 import { CompanyImage } from './company-image';
 
@@ -33,8 +33,8 @@ export class MyJobFile {
   @DeleteDateColumn({ nullable: true })
   deletedAt?: Date;
 
-  @OneToOne(() => User, (user) => user.avatar)
-  user?: User
+  @OneToOne(() => Candidate, (candidate) => candidate.avatar)
+  candidate?: Candidate
 
   @OneToOne(() => Resume, (resume) => resume.myJobFile)
   resume?: Resume

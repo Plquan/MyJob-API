@@ -13,7 +13,7 @@ export class CareerController {
     @route("/get-careers")
     async getAllCareers(req: Request, res:Response){
         const response = await this._careerService.getAllCareers()
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
 }

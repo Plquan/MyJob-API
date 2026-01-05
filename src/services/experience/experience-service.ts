@@ -1,13 +1,14 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
-import { ICreateExperienceData, IUpdateExperienceData } from "@/dtos/experience/experience-dto";
+import { ICreateExperienceData, IUpdateExperienceData, IExperienceDto } from "@/dtos/experience/experience-dto";
 import IExperienceService from "@/interfaces/experience/experience-interface";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import logger from "@/common/helpers/logger";
-import { VariableSystem } from "@/common/constants/VariableSystem";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { EResumeType } from "@/common/enums/resume/resume-enum";
+import { HttpException } from "@/errors/http-exception";
+import { EAuthError } from "@/common/enums/error/EAuthError";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
 export default class ExperienceService implements IExperienceService {
 
@@ -17,17 +18,13 @@ export default class ExperienceService implements IExperienceService {
         this._context = DatabaseService
     }
     
-    async getAllExperiences(): Promise<IResponseBase> {
+    async getAllExperiences(): Promise<IExperienceDto[]> {
        try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập",
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           const experiences = await this._context.ExperienceRepo.find({
@@ -35,43 +32,26 @@ export default class ExperienceService implements IExperienceService {
             order: { createdAt: 'DESC' }
           })
 
-           return {
-              status: StatusCodes.OK,
-              message:"Lấy danh sách thành công",
-              success: true,
-              data: experiences         
-            }
-          } catch (error) {
+          return experiences as IExperienceDto[];
+        } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in ExperienceService - method getAllExperiences() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async createExperience(data: ICreateExperienceData): Promise<IResponseBase> {
+    async createExperience(data: ICreateExperienceData): Promise<IExperienceDto> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập",
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           if(!data.jobName || !data.companyName || !data.startDate || !data.endDate){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
            
           const onlineResume = await this._context.ResumeRepo.findOne({
@@ -82,56 +62,35 @@ export default class ExperienceService implements IExperienceService {
           })
 
           if(!onlineResume){
-            return {
-              status: StatusCodes.NOT_FOUND,
-              success: false,
-              message: "Không tìm thấy hồ sơ online của bạn",
-            }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ online của bạn");
          }
 
           data.resumeId = onlineResume.id
           
           const newExperience = this._context.ExperienceRepo.create(data)
-          await this._context.ExperienceRepo.save(newExperience)
+          const savedExperience = await this._context.ExperienceRepo.save(newExperience)
 
-           return {
-              status: StatusCodes.CREATED,
-              message:"Thêm kinh nghiệm thành công",
-              success: true,
-              data: newExperience         
-            }
+          return savedExperience as IExperienceDto;
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in ExperienceService - method createExperience() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async updateExperience(data: IUpdateExperienceData): Promise<IResponseBase> {
+    async updateExperience(data: IUpdateExperienceData): Promise<IExperienceDto> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập",
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           if(!data.jobName || !data.companyName || !data.startDate || !data.endDate || !data.id){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
 
           const experience = await this._context.ExperienceRepo.findOne({
@@ -139,44 +98,27 @@ export default class ExperienceService implements IExperienceService {
           })
 
           if(!experience){
-             return{
-                status: StatusCodes.NOT_FOUND,
-                success:false,
-                message: "Không tìm thấy kinh nghiệm"
-             }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy kinh nghiệm");
           }
           
           this._context.ExperienceRepo.merge(experience,data)
-          await this._context.ExperienceRepo.save(experience)
+          const updatedExperience = await this._context.ExperienceRepo.save(experience)
 
-        return {
-            status: StatusCodes.CREATED,
-            message:"cập nhật kinh nghiệm thành công",
-            success: true,
-            data: experience         
-        }
+          return updatedExperience as IExperienceDto;
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in ExperienceService - method updateExperience() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi cập nhật kinh nghiệm, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async deleteExperience(experienceId: number): Promise<IResponseBase> {
+    async deleteExperience(experienceId: number): Promise<boolean> {
         try {
             
           if( !experienceId){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
 
          const experience = await this._context.ExperienceRepo.findOne({
@@ -184,31 +126,18 @@ export default class ExperienceService implements IExperienceService {
           })
 
           if(!experience){
-             return{
-                status: StatusCodes.NOT_FOUND,
-                success:false,
-                message: "Không tìm thấy kinh nghiệm"
-             }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy kinh nghiệm");
           }
 
-          await this._context.ExperienceRepo.delete({id: experienceId})
+          const result = await this._context.ExperienceRepo.delete({id: experienceId})
 
-          return {
-            status:StatusCodes.OK,
-            message:"Xóa kinh nghiệm thành công",
-            success: true,
-            data: experienceId
-          }        
+          return result.affected > 0;
         } catch (error) {
           logger.error(error?.message);
           console.error(
               `Error in ExperienceService - method deleteExperience() at ${new Date().toISOString()} with message: ${error?.message}`
           )
-          return {
-              status: StatusCodes.INTERNAL_SERVER_ERROR,
-              success: false,
-              message: "Lỗi khi lấy danh sách kinh nghiệm, vui lòng thử lại sau",
-          }
+          throw error;
         }
     }
     

@@ -17,7 +17,7 @@ export class SkillController {
     @route("/get-skills")
     async getAllSkills(req: Request, res: Response){
         const response = await this._skillService.getAllSkills()
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @POST()
@@ -25,7 +25,7 @@ export class SkillController {
     async createSkill(req: Request, res: Response){
         const data = req.body
         const response = await this._skillService.createSkill(data)
-        res.status(response.status).json(response)
+        res.status(201).json(response)
     }
 
     @PUT()
@@ -33,7 +33,7 @@ export class SkillController {
     async updateSkill(req: Request, res: Response){
         const data = req.body
         const response = await this._skillService.updateSkill(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @DELETE()
@@ -41,6 +41,6 @@ export class SkillController {
     async deleteSkill(req: Request, res: Response){
         const skillId = parseInt(req.params.skillId);
         const response = await this._skillService.deleteSkill(skillId)
-        res.status(response.status).json(response)
+        res.status(204).json(response)
     }
 }

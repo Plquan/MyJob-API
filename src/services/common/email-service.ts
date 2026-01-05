@@ -1,4 +1,4 @@
-import sgMail from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 import { ENV } from '@/common/constants/env';
 import EmailTemplate, { IEmailTemplateOptions } from '@/common/helpers/email-template';
 
@@ -14,12 +14,24 @@ export interface ISendEmailOptions {
 }
 
 export class EmailService {
-  private static initialized = false;
+  private static transporter: nodemailer.Transporter | null = null;
 
   private static initialize() {
-    if (!this.initialized && ENV.SENDGRID_API_KEY) {
-      sgMail.setApiKey(ENV.SENDGRID_API_KEY);
-      this.initialized = true;
+    if (!this.transporter) {
+      // Kiểm tra config Mailtrap
+      if (!ENV.MAILTRAP_HOST || !ENV.MAILTRAP_PORT || !ENV.MAILTRAP_USER || !ENV.MAILTRAP_PASS) {
+        throw new Error('Mailtrap configuration is not complete');
+      }
+
+      // Tạo transporter cho Mailtrap
+      this.transporter = nodemailer.createTransport({
+        host: ENV.MAILTRAP_HOST,
+        port: ENV.MAILTRAP_PORT,
+        auth: {
+          user: ENV.MAILTRAP_USER,
+          pass: ENV.MAILTRAP_PASS,
+        },
+      });
     }
   }
 
@@ -29,14 +41,14 @@ export class EmailService {
   static async sendEmail(options: ISendEmailOptions): Promise<void> {
     this.initialize();
 
-    if (!ENV.SENDGRID_API_KEY) {
-      throw new Error('SendGrid API key is not configured');
+    if (!this.transporter) {
+      throw new Error('Email transporter is not initialized');
     }
 
-    const fromEmail = options.from || ENV.SENDGRID_FROM_EMAIL;
-    const fromName = options.fromName || ENV.SENDGRID_FROM_NAME;
+    const fromEmail = options.from || ENV.EMAIL_FROM;
+    const fromName = options.fromName || ENV.EMAIL_FROM_NAME;
     
-    // SendGrid hỗ trợ format "Name <email>" nếu email đã được verify
+    // Format "Name <email>"
     const from = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
 
     // Xử lý template nếu có yêu cầu
@@ -52,21 +64,19 @@ export class EmailService {
       }
     }
 
-    const msg = {
-      to: options.to,
+    const mailOptions = {
       from: from,
+      to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
       subject: options.subject,
       text: options.text,
       html: htmlContent,
     };
 
     try {
-      await sgMail.send(msg);
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('Email sent successfully:', info.messageId);
     } catch (error: any) {
       console.error('Error sending email:', error);
-      if (error.response) {
-        console.error('SendGrid error response:', error.response.body);
-      }
       throw error;
     }
   }
@@ -143,4 +153,3 @@ export class EmailService {
 }
 
 export default EmailService;
-

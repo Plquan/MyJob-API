@@ -2,7 +2,6 @@ import { VariableSystem } from "@/common/constants/VariableSystem";
 import { EUserRole } from "@/common/enums/user/user-role-enum";
 export interface IUser {
   id: number;
-  avatarId?: number;
   email: string;
   fullName: string;
   password: string;

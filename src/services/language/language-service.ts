@@ -1,4 +1,3 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import ILanguageService from "@/interfaces/language/language-interface";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
@@ -6,7 +5,10 @@ import logger from "@/common/helpers/logger";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { EResumeType } from "@/common/enums/resume/resume-enum";
-import { ICreateLanguageData, IUpdateLanguageData } from "@/interfaces/language/language-dto";
+import { ICreateLanguageData, IUpdateLanguageData, ILanguageDto } from "@/dtos/language/language-dto";
+import { HttpException } from "@/errors/http-exception";
+import { EAuthError } from "@/common/enums/error/EAuthError";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
 export default class LanguageService implements ILanguageService {
 
@@ -16,17 +18,13 @@ export default class LanguageService implements ILanguageService {
         this._context = DatabaseService
     }
 
-    async getAllLanguages(): Promise<IResponseBase> {
+    async getAllLanguages(): Promise<ILanguageDto[]> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
           const userId = request?.user?.id
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập"
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           const languages = await this._context.LanguageRepo.find({
@@ -34,43 +32,26 @@ export default class LanguageService implements ILanguageService {
             order: { createdAt: 'DESC' }
           })
 
-           return {
-              status: StatusCodes.OK,
-              message:"Lấy danh sách ngôn ngữ thành công",
-              success: true,
-              data: languages         
-            }
-          } catch (error) {
+          return languages as ILanguageDto[];
+        } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in LanguageService - method getAllLanguages() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi khi lấy danh sách ngôn ngữ, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async createLanguage(data: ICreateLanguageData): Promise<IResponseBase> {
+    async createLanguage(data: ICreateLanguageData): Promise<ILanguageDto> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập",
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           if(!data.language || !data.level){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
            
           const onlineResume = await this._context.ResumeRepo.findOne({
@@ -81,56 +62,35 @@ export default class LanguageService implements ILanguageService {
           })
 
           if(!onlineResume){
-            return {
-              status: StatusCodes.NOT_FOUND,
-              success: false,
-              message: "Không tìm thấy hồ sơ online của bạn",
-            }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ online của bạn");
           }
 
           data.resumeId = onlineResume.id
           
           const newLanguage = this._context.LanguageRepo.create(data)
-          await this._context.LanguageRepo.save(newLanguage)
+          const savedLanguage = await this._context.LanguageRepo.save(newLanguage)
 
-           return {
-              status: StatusCodes.CREATED,
-              message:"Thêm ngôn ngữ thành công",
-              success: true,
-              data: newLanguage         
-            }
+          return savedLanguage as ILanguageDto;
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in LanguageService - method createLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi thêm ngôn ngữ, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async updateLanguage(data: IUpdateLanguageData): Promise<IResponseBase> {
+    async updateLanguage(data: IUpdateLanguageData): Promise<ILanguageDto> {
          try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập",
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           if(!data.language || !data.level || !data.id){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
 
           const language = await this._context.LanguageRepo.findOne({
@@ -138,44 +98,27 @@ export default class LanguageService implements ILanguageService {
           })
 
           if(!language){
-             return{
-                status: StatusCodes.NOT_FOUND,
-                success:false,
-                message: "Không tìm thấy kinh nghiệm"
-             }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy ngôn ngữ");
           }
           
           this._context.LanguageRepo.merge(language,data)
-          await this._context.LanguageRepo.save(language)
+          const updatedLanguage = await this._context.LanguageRepo.save(language)
 
-        return {
-            status: StatusCodes.CREATED,
-            message:"cập nhật ngôn ngữ thành công",
-            success: true,
-            data: language         
-        }
+          return updatedLanguage as ILanguageDto;
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in LanguageService - method updateLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi cập nhật ngôn ngữ, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async deleteLanguage(languageId: number): Promise<IResponseBase> {
+    async deleteLanguage(languageId: number): Promise<boolean> {
          try {
             
           if(!languageId){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
 
          const language = await this._context.LanguageRepo.findOne({
@@ -183,31 +126,18 @@ export default class LanguageService implements ILanguageService {
           })
 
           if(!language){
-             return{
-                status: StatusCodes.NOT_FOUND,
-                success:false,
-                message: "Không tìm thấy ngôn ngữ"
-             }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy ngôn ngữ");
           }
 
-          await this._context.LanguageRepo.delete({id: languageId})
+          const result = await this._context.LanguageRepo.delete({id: languageId})
 
-          return {
-            status:StatusCodes.OK,
-            message:"Xóa ngôn ngữ thành công",
-            success: true,
-            data: languageId
-          }        
+          return result.affected > 0;
         } catch (error) {
           logger.error(error?.message);
           console.error(
               `Error in LanguageService - method deleteLanguage() at ${new Date().toISOString()} with message: ${error?.message}`
           )
-          return {
-              status: StatusCodes.INTERNAL_SERVER_ERROR,
-              success: false,
-              message: "Lỗi xóa ngôn ngữ, vui lòng thử lại sau",
-          }
+          throw error;
         }
     }
 

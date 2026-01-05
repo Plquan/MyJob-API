@@ -1,4 +1,6 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase"
+import { HttpException } from "@/errors/http-exception";
+import { EAuthError } from "@/common/enums/error/EAuthError";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import IResumeService from "@/interfaces/resume/resume-interface"
 import DatabaseService from "../common/database-service"
 import { LocalStorage } from "@/common/constants/local-storage"
@@ -14,24 +16,39 @@ import { UploadAttachedResumeRequest } from "@/dtos/resume/upload-attached-resum
 import { UpdateOnlineResumeRequest } from "@/dtos/resume/update-online-resume-request"
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum"
 import { EResumeType } from "@/common/enums/resume/resume-enum"
-import { HttpException } from "@/errors/http-exception"
-import { EAuthError } from "@/common/enums/error/EAuthError"
 import { FileType } from "@/common/enums/file-type/file-types"
 import { ResumeMapper } from "@/mappers/resume/resume-mapper"
 import { IOnlineResumeDto, IResumeDto, ISearchResumesReqParams } from "@/dtos/resume/resume-dto"
-import { EGlobalError } from "@/common/enums/error/EGlobalError"
 import { getCurrentUser } from "@/common/helpers/get-current-user"
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase"
 
 
 export default class ResumeService implements IResumeService {
-
   private readonly _context: DatabaseService
-
-
   constructor(DatabaseService: DatabaseService) {
     this._context = DatabaseService
 
+  }
+  async getResumeForDownload(resumeId: number): Promise<IOnlineResumeDto> {
+    try {
+      const resume = await this._context.ResumeRepo.findOne({
+        where: {
+          id: resumeId
+        },
+        relations: [
+          'myJobFile',
+          'candidate',
+          'educations',
+          'certificates',
+          'experiences',
+          'languages',
+          'skills',
+        ],
+      })
+      return ResumeMapper.toOnlineResumeDto(resume);
+    } catch (error) {
+      throw error
+    }
   }
   async getResumeById(attchedResumeId: number): Promise<IResumeDto> {
     try {
@@ -90,7 +107,7 @@ export default class ResumeService implements IResumeService {
     try {
       const user = getCurrentUser()
 
-      if(!user){
+      if (!user) {
         throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "User not found")
       }
 
@@ -232,73 +249,48 @@ export default class ResumeService implements IResumeService {
       throw error
     }
   }
-  async updateOnlineResume(data: UpdateOnlineResumeRequest): Promise<IResponseBase> {
+  async updateOnlineResume(data: UpdateOnlineResumeRequest): Promise<IResumeDto> {
     try {
       const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
       const userId = request?.user?.id
 
       if (!userId) {
-        return {
-          status: StatusCodes.UNAUTHORIZED,
-          success: false,
-          message: "Bạn không có quyền truy cập"
-        }
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
       }
 
-      const onineResume = await this._context.ResumeRepo.findOne({
+      const onlineResume = await this._context.ResumeRepo.findOne({
         where: { candidate: { userId } }
       })
 
-      if (!onineResume) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          success: false,
-          message: "Không tìm thấy hồ sơ người dùng"
-        }
+      if (!onlineResume) {
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ người dùng");
       }
 
-      this._context.ResumeRepo.merge(onineResume, data)
-      await this._context.ResumeRepo.save(onineResume)
+      this._context.ResumeRepo.merge(onlineResume, data)
+      const updatedResume = await this._context.ResumeRepo.save(onlineResume)
 
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "Cập nhật thông tin thành công",
-        data: data
-      }
+      return updatedResume as IResumeDto;
 
     } catch (error) {
       logger.error(error?.message);
       console.error(`Error in resumeService - updateOnlineResume at ${new Date().toISOString()} - ${error?.message}`);
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi cập nhật hồ sơ người dùng, vui lòng thử lại sau",
-      }
+      throw error;
     }
   }
-  async setSelectedResume(resumeId: number): Promise<IResponseBase> {
+  async setSelectedResume(resumeId: number): Promise<boolean> {
     try {
       const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
       const userId = request?.user?.id
 
       if (!userId) {
-        return {
-          status: StatusCodes.UNAUTHORIZED,
-          success: false,
-          message: "Bạn không có quyền truy cập"
-        }
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
       }
       const candidate = await this._context.CandidateRepo.findOne({
         where: { userId }
       })
 
       if (!candidate) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          success: false,
-          message: "Không tìm thấy hồ sơ người dùng"
-        }
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ người dùng");
       }
 
       await this._context.ResumeRepo.update(
@@ -306,25 +298,17 @@ export default class ResumeService implements IResumeService {
         { selected: false }
       )
 
-      await this._context.ResumeRepo.update(
+      const result = await this._context.ResumeRepo.update(
         { id: resumeId },
         { selected: true }
       )
 
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "CV đã đánh dấu là được chọn",
-      }
+      return result.affected > 0;
 
     } catch (error) {
       logger.error(error?.message);
-      console.error(`Error in resumeService - updateOnlineResume at ${new Date().toISOString()} - ${error?.message}`);
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi cập nhật hồ sơ người dùng, vui lòng thử lại sau",
-      }
+      console.error(`Error in resumeService - setSelectedResume at ${new Date().toISOString()} - ${error?.message}`);
+      throw error;
     }
   }
 
