@@ -217,14 +217,11 @@ export default class JobPostService implements IJobPostService {
             if (!user) {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate Id not found");
             }
-            console.log(user)
-
+            
             const candidateId = user.candidateId;
-
-            const subQuery = this._context.SavedJobPostRepo
-                .createQueryBuilder("savedJobPost")
-                .select("savedJobPost.jobPostId")
-                .where("savedJobPost.candidateId = :candidateId",  { candidateId });
+            if (!candidateId || isNaN(candidateId)) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate Id not found");
+            }
 
             const jobPosts = await this._context.JobPostRepo
                 .createQueryBuilder("job")
@@ -238,12 +235,10 @@ export default class JobPostService implements IJobPostService {
                     "job.isHot",
                     "job.deadline"
                 ])
-                .where(`job.id IN (${subQuery.getQuery()})`)
-                .setParameters(subQuery.getParameters())
+                .innerJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", { candidateId })
                 .leftJoinAndSelect("job.company", "company")
                 .leftJoinAndSelect("company.companyImages", "companyImage")
                 .leftJoinAndSelect("companyImage.image", "image", "image.fileType = :fileType AND image.deletedAt IS NULL", { fileType: FileType.LOGO })
-                .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", { candidateId })
                 .leftJoinAndSelect("job.jobPostActivities", "jobPostActivity", "jobPostActivity.candidateId = :candidateId", { candidateId })
                 .orderBy("job.createdAt", "DESC")
                 .getMany();

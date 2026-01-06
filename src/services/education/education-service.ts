@@ -1,13 +1,14 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import IEducationService from "@/interfaces/education/education-interface";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import logger from "@/common/helpers/logger";
-import { VariableSystem } from "@/common/constants/VariableSystem";
-import { ICreateEducationData, IUpdateEducationData } from "@/dtos/education/education-dto";
+import { ICreateEducationData, IUpdateEducationData, IEducationDto } from "@/dtos/education/education-dto";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { EResumeType } from "@/common/enums/resume/resume-enum";
+import { HttpException } from "@/errors/http-exception";
+import { EAuthError } from "@/common/enums/error/EAuthError";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
 
 export default class EducationService implements IEducationService {
@@ -18,17 +19,13 @@ export default class EducationService implements IEducationService {
     this._context = DatabaseService
   }
 
-  async getAllEducations(): Promise<IResponseBase> {
+  async getAllEducations(): Promise<IEducationDto[]> {
     try {
       const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
       const userId = request?.user?.id;
 
       if (!userId) {
-        return {
-          status: StatusCodes.UNAUTHORIZED,
-          success: false,
-          message: "Bạn không có quyền truy cập",
-        }
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
       }
 
       const educations = await this._context.EducationRepo.find({
@@ -36,44 +33,27 @@ export default class EducationService implements IEducationService {
         order: { createdAt: 'DESC' }
       })
 
-      return {
-        status: StatusCodes.OK,
-        message: "Lấy danh sách học vấn thành công",
-        success: true,
-        data: educations
-      }
+      return educations as IEducationDto[];
 
     } catch (error) {
       logger.error(error?.message);
       console.error(
         `Error in EducationService - method getAllEducations() at ${new Date().toISOString()} with message: ${error?.message}`
       )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi lấy danh sách học vấn, vui lòng thử lại sau",
-      }
+      throw error;
     }
   }
-  async createEducation(data: ICreateEducationData): Promise<IResponseBase> {
+  async createEducation(data: ICreateEducationData): Promise<IEducationDto> {
     try {
       const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
       const userId = request?.user?.id;
 
       if (!userId) {
-        return {
-          status: StatusCodes.UNAUTHORIZED,
-          success: false,
-          message: "Bạn không có quyền truy cập",
-        }
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
       }
 
       if (!data.degreeName || !data.major || !data.trainingPlace || !data.startDate) {
-        return {
-          message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-          success: false,
-          status: StatusCodes.BAD_REQUEST,
-        }
+        throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
       }
 
       const onlineResume = await this._context.ResumeRepo.findOne({
@@ -84,87 +64,53 @@ export default class EducationService implements IEducationService {
       })
 
       if (!onlineResume) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          success: false,
-          message: "Không tìm thấy hồ sơ online của bạn",
-        }
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ online của bạn");
       }
 
       data.resumeId = onlineResume.id
 
       const newEducation = this._context.EducationRepo.create(data)
-      await this._context.EducationRepo.save(newEducation)
+      const savedEducation = await this._context.EducationRepo.save(newEducation)
 
-      return {
-        status: StatusCodes.CREATED,
-        success: true,
-        message: "Tạo mới thông tin học vấn thành công",
-        data: newEducation
-      }
+      return savedEducation as IEducationDto;
 
     } catch (error) {
       logger.error(error?.message);
       console.error(
         `Error in EducationService - method createEducation() at ${new Date().toISOString()} with message: ${error?.message}`
       )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi tạo học vấn, vui lòng thử lại sau",
-      }
+      throw error;
     }
   }
-  async updateEducation(data: IUpdateEducationData): Promise<IResponseBase> {
+  async updateEducation(data: IUpdateEducationData): Promise<IEducationDto> {
     try {
       if (!data.degreeName || !data.major || !data.trainingPlace || !data.startDate || !data.id) {
-        return {
-          message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-          success: false,
-          status: StatusCodes.BAD_REQUEST,
-        }
+        throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
       }
       const education = await this._context.EducationRepo.findOne({
         where: { id: data.id }
       })
 
       if (!education) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          success: false,
-          message: "Không tìm thấy thông tin học vấn"
-        }
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy thông tin học vấn");
       }
       this._context.EducationRepo.merge(education, data)
-      await this._context.EducationRepo.save(education)
+      const updatedEducation = await this._context.EducationRepo.save(education)
 
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "Cập nhật thông tin học vấn thành công",
-        data: education
-      }
+      return updatedEducation as IEducationDto;
 
     } catch (error) {
       logger.error(error?.message);
       console.error(
         `Error in EducationService - method updateEducation() at ${new Date().toISOString()} with message: ${error?.message}`
       )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi cập nhật học vấn, vui lòng thử lại sau",
-      }
+      throw error;
     }
   }
-  async deleteEducation(educationId: number): Promise<IResponseBase> {
+  async deleteEducation(educationId: number): Promise<boolean> {
     try {
       if (!educationId) {
-        return {
-          message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-          success: false,
-          status: StatusCodes.BAD_REQUEST,
-        }
+        throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
       }
 
       const education = await this._context.EducationRepo.findOne({
@@ -172,31 +118,18 @@ export default class EducationService implements IEducationService {
       })
 
       if (!education) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          success: false,
-          message: "Không tim thấy thông tin học vấn"
-        }
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy thông tin học vấn");
       }
-      await this._context.EducationRepo.delete({ id: educationId })
+      const result = await this._context.EducationRepo.delete({ id: educationId })
 
-      return {
-        status: StatusCodes.OK,
-        success: true,
-        message: "Xóa thông tin học vấn thành công",
-        data: educationId
-      }
+      return result.affected > 0;
 
     } catch (error) {
       logger.error(error?.message);
       console.error(
         `Error in EducationService - method deleteEducation() at ${new Date().toISOString()} with message: ${error?.message}`
       )
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: "Lỗi xóa thông tin học vấn, vui lòng thử lại sau",
-      }
+      throw error;
     }
   }
 

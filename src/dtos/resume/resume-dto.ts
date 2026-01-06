@@ -1,4 +1,5 @@
 import { EPosition, ETypeOfWorkplace, EExperience, EAcademicLevel, EJobType, EResumeType } from "@/common/enums/resume/resume-enum";
+import { EGender, EMartialStatus } from "@/common/enums/candidate/candidate-enum";
 import { ICandidateDto } from "../candidate/candidate-dto";
 import { IEducationDto } from "../education/education-dto";
 import { ICertificateDto } from "../certificate/certificate-dto";
@@ -26,7 +27,8 @@ export interface IResumeDto {
   selected: boolean;
   createdAt: Date;
   updatedAt: Date;
-  myJobFile?: IMyJobFileDto
+  myJobFile?: IMyJobFileDto;
+  candidate?: ICandidateDto;
 }
 
 export interface IOnlineResumeDto {
@@ -70,4 +72,19 @@ export interface UpdateAttachedResumeRequest {
   experience?: number;
   academicLevel?: number;
   jobType?: number;
+}
+
+export interface ISearchResumesReqParams {
+  page: number;
+  limit: number;
+  title?: string;
+  provinceId?: number;
+  careerId?: number;
+  position?: EPosition;
+  typeOfWorkPlace?: ETypeOfWorkplace;
+  experience?: EExperience;
+  academicLevel?: EAcademicLevel;
+  jobType?: EJobType;
+  gender?: EGender;
+  maritalStatus?: EMartialStatus;
 }

@@ -17,7 +17,7 @@ export class EmailTemplate {
    * Tạo header HTML cho email
    */
   private static getHeader(title?: string): string {
-    const appName = ENV.SENDGRID_FROM_NAME || 'MyJob';
+    const appName = ENV.EMAIL_FROM_NAME || 'MyJob';
     return `
       <!DOCTYPE html>
       <html lang="vi">
@@ -50,7 +50,7 @@ export class EmailTemplate {
    * Tạo footer HTML cho email
    */
   private static getFooter(footerText?: string, companyWebsite?: string): string {
-    const appName = ENV.SENDGRID_FROM_NAME || 'MyJob';
+    const appName = ENV.EMAIL_FROM_NAME || 'MyJob';
     const currentYear = new Date().getFullYear();
     const website = companyWebsite || '#';
     

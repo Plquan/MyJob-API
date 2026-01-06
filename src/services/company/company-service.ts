@@ -1,4 +1,3 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import { ICompanyData } from "@/dtos/company/CompanyDto";
 import ICompanyService from "@/interfaces/company/company-interface";
 import DatabaseService from "../common/database-service";
@@ -15,11 +14,14 @@ import { getCurrentUser } from "@/common/helpers/get-current-user";
 import { CompanyImage } from "@/entities/company-image";
 import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto";
 import { CompanyMapper } from "@/mappers/company/company-mapper";
-import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest, IGetCompaniesReqParams } from "@/interfaces/company/company-dto";
+import { ICompanyDto, ICompanyWithImagesDto, ICompanyDetail, IUpdateCompanyRequest, IGetCompaniesReqParams, ICompanyStatistics, IApplicationMonthly, IApplicationByStatus, IGetEmployerStatisticsRequest } from "@/interfaces/company/company-dto";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { EAuthError } from "@/common/enums/error/EAuthError";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
+import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
+import { EJobPostActivityStatus } from "@/common/enums/job/EJobPostActivity";
+import { LessThan } from "typeorm";
 
 export default class CompanyService implements ICompanyService {
     private readonly _context: DatabaseService
@@ -291,18 +293,171 @@ export default class CompanyService implements ICompanyService {
             throw error;
         }
     }
-    async createCompanyInfo(data: ICompanyData): Promise<IResponseBase> {
+    async createCompanyInfo(data: ICompanyData): Promise<ICompanyDto> {
         try {
             const companyInfo = await this._context.CompanyRepo.create(data)
-            await this._context.CompanyRepo.save(companyInfo)
+            const savedCompany = await this._context.CompanyRepo.save(companyInfo)
+            return CompanyMapper.toCompanyDto(savedCompany);
+        } catch (error) {
+            throw error;
+        }
+    }
 
-            return {
-                status: StatusCodes.CREATED,
-                success: true,
-                message: "Create company profile success"
+    async getEmployerStatistics(params?: IGetEmployerStatisticsRequest): Promise<ICompanyStatistics> {
+        try {
+            const companyId = getCurrentUser()?.companyId;
+
+            if (!companyId) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
             }
 
+            // Parse date range
+            const startDate = params?.startDate ? new Date(params.startDate) : undefined;
+            const endDate = params?.endDate ? new Date(params.endDate) : undefined;
+            
+            // Set endDate to end of day if provided
+            if (endDate) {
+                endDate.setHours(23, 59, 59, 999);
+            }
+
+            // Get all job post IDs for this company
+            const jobPosts = await this._context.JobPostRepo.find({
+                where: { companyId },
+                select: ['id']
+            });
+            const jobPostIds = jobPosts.map(jp => jp.id);
+
+            // Build base query for job posts with date filter
+            const jobPostQb = this._context.JobPostRepo.createQueryBuilder('jp')
+                .where('jp.companyId = :companyId', { companyId });
+            
+            if (startDate) {
+                jobPostQb.andWhere('jp.createdAt >= :startDate', { startDate });
+            }
+            if (endDate) {
+                jobPostQb.andWhere('jp.createdAt <= :endDate', { endDate });
+            }
+
+            // Get total job posts
+            const totalJobPosts = await jobPostQb.getCount();
+
+            // Get pending job posts
+            const pendingJobPosts = await jobPostQb
+                .clone()
+                .andWhere('jp.status = :status', { status: EJobPostStatus.PENDING_APPROVAL })
+                .getCount();
+
+            // Get expired job posts
+            const currentDate = new Date();
+            const expiredJobPosts = await jobPostQb
+                .clone()
+                .andWhere('jp.deadline < :currentDate', { currentDate })
+                .getCount();
+
+            // Build base query for applications with date filter
+            const buildApplicationQuery = () => {
+                const qb = this._context.JobPostActivityRepo.createQueryBuilder('activity')
+                    .where('activity.isDeleted = :isDeleted', { isDeleted: false });
+
+                if (jobPostIds.length > 0) {
+                    qb.andWhere('activity.jobPostId IN (:...ids)', { ids: jobPostIds });
+                }
+                if (startDate) {
+                    qb.andWhere('activity.createdAt >= :startDate', { startDate });
+                }
+                if (endDate) {
+                    qb.andWhere('activity.createdAt <= :endDate', { endDate });
+                }
+                return qb;
+            };
+
+            // Get total applications
+            const totalApplications = jobPostIds.length > 0 
+                ? await buildApplicationQuery().getCount() 
+                : 0;
+
+            // Get applications by status
+            const applicationsByStatus: IApplicationByStatus[] = [];
+            const statusNames: Record<number, string> = {
+                [EJobPostActivityStatus.PENDING]: 'Chờ duyệt',
+                [EJobPostActivityStatus.CONTACTED]: 'Đã liên hệ',
+                [EJobPostActivityStatus.TESTED]: 'Đã test',
+                [EJobPostActivityStatus.INTERVIEWED]: 'Đã phỏng vấn',
+                [EJobPostActivityStatus.ACCEPTED]: 'Đã chấp nhận',
+                [EJobPostActivityStatus.REJECTED]: 'Đã từ chối',
+            };
+
+            for (const [statusKey, statusName] of Object.entries(statusNames)) {
+                const status = parseInt(statusKey);
+                let count = 0;
+                
+                if (jobPostIds.length > 0) {
+                    count = await buildApplicationQuery()
+                        .andWhere('activity.status = :status', { status })
+                        .getCount();
+                }
+
+                applicationsByStatus.push({
+                    status,
+                    statusName,
+                    count
+                });
+            }
+
+            // Get monthly applications for last 12 months
+            const applicationsMonthly: IApplicationMonthly[] = [];
+            const currentYear = currentDate.getFullYear();
+            
+            for (let i = 11; i >= 0; i--) {
+                const monthDate = new Date(currentYear, currentDate.getMonth() - i, 1);
+                const monthName = monthDate.toLocaleDateString('vi-VN', { month: 'numeric', year: 'numeric' });
+                const month = monthDate.getMonth() + 1;
+                const startDate2024 = new Date(2024, month - 1, 1);
+                const endDate2024 = new Date(2024, month, 0, 23, 59, 59);
+                const startDate2023 = new Date(2023, month - 1, 1);
+                const endDate2023 = new Date(2023, month, 0, 23, 59, 59);
+
+                let count2024 = 0;
+                let count2023 = 0;
+
+                if (jobPostIds.length > 0) {
+                    count2024 = await this._context.JobPostActivityRepo
+                        .createQueryBuilder('activity')
+                        .where('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
+                        .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
+                        .andWhere('activity.createdAt >= :startDate', { startDate: startDate2024 })
+                        .andWhere('activity.createdAt <= :endDate', { endDate: endDate2024 })
+                        .getCount();
+
+                    count2023 = await this._context.JobPostActivityRepo
+                        .createQueryBuilder('activity')
+                        .where('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
+                        .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
+                        .andWhere('activity.createdAt >= :startDate', { startDate: startDate2023 })
+                        .andWhere('activity.createdAt <= :endDate', { endDate: endDate2023 })
+                        .getCount();
+                }
+
+                applicationsMonthly.push({
+                    month: monthName,
+                    year2024: count2024,
+                    year2023: count2023
+                });
+            }
+
+            const statistics: ICompanyStatistics = {
+                totalJobPosts,
+                pendingJobPosts,
+                expiredJobPosts,
+                totalApplications,
+                applicationsByStatus,
+                applicationsMonthly
+            };
+
+            return statistics;
+
         } catch (error) {
+            logger.error('Error getting employer statistics:', error);
             throw error;
         }
     }

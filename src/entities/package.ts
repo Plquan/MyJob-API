@@ -30,9 +30,6 @@ export class Package {
   candidateSearchLimit: number;
 
   @Column({ type: 'int', default: 0 })
-  cvSearchLimit: number;
-
-  @Column({ type: 'int', default: 0 })
   jobPostLimit: number;
 
   @Column({ type: 'text', nullable: true })

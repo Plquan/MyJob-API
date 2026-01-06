@@ -2,6 +2,7 @@ import { Entity, OneToOne, PrimaryGeneratedColumn, Column, JoinColumn, OneToMany
 import { User } from "./user";
 import { Province } from "./province";
 import { Resume } from "./resume";
+import { MyJobFile } from "./myjob-file";
 import { EGender, EMartialStatus } from "../common/enums/candidate/candidate-enum";
 import { JobPostActivity } from "./job-post-activity";
 import { SavedJobPost } from "./saved-job-post";
@@ -17,6 +18,9 @@ export class Candidate {
 
     @Column({ nullable: true })
     provinceId?: number;
+
+    @Column({ type: 'int', nullable: true })
+    avatarId?: number;
 
     @Column({ type: "varchar", length: 255})
     fullName!: string;
@@ -52,6 +56,10 @@ export class Candidate {
     @ManyToOne(() => Province, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'provinceId' })
     province?: Province;
+
+    @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'avatarId' })
+    avatar?: MyJobFile;
 
     @OneToMany(() => Resume, resume => resume.candidate)
     resumes!: Resume[];

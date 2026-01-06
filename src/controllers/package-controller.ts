@@ -50,4 +50,12 @@ export class PackageController {
         const response = await this._packageService.purchasePackage(packageId)
         res.status(200).json(response)
     }
+    @before(inject(Auth.required))
+    @GET()
+    @route('/get-company-package')
+    async getCompanyPackage(req: Request, res: Response) {
+        const response = await this._packageService.getCompanyPackage()
+        res.status(200).json(response)
+    }
+
 }

@@ -14,7 +14,7 @@ export class ExperienceController {
     @route("/get-experiences")
     async getAllExperiences(req: Request, res: Response){
         const response = await this._experienceService.getAllExperiences()
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @POST()
@@ -22,7 +22,7 @@ export class ExperienceController {
     async createExperience(req: Request, res: Response){
         const data = req.body
         const response = await this._experienceService.createExperience(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @PUT()
@@ -30,7 +30,7 @@ export class ExperienceController {
     async updateExperience(req: Request, res: Response){
         const data = req.body
         const response = await this._experienceService.updateExperience(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @DELETE()
@@ -38,6 +38,6 @@ export class ExperienceController {
     async deleteExperience(req: Request, res: Response){
         const experienceId = parseInt(req.params.experienceId);
         const response = await this._experienceService.deleteExperience(experienceId)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 }

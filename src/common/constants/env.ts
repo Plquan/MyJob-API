@@ -19,7 +19,10 @@ export const ENV = {
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || 604800,
     
-    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY || '',
-    SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL || 'noreply@myjob.com',
-    SENDGRID_FROM_NAME: process.env.SENDGRID_FROM_NAME || 'MyJob',
+    MAILTRAP_HOST: process.env.MAILTRAP_HOST,
+    MAILTRAP_PORT: Number(process.env.MAILTRAP_PORT),
+    MAILTRAP_USER: process.env.MAILTRAP_USER ,
+    MAILTRAP_PASS: process.env.MAILTRAP_PASS ,
+    EMAIL_FROM: process.env.EMAIL_FROM,
+    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
 }

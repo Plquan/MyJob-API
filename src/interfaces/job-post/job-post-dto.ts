@@ -67,7 +67,7 @@ export interface IGetCompanyJobPostsReqParams {
   page: number
   limit: number
   search: string
-  jobPostStatus: EJobPostStatus
+  jobPostStatus?: EJobPostStatus
 }
 
 export interface IGetJobPostsReqParams {

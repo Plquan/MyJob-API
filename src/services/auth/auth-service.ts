@@ -203,9 +203,10 @@ export default class AuthService implements IAuthService {
           id: userId,
         },
         relations: {
-          candidate: true,
+          candidate: {
+            avatar: true
+          },
           company: true,
-          avatar: true,
         },
       })
 
@@ -220,7 +221,7 @@ export default class AuthService implements IAuthService {
         isStaff: user.isStaff,
         isActive: user.isActive,
         allowSearch: user.candidate?.allowSearch ?? true,
-        avatar: user.avatar?.url,
+        avatar: user.candidate?.avatar?.url,
         company: user?.company,
         candidate: user?.candidate
       }

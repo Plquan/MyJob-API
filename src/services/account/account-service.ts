@@ -1,6 +1,9 @@
 import IAccountService from "@/interfaces/account/account-interface";
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import CloudinaryService from "../common/cloudinary-service";
+import { IMyJobFileDto } from "@/interfaces/myjobfile/myjobfile-dto";
+import { HttpException } from "@/errors/http-exception";
+import { EAuthError } from "@/common/enums/error/EAuthError";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import logger from "@/common/helpers/logger";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
@@ -18,25 +21,27 @@ export default class AccountService implements IAccountService {
         this._context = DatabaseService;
     }
 
-    async updateAvatar(file: Express.Multer.File): Promise<IResponseBase> {
+    async updateAvatar(file: Express.Multer.File): Promise<IMyJobFileDto> {
         try {
             const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
             const userId = request?.user.id;
 
            if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập"
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           }
-            const myJobFile = await this._context.MyJobFileRepo.findOne({
-            where: {
-                user: {
-                id: userId,
-                },
-            },
-            })
+
+            // Lấy candidate từ userId
+            const candidate = await this._context.CandidateRepo.findOne({
+                where: { userId },
+                relations: ['avatar']
+            });
+
+            if (!candidate) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy thông tin ứng viên");
+            }
+
+            const myJobFile = candidate.avatar;
+
             const result = await CloudinaryService.uploadFile(
                 file,
                 VariableSystem.FolderType.AVATAR,
@@ -55,28 +60,19 @@ export default class AccountService implements IAccountService {
             myJobFile ? this._context.MyJobFileRepo.merge(myJobFile, newFile) : newFile
             )
 
-            await this._context.UserRepo.update(
-            { id: userId },
+            await this._context.CandidateRepo.update(
+            { id: candidate.id },
             { avatar: savedFile }
             )
 
-           return {
-                status: StatusCodes.OK,
-                success: true,
-                message: "Cập nhật ảnh đại diện thành công",
-                data:newFile.url,
-            }
+           return savedFile as IMyJobFileDto;
            
         } catch (error) {
             logger.error(error?.message);
             console.log(
                 `Error in AccountService - method updateAvatar at ${new Date().getTime()} with message ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi khi cập nhật ảnh đại diện, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
     

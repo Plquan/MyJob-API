@@ -23,6 +23,6 @@ export class AccountController {
     async updateAvatar(req: Request, res: Response) {
         const file = req.file;
         const response = await this._accountService.updateAvatar(file);
-        return res.status(response.status).json(response);
+        return res.status(200).json(response);
     }
 }

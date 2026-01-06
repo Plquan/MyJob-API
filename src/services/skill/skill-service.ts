@@ -1,13 +1,14 @@
-import { IResponseBase } from "@/interfaces/base/IResponseBase";
 import DatabaseService from "../common/database-service";
 import { LocalStorage } from "@/common/constants/local-storage";
 import logger from "@/common/helpers/logger";
-import { VariableSystem } from "@/common/constants/VariableSystem";
 import ISkillService from "@/interfaces/skill/skill-interface";
-import { ICreateSkillData, IUpdateSkillData } from "@/dtos/skill/skill-dto";
+import { ICreateSkillData, IUpdateSkillData, ISkillDto } from "@/dtos/skill/skill-dto";
 import { RequestStorage } from "@/common/middlewares/async-local-storage";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { EResumeType } from "@/common/enums/resume/resume-enum";
+import { HttpException } from "@/errors/http-exception";
+import { EAuthError } from "@/common/enums/error/EAuthError";
+import { EGlobalError } from "@/common/enums/error/EGlobalError";
 
 
 export default class SkillService implements ISkillService {
@@ -18,17 +19,13 @@ export default class SkillService implements ISkillService {
         this._context = DatabaseService
     }
 
-    async getAllSkills(): Promise<IResponseBase> {
+    async getAllSkills(): Promise<ISkillDto[]> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE)
           const userId = request?.user?.id
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập"
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           const skills = await this._context.SkillRepo.find({
@@ -36,43 +33,26 @@ export default class SkillService implements ISkillService {
             order: { createdAt: 'DESC' }
           })
 
-           return {
-              status: StatusCodes.OK,
-              message:"Lấy danh sách ngôn ngữ thành công",
-              success: true,
-              data: skills         
-            }
-          } catch (error) {
+          return skills as ISkillDto[];
+        } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in SkillService - method getAllSkills() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi lấy danh sách kĩ năng, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async createSkill(data: ICreateSkillData): Promise<IResponseBase> {
+    async createSkill(data: ICreateSkillData): Promise<ISkillDto> {
         try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập",
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           if(!data.name || !data.level){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
            
           const onlineResume = await this._context.ResumeRepo.findOne({
@@ -83,56 +63,35 @@ export default class SkillService implements ISkillService {
           })
 
           if(!onlineResume){
-            return {
-              status: StatusCodes.NOT_FOUND,
-              success: false,
-              message: "Không tìm thấy hồ sơ online của bạn",
-            }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ online của bạn");
           }
 
           data.resumeId = onlineResume.id
           
           const newSkill = this._context.SkillRepo.create(data)
-          await this._context.SkillRepo.save(newSkill)
+          const savedSkill = await this._context.SkillRepo.save(newSkill)
 
-           return {
-              status: StatusCodes.CREATED,
-              message:"Thêm kĩ năng thành công",
-              success: true,
-              data: newSkill         
-            }
+          return savedSkill as ISkillDto;
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in SkillService - method createSkill() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi thêm kĩ năng, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async updateSkill(data: IUpdateSkillData): Promise<IResponseBase> {
+    async updateSkill(data: IUpdateSkillData): Promise<ISkillDto> {
          try {
           const request = RequestStorage.getStore()?.get(LocalStorage.REQUEST_STORE);
           const userId = request?.user?.id;
 
           if (!userId) {
-            return {
-              status: StatusCodes.UNAUTHORIZED,
-              success: false,
-              message: "Bạn không có quyền truy cập",
-            }
+            throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
           } 
 
           if(!data.name || !data.level || !data.id){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
 
           const skill = await this._context.SkillRepo.findOne({
@@ -140,76 +99,46 @@ export default class SkillService implements ISkillService {
           })
 
           if(!skill){
-             return{
-                status: StatusCodes.NOT_FOUND,
-                success:false,
-                message: "Không tìm thấy kĩ năng"
-             }
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy kĩ năng");
           }
           
           this._context.SkillRepo.merge(skill,data)
-          await this._context.SkillRepo.save(skill)
+          const updatedSkill = await this._context.SkillRepo.save(skill)
 
-        return {
-            status: StatusCodes.CREATED,
-            message:"cập nhật kĩ năng thành công",
-            success: true,
-            data: skill         
-        }
+          return updatedSkill as ISkillDto;
 
         } catch (error) {
             logger.error(error?.message);
             console.error(
                 `Error in SkillService - method updateSkill() at ${new Date().toISOString()} with message: ${error?.message}`
             )
-            return {
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                success: false,
-                message: "Lỗi cập nhật kĩ năng, vui lòng thử lại sau",
-            }
+            throw error;
         }
     }
-    async deleteSkill(skillId: number): Promise<IResponseBase> {
+    async deleteSkill(skillId: number): Promise<boolean> {
          try {
             
           if(!skillId){
-            return {
-                message: "Vui lòng kiểm tra lại dữ liệu của bạn",
-                success: false,
-                status: StatusCodes.BAD_REQUEST,
-            }
+            throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Vui lòng kiểm tra lại dữ liệu của bạn");
           }
 
-         const Skill = await this._context.SkillRepo.findOne({
+         const skill = await this._context.SkillRepo.findOne({
             where:{id: skillId}
           })
 
-          if(!Skill){
-             return{
-                status: StatusCodes.NOT_FOUND,
-                success:false,
-                message: "Không tìm thấy ngôn ngữ"
-             }
+          if(!skill){
+            throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy kĩ năng");
           }
 
-          await this._context.SkillRepo.delete({id: skillId})
+          const result = await this._context.SkillRepo.delete({id: skillId})
 
-          return {
-            status:StatusCodes.OK,
-            message:"Xóa kĩ năng thành công",
-            success: true,
-            data: skillId
-          }        
+          return result.affected > 0;
         } catch (error) {
           logger.error(error?.message);
           console.error(
               `Error in SkillService - method deleteSkill() at ${new Date().toISOString()} with message: ${error?.message}`
           )
-          return {
-              status: StatusCodes.INTERNAL_SERVER_ERROR,
-              success: false,
-              message: "Lỗi xóa kĩ năng, vui lòng thử lại sau",
-          }
+          throw error;
         }
     }
 

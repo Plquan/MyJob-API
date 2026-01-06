@@ -1,14 +1,13 @@
-import { IResponseBase } from "../base/IResponseBase";
-import { ICreateRoleData, IFunction, IUpdateRoleData, IUpdateRolePermission } from "../../dtos/role/role-dto";
+import { ICreateRoleData, IFunction, IUpdateRoleData, IUpdateRolePermission, IRoleDto, IRoleWithFunctions } from "../../dtos/role/role-dto";
 
 export default interface IRoleService {
-  getCurrentUserPermission(roleId: number): Promise<IResponseBase>
-  getAllRoles(): Promise<IResponseBase>
-  getAllFunctions():Promise<IResponseBase>
-  createRole(data:ICreateRoleData):Promise<IResponseBase>
-  updateRole(data: IUpdateRoleData): Promise<IResponseBase>
-  deleteRole(roleId: number): Promise<IResponseBase>
-  updateRolePermissions(data:IUpdateRolePermission): Promise<IResponseBase>
-  getRoleById(roleId: number): Promise<IResponseBase>
-  updateUserGroupRole(userId:number,groupRole: number[]):Promise<IResponseBase>
+  getCurrentUserPermission(roleId: number): Promise<string[]>
+  getAllRoles(): Promise<IRoleDto[]>
+  getAllFunctions():Promise<IFunction[]>
+  createRole(data:ICreateRoleData):Promise<IRoleDto>
+  updateRole(data: IUpdateRoleData): Promise<IRoleDto>
+  deleteRole(roleId: number): Promise<boolean>
+  updateRolePermissions(data:IUpdateRolePermission): Promise<boolean>
+  getRoleById(roleId: number): Promise<IRoleWithFunctions>
+  updateUserGroupRole(userId:number,groupRole: number[]):Promise<boolean>
 }

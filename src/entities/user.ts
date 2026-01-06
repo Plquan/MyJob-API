@@ -3,7 +3,6 @@ import { Entity,
          Column,
          CreateDateColumn,
          UpdateDateColumn, 
-         JoinColumn,
          OneToOne,
          OneToMany
         } from "typeorm";
@@ -11,16 +10,12 @@ import { GroupRole } from "./group-role";
 import { Candidate } from "./candidate";
 import { Company } from "./company";
 import { RefreshToken } from "./refresh-token";
-import { MyJobFile } from "./myjob-file";
 import { EUserRole } from "../common/enums/user/user-role-enum";
 @Entity('users')
 export class User {
     
     @PrimaryGeneratedColumn()
     id!: number;
-    
-    @Column({ type: 'int', nullable: true })
-    avatarId?: number;
 
     @Column({ type: "varchar", length: 255, unique:true})
     email!: string;
@@ -54,10 +49,6 @@ export class User {
     
     @OneToOne(() => Company, (company) => company.user)
     company?: Company;
-
-    @OneToOne(() => MyJobFile, { nullable: true, onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'avatarId' })
-    avatar?: MyJobFile;
 
     @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
     refreshTokens: RefreshToken[];

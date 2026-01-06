@@ -10,6 +10,7 @@ export class JobPostController {
   constructor(JobPostService: IJobPostService) {
     this._jobPostService = JobPostService
   }
+  
   @before(inject(Auth.required))
   @POST()
   async createJobPost(req: Request, res: Response) {
@@ -27,8 +28,8 @@ export class JobPostController {
     const params: IGetCompanyJobPostsReqParams = {
       page: +page,
       limit: +limit,
-      search: search.toString(),
-      jobPostStatus: +jobPostStatus,
+      search: search ? search.toString() : '',
+      jobPostStatus: jobPostStatus ? +jobPostStatus : undefined,
     };
     const response = await this._jobPostService.getCompanyJobPosts(params);
     res.status(200).json(response)
@@ -64,6 +65,14 @@ export class JobPostController {
     const response = await this._jobPostService.toggleSaveJobPost(jobPostId);
     res.status(200).json(response)
   }
+  
+  @before(inject(Auth.required))
+  @GET()
+  @route("/saved-job-posts")
+  async getSavedJobPosts(req: Request, res: Response) {
+    const response = await this._jobPostService.getSavedJobPosts();
+    res.status(200).json(response)
+  }
 
   @before(inject(Auth.optional))
   @route("/:jobPostId")
@@ -74,11 +83,4 @@ export class JobPostController {
     res.status(200).json(response)
   }
 
-  @before(inject(Auth.required))
-  @GET()
-  @route("/saved-job-posts")
-  async getSavedJobPosts(req: Request, res: Response) {
-    const response = await this._jobPostService.getSavedJobPosts();
-    res.status(200).json(response)
-  }
 }

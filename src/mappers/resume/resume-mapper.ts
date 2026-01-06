@@ -29,7 +29,8 @@ export class ResumeMapper {
             selected: entity.selected,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
-            myJobFile: MyjobFileMapper.toMyJobFileDto(entity.myJobFile)
+            myJobFile: MyjobFileMapper.toMyJobFileDto(entity.myJobFile),
+            candidate: entity.candidate ? CandidateMapper.toCandidateDto(entity.candidate) : undefined,
         };
     }
 

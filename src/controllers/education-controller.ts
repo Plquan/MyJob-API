@@ -15,7 +15,7 @@ export class EducationController {
     @route("/get-educations")
     async getAllEducations(req: Request, res: Response){
         const response = await this._educationService.getAllEducations()
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @POST()
@@ -23,7 +23,7 @@ export class EducationController {
     async createEducation(req: Request, res: Response){
         const data = req.body
         const response = await this._educationService.createEducation(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @PUT()
@@ -31,7 +31,7 @@ export class EducationController {
     async updateEducation(req: Request, res: Response){
         const data = req.body
         const response = await this._educationService.updateEducation(data)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 
     @DELETE()
@@ -39,6 +39,6 @@ export class EducationController {
     async deleteEducation(req: Request, res: Response){
         const educationId = parseInt(req.params.educationId);
         const response = await this._educationService.deleteEducation(educationId)
-        res.status(response.status).json(response)
+        res.status(200).json(response)
     }
 }
