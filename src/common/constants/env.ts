@@ -19,10 +19,10 @@ export const ENV = {
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || 604800,
     
-    MAILTRAP_HOST: process.env.MAILTRAP_HOST || 'sandbox.smtp.mailtrap.io',
-    MAILTRAP_PORT: Number(process.env.MAILTRAP_PORT) || 2525,
-    MAILTRAP_USER: process.env.MAILTRAP_USER || 'e05d235086205b',
-    MAILTRAP_PASS: process.env.MAILTRAP_PASS || '935210705aa0a8',
-    EMAIL_FROM: process.env.EMAIL_FROM || 'test@gmail.com',
-    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'MyJob',
+    MAILTRAP_HOST: process.env.MAILTRAP_HOST,
+    MAILTRAP_PORT: Number(process.env.MAILTRAP_PORT),
+    MAILTRAP_USER: process.env.MAILTRAP_USER ,
+    MAILTRAP_PASS: process.env.MAILTRAP_PASS ,
+    EMAIL_FROM: process.env.EMAIL_FROM,
+    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
 }
