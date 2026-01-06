@@ -35,3 +35,8 @@ export interface ISendEmailToActivityRequest {
     subject: string;
     content: string;
 }
+
+export interface updateJobPostActivityStatusRequest {
+    jobPostActivityId: number
+    status: EJobPostActivityStatus
+}

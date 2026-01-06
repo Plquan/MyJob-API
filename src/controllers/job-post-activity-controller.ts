@@ -1,6 +1,6 @@
 import { Auth } from "@/common/middlewares"
 import IJobPostActivityService from "@/interfaces/job-post-activity/job-post-activity-interface"
-import { before, DELETE, GET, inject, POST, route } from "awilix-express"
+import { before, DELETE, GET, inject, POST, PUT, route } from "awilix-express"
 import { Request, Response } from "express";
 
 @before(inject(Auth.required))
@@ -39,6 +39,13 @@ export class JobPostController {
     async getJobPostActivityId(req: Request, res: Response) {
         const jobPostActivityId = parseInt(req.params.jobPostActivityId)
         const response = await this._jobPostActivityService.getJobActivityById(jobPostActivityId)
+        return res.status(200).json(response);
+    }
+
+    @PUT()
+    async updateJobPostActivityStatus(req: Request, res: Response) {
+        const data = req.body
+        const response = await this._jobPostActivityService.updateJobPostActivityStatus(data)
         return res.status(200).json(response);
     }
 

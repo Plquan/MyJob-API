@@ -68,7 +68,20 @@ export default class JobPostService implements IJobPostService {
     }
     async getJobPosts(params: IGetJobPostsReqParams): Promise<IPaginationResponse<IJobPostDto>> {
         try {
-            const { page, limit, jobName } = params;
+            const {
+                page,
+                limit,
+                jobName,
+                careerId,
+                provinceId,
+                position,
+                jobType,
+                experience,
+                academicLevel,
+                salaryMin,
+                salaryMax,
+                postedWithinDays
+            } = params;
             const candidateId = getCurrentUser()?.candidateId;
 
             const query = this._context.JobPostRepo.createQueryBuilder("job")
@@ -92,6 +105,44 @@ export default class JobPostService implements IJobPostService {
 
             if (jobName && jobName.trim() !== "") {
                 query.andWhere("job.jobName ILIKE :search", { search: `%${jobName}%` });
+            }
+
+            if (careerId) {
+                query.andWhere("job.careerId = :careerId", { careerId });
+            }
+
+            if (provinceId) {
+                query.andWhere("job.provinceId = :provinceId", { provinceId });
+            }
+
+            if (position) {
+                query.andWhere("job.position = :position", { position });
+            }
+
+            if (jobType) {
+                query.andWhere("job.jobType = :jobType", { jobType });
+            }
+
+            if (experience) {
+                query.andWhere("job.experience = :experience", { experience });
+            }
+
+            if (academicLevel) {
+                query.andWhere("job.academicLevel = :academicLevel", { academicLevel });
+            }
+
+            if (salaryMin !== undefined) {
+                query.andWhere("job.salaryMax >= :salaryMin", { salaryMin });
+            }
+
+            if (salaryMax !== undefined) {
+                query.andWhere("job.salaryMin <= :salaryMax", { salaryMax });
+            }
+
+            if (postedWithinDays) {
+                const dateThreshold = new Date();
+                dateThreshold.setDate(dateThreshold.getDate() - postedWithinDays);
+                query.andWhere("job.createdAt >= :dateThreshold", { dateThreshold });
             }
 
             const totalItems = await query.getCount();
@@ -217,7 +268,7 @@ export default class JobPostService implements IJobPostService {
             if (!user) {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate Id not found");
             }
-            
+
             const candidateId = user.candidateId;
             if (!candidateId || isNaN(candidateId)) {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate Id not found");

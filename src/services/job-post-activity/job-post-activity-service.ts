@@ -5,7 +5,7 @@ import { HttpException } from "@/errors/http-exception";
 import IJobPostActivityService from "@/interfaces/job-post-activity/job-post-activity-interface";
 import DatabaseService from "../common/database-service";
 import { JobPostActivityMapper } from "@/mappers/job-post-activity/job-post-activity-mapper";
-import { IApplyJobRequest, IGetJobPostActivityRequest, IJobPostActivityDto, ISendEmailToActivityRequest } from "@/interfaces/job-post-activity/job-post-activity-dto";
+import { IApplyJobRequest, IGetJobPostActivityRequest, IJobPostActivityDto, ISendEmailToActivityRequest, updateJobPostActivityStatusRequest } from "@/interfaces/job-post-activity/job-post-activity-dto";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { EmailService } from "../common/email-service";
 
@@ -15,11 +15,29 @@ export default class JobPostActivityService implements IJobPostActivityService {
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
     }
+    async updateJobPostActivityStatus(request: updateJobPostActivityStatusRequest): Promise<boolean> {
+        try {
+            if (!request.jobPostActivityId || !request.status) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid input");
+            }
+            const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
+                where: { id: request.jobPostActivityId },
+            })
+            if (!jobPostActivity) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "jobPostActivity not found");
+            }
+            jobPostActivity.status = request.status
+            await this._context.JobPostActivityRepo.save(jobPostActivity)
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
     async getJobActivityById(jobPostActivityId: number): Promise<IJobPostActivityDto> {
         try {
             const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
                 where: { id: jobPostActivityId },
-                relations: ["resume","resume.myJobFile", "resume.candidate", "candidate.avatar"]
+                relations: ["resume", "resume.myJobFile", "resume.candidate", "candidate.avatar"]
             })
             return JobPostActivityMapper.toJobPostActivityDto(jobPostActivity)
         } catch (error) {
@@ -130,11 +148,6 @@ export default class JobPostActivityService implements IJobPostActivityService {
             // Kiểm tra quyền: chỉ employer của công ty đó mới được gửi mail
             if (jobPostActivity.jobPost.companyId !== user.companyId) {
                 throw new HttpException(StatusCodes.FORBIDDEN, EGlobalError.UnauthorizedAccess, "Forbidden");
-            }
-
-            // Kiểm tra đã gửi mail chưa
-            if (jobPostActivity.isSentMail) {
-                throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Email already sent");
             }
 
             // Gửi email
