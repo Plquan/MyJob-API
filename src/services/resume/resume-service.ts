@@ -318,6 +318,8 @@ export default class ResumeService implements IResumeService {
 
       const query = this._context.ResumeRepo.createQueryBuilder("resume")
         .leftJoinAndSelect("resume.candidate", "candidate")
+        .leftJoinAndSelect("candidate.avatar", "avatar")
+        .leftJoinAndSelect("resume.myJobFile", "myJobFile")
         .where("resume.type = :type", { type: EResumeType.ONLINE })
         .andWhere("candidate.allowSearch = :allowSearch", { allowSearch: true });
 

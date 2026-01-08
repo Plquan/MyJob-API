@@ -26,4 +26,9 @@ export const ENV = {
     MAIL_ENABLE_SSL: process.env.MAIL_ENABLE_SSL === 'true' || true,
     EMAIL_FROM: process.env.EMAIL_FROM || 'senselib2025@gmail.com',
     EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'MyJob',
+
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+    STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || '',
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+    STRIPE_API_VERSION:'2025-12-15.clover'
 }

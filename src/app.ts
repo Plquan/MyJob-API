@@ -36,6 +36,8 @@ class Application {
     
     this.server.app.use(cors(corsConfig))
     this.server.app.use(cookieParser())
+    // Stripe webhook needs raw body for signature verification
+    this.server.app.use('/api/payment/webhook', bodyParser.raw({ type: 'application/json' }))
     this.server.app.use(bodyParser.json())
     this.server.app.use(bodyParser.urlencoded({ extended: true }))
     this.server.app.use(scopePerRequest(container))
