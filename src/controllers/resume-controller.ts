@@ -88,9 +88,7 @@ export class ResumeController {
             typeOfWorkPlace,
             experience,
             academicLevel,
-            jobType,
-            gender,
-            maritalStatus
+            jobType
         } = req.query;
 
         const params: ISearchResumesReqParams = {
@@ -104,8 +102,6 @@ export class ResumeController {
             experience: experience ? +experience : undefined,
             academicLevel: academicLevel ? +academicLevel : undefined,
             jobType: jobType ? +jobType : undefined,
-            gender: gender ? +gender : undefined,
-            maritalStatus: maritalStatus ? +maritalStatus : undefined,
         };
 
         const response = await this._resumeService.searchResumes(params);
@@ -125,6 +121,14 @@ export class ResumeController {
     async getResumeById(req: Request, res: Response) {
         const resumeId = parseInt(req.params.resumeId)
         const response = await this._resumeService.getResumeById(resumeId)
+        return res.status(200).json(response)
+    }
+    
+    @GET()
+    @route("/get-resume-detail/:resumeId")
+    async getResumeDetail(req: Request, res: Response) {
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.getResumeDetail(resumeId)
         return res.status(200).json(response)
     }
 

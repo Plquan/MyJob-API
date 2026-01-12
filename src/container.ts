@@ -23,8 +23,8 @@ import ChatService from "./services/chat/chat-service"
 import PaymentService from "./services/payment/payment-service"
 
 const container = createContainer({
-    injectionMode: InjectionMode.CLASSIC,
-  })
+  injectionMode: InjectionMode.CLASSIC,
+})
 
 container.register({
   DatabaseService: asClass(DatabaseService).singleton(),
@@ -33,9 +33,9 @@ container.register({
   AuthService: asClass(AuthService).scoped(),
   RoleService: asClass(RoleService).scoped(),
   CompanyService: asClass(CompanyService).scoped(),
-  ProvinceService:asClass(ProvinceService).scoped(),
-  UserService:asClass(UserService).scoped(),
-  AccountService:asClass(AccountService).scoped(),
+  ProvinceService: asClass(ProvinceService).scoped(),
+  UserService: asClass(UserService).scoped(),
+  AccountService: asClass(AccountService).scoped(),
   CandidateService: asClass(CandidateService).scoped(),
   CareerService: asClass(CareerService).scoped(),
   ResumeService: asClass(ResumeService).scoped(),
@@ -50,8 +50,8 @@ container.register({
   ChatService: asClass(ChatService).scoped(),
   PaymentService: asClass(PaymentService).scoped(),
 })
-  container.resolve("JwtService")
-  container.resolve("DatabaseService")
-  container.resolve("BackgroundService").start()
+container.resolve("JwtService")
+container.resolve("DatabaseService")
+container.resolve("BackgroundService").start()
 
-  export default container
+export default container

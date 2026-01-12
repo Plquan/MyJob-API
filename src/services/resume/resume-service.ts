@@ -25,9 +25,21 @@ import { IPaginationResponse } from "@/interfaces/base/IPaginationBase"
 
 export default class ResumeService implements IResumeService {
   private readonly _context: DatabaseService
+  
   constructor(DatabaseService: DatabaseService) {
     this._context = DatabaseService
+  }
 
+  async getResumeDetail(resumeId: number): Promise<IResumeDto> {
+    try {
+      const resume = await this._context.ResumeRepo.findOne({
+        where: { id: resumeId },
+        relations: ['myJobFile', "candidate", "candidate.avatar","candidate.user"]
+      })
+      return resume
+    } catch (error) {
+      throw error
+    }
   }
   async getResumeForDownload(resumeId: number): Promise<IOnlineResumeDto> {
     try {
@@ -314,7 +326,7 @@ export default class ResumeService implements IResumeService {
 
   async searchResumes(params: ISearchResumesReqParams): Promise<IPaginationResponse<IResumeDto>> {
     try {
-      const { page, limit, title, provinceId, careerId, position, typeOfWorkPlace, experience, academicLevel, jobType, gender, maritalStatus } = params;
+      const { page, limit, title, provinceId, careerId, position, typeOfWorkPlace, experience, academicLevel, jobType } = params;
 
       const query = this._context.ResumeRepo.createQueryBuilder("resume")
         .leftJoinAndSelect("resume.candidate", "candidate")
@@ -353,14 +365,6 @@ export default class ResumeService implements IResumeService {
 
       if (jobType) {
         query.andWhere("resume.jobType = :jobType", { jobType });
-      }
-
-      if (gender) {
-        query.andWhere("candidate.gender = :gender", { gender });
-      }
-
-      if (maritalStatus) {
-        query.andWhere("candidate.maritalStatus = :maritalStatus", { maritalStatus });
       }
 
       const totalItems = await query.getCount();

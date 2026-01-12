@@ -85,6 +85,4 @@ export interface ISearchResumesReqParams {
   experience?: EExperience;
   academicLevel?: EAcademicLevel;
   jobType?: EJobType;
-  gender?: EGender;
-  maritalStatus?: EMartialStatus;
 }

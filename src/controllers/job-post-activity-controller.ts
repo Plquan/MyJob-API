@@ -58,11 +58,13 @@ export class JobPostController {
     }
 
     @POST()
-    @route("/:jobPostActivityId/send-email")
+    @route("/send-email")
     async sendEmailToCandidate(req: Request, res: Response) {
-        const jobPostActivityId = parseInt(req.params.jobPostActivityId);
-        const data = req.body;
-        const response = await this._jobPostActivityService.sendEmailToCandidate(jobPostActivityId, data);
+        const { jobPostActivityId, ...emailData } = req.body;
+        const response = await this._jobPostActivityService.sendEmailToCandidate(
+            jobPostActivityId ? parseInt(jobPostActivityId) : null,
+            emailData
+        );
         return res.status(200).json(response);
     }
 }

@@ -128,42 +128,54 @@ export default class JobPostActivityService implements IJobPostActivityService {
         }
     }
 
-    async sendEmailToCandidate(jobPostActivityId: number, request: ISendEmailToActivityRequest): Promise<boolean> {
+    async sendEmailToCandidate(jobPostActivityId: number | null, request: ISendEmailToActivityRequest): Promise<boolean> {
         try {
             const user = getCurrentUser();
             if (!user || !user.companyId) {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "user not found");
             }
 
-            // Lấy thông tin job post activity
-            const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
-                where: { id: jobPostActivityId },
-                relations: ["jobPost", "jobPost.company", "candidate"]
-            });
+            // Case 1: Có jobPostActivityId -> từ manage-resume, cần kiểm tra quyền và cập nhật isSentMail
+            if (jobPostActivityId) {
+                const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
+                    where: { id: jobPostActivityId },
+                    relations: ["jobPost", "jobPost.company", "candidate"]
+                });
 
-            if (!jobPostActivity) {
-                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Job post activity not found");
-            }
-
-            // Kiểm tra quyền: chỉ employer của công ty đó mới được gửi mail
-            if (jobPostActivity.jobPost.companyId !== user.companyId) {
-                throw new HttpException(StatusCodes.FORBIDDEN, EGlobalError.UnauthorizedAccess, "Forbidden");
-            }
-
-            // Gửi email
-            await EmailService.sendHtmlEmail(
-                request.to,
-                request.subject,
-                request.content,
-                {
-                    useTemplate: true,
+                if (!jobPostActivity) {
+                    throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Job post activity not found");
                 }
-            );
 
-            // Cập nhật trạng thái đã gửi mail
-            await this._context.JobPostActivityRepo.update(jobPostActivityId, {
-                isSentMail: true
-            });
+                // Kiểm tra quyền: chỉ employer của công ty đó mới được gửi mail
+                if (jobPostActivity.jobPost.companyId !== user.companyId) {
+                    throw new HttpException(StatusCodes.FORBIDDEN, EGlobalError.UnauthorizedAccess, "Forbidden");
+                }
+
+                // Gửi email
+                await EmailService.sendHtmlEmail(
+                    request.to,
+                    request.subject,
+                    request.content,
+                    {
+                        useTemplate: true,
+                    }
+                );
+
+                // Cập nhật trạng thái đã gửi mail
+                await this._context.JobPostActivityRepo.update(jobPostActivityId, {
+                    isSentMail: true
+                });
+            } else {
+                // Case 2: Không có jobPostActivityId -> từ find-candidate, chỉ gửi email
+                await EmailService.sendHtmlEmail(
+                    request.to,
+                    request.subject,
+                    request.content,
+                    {
+                        useTemplate: true,
+                    }
+                );
+            }
 
             return true;
         } catch (error) {

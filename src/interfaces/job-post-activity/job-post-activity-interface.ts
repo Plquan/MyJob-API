@@ -6,6 +6,6 @@ export default interface IJobPostActivityService {
     getJobPostActivities(request: IGetJobPostActivityRequest): Promise<IPaginationResponse<IJobPostActivityDto>>
     deleteJobPostActivity(jobPostActivityId: number): Promise<boolean>
     getJobActivityById(jobPostActivityId: number): Promise<IJobPostActivityDto>
-    sendEmailToCandidate(jobPostActivityId: number, request: ISendEmailToActivityRequest): Promise<boolean>
+    sendEmailToCandidate(jobPostActivityId: number | null, request: ISendEmailToActivityRequest): Promise<boolean>
     updateJobPostActivityStatus(request: updateJobPostActivityStatusRequest): Promise<boolean>
 }

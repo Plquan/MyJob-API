@@ -15,4 +15,5 @@ export default interface IResumeService {
    setSelectedResume(resumeId: number): Promise<boolean>
    searchResumes(params: ISearchResumesReqParams): Promise<IPaginationResponse<IResumeDto>>
    getResumeForDownload(resumeId: number): Promise<IOnlineResumeDto>
+   getResumeDetail(resumeId: number): Promise<IResumeDto>
 }
