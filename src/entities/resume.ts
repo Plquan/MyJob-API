@@ -20,6 +20,7 @@ import { JobPostActivity } from './job-post-activity';
 import { MyJobFile } from './myjob-file';
 import { Skill } from './skill';
 import { EAcademicLevel, EExperience, EJobType, EPosition, EResumeType, ETypeOfWorkplace } from '../common/enums/resume/resume-enum';
+import { SavedResume } from './saved-resume';
 
 @Entity('resumes')
 export class Resume {
@@ -30,10 +31,10 @@ export class Resume {
   candidateId!: number;
 
   @Column({ nullable: true })
-  careerId?:number
+  careerId?: number
 
   @Column({ nullable: true })
-  provinceId?:number
+  provinceId?: number
 
   @Column({ nullable: true })
   myJobFileId?: number;
@@ -44,10 +45,10 @@ export class Resume {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 0,nullable: true })
+  @Column({ type: 'decimal', precision: 15, scale: 0, nullable: true })
   salaryMin?: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 0,nullable: true })
+  @Column({ type: 'decimal', precision: 15, scale: 0, nullable: true })
   salaryMax?: number;
 
   @Column({ type: 'enum', enum: EPosition, nullable: true })
@@ -62,10 +63,10 @@ export class Resume {
   @Column({ type: 'enum', enum: EAcademicLevel, nullable: true })
   academicLevel?: EAcademicLevel;
 
-  @Column({ type: 'enum', enum: EJobType,nullable: true })
+  @Column({ type: 'enum', enum: EJobType, nullable: true })
   jobType?: EJobType;
 
-  @Column({ type: 'enum', enum: EResumeType})
+  @Column({ type: 'enum', enum: EResumeType })
   type!: EResumeType;
 
   @Column({ type: 'boolean', default: false })
@@ -81,11 +82,11 @@ export class Resume {
   @JoinColumn({ name: 'careerId' })
   career?: Career;
 
-  @ManyToOne(() => Province, { nullable: true , onDelete: 'SET NULL' })
+  @ManyToOne(() => Province, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'provinceId' })
   province?: Province;
 
-  @ManyToOne(() => Candidate, candidate => candidate.resumes,{ onDelete: 'CASCADE' })
+  @ManyToOne(() => Candidate, candidate => candidate.resumes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'candidateId' })
   candidate!: Candidate;
 
@@ -110,4 +111,7 @@ export class Resume {
 
   @OneToMany(() => JobPostActivity, activity => activity.resume)
   jobActivities!: JobPostActivity[];
+
+  @OneToMany(() => SavedResume, savedResume => savedResume.resume)
+  savedResumes!: SavedResume[];
 }

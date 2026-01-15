@@ -10,12 +10,50 @@ import { Brackets } from "typeorm";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { FileType } from "@/common/enums/file-type/file-types";
+import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
 
     constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
+    }
+    async getAllJobPost(params: IGetCompanyJobPostsReqParams): Promise<IPaginationResponse<ICompanyJobPostDto>> {
+        try {
+            const { page, limit, search, jobPostStatus } = params;
+
+            const query = this._context.JobPostRepo.createQueryBuilder("job")
+                .leftJoin("job.jobPostActivities", "activity")
+                .loadRelationCountAndMap("job.activityCount", "job.jobPostActivities");
+
+            if (jobPostStatus) {
+                query.andWhere("job.status = :status", { status: jobPostStatus });
+            }
+
+            if (search && search.trim() !== "") {
+                query.andWhere(
+                    new Brackets((qb) => {
+                        qb.where("job.jobName ILIKE :search", { search: `%${search}%` })
+
+                    })
+                );
+            }
+
+            const totalItems = await query.getCount();
+            const jobPosts = await query
+                .orderBy("job.createdAt", "DESC")
+                .skip((page - 1) * limit)
+                .take(limit)
+                .getMany();
+
+            return {
+                items: JobPostMapper.toListCompanyJobPostDto(jobPosts),
+                totalItems,
+                totalPages: Math.ceil(totalItems / limit),
+            };
+        } catch (error) {
+            throw error
+        }
     }
 
     async getJobPostById(jobPostId: number): Promise<IJobPostDto> {
@@ -101,7 +139,7 @@ export default class JobPostService implements IJobPostService {
                 .leftJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", {
                     candidateId: candidateId ?? null
                 })
-            // .where("job.status = :status", { status:  EJobPostStatus.APPROVED });
+                .where("job.status = :status", { status: EJobPostStatus.APPROVED });
 
             if (jobName && jobName.trim() !== "") {
                 query.andWhere("job.jobName ILIKE :search", { search: `%${jobName}%` });

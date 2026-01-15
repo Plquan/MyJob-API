@@ -117,18 +117,42 @@ export class ResumeController {
     }
 
     @GET()
-    @route("/:resumeId")
-    async getResumeById(req: Request, res: Response) {
-        const resumeId = parseInt(req.params.resumeId)
-        const response = await this._resumeService.getResumeById(resumeId)
+    @route("/saved-resumes")
+    async getSavedResumes(req: Request, res: Response) {
+        const { page = 1, limit = 10, title, candidateName } = req.query;
+
+        const params: ISearchResumesReqParams = {
+            page: +page,
+            limit: +limit,
+            title: title?.toString(),
+            candidateName: candidateName?.toString(),
+        };
+
+        const response = await this._resumeService.getSavedResumes(params)
         return res.status(200).json(response)
     }
-    
+
     @GET()
     @route("/get-resume-detail/:resumeId")
     async getResumeDetail(req: Request, res: Response) {
         const resumeId = parseInt(req.params.resumeId)
         const response = await this._resumeService.getResumeDetail(resumeId)
+        return res.status(200).json(response)
+    }
+
+    @POST()
+    @route("/toggle-save-resume/:resumeId")
+    async toggleSaveResume(req: Request, res: Response) {
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.toggleSaveResume(resumeId)
+        return res.status(200).json(response)
+    }
+
+    @GET()
+    @route("/:resumeId")
+    async getResumeById(req: Request, res: Response) {
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.getResumeById(resumeId)
         return res.status(200).json(response)
     }
 

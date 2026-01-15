@@ -34,11 +34,11 @@ export interface IResumeDto {
 export interface IOnlineResumeDto {
   resume: IResumeDto
   candidate?: ICandidateDto;
-  educations?: IEducationDto[]; 
-  certificates?: ICertificateDto[]; 
-  experiences?: IExperienceDto[]; 
+  educations?: IEducationDto[];
+  certificates?: ICertificateDto[];
+  experiences?: IExperienceDto[];
   languages?: ILanguageDto[];
-  skills?: ISkillDto[]; 
+  skills?: ISkillDto[];
 }
 
 
@@ -78,6 +78,7 @@ export interface ISearchResumesReqParams {
   page: number;
   limit: number;
   title?: string;
+  candidateName?: string;
   provinceId?: number;
   careerId?: number;
   position?: EPosition;

@@ -25,7 +25,7 @@ import { IPaginationResponse } from "@/interfaces/base/IPaginationBase"
 
 export default class ResumeService implements IResumeService {
   private readonly _context: DatabaseService
-  
+
   constructor(DatabaseService: DatabaseService) {
     this._context = DatabaseService
   }
@@ -34,7 +34,7 @@ export default class ResumeService implements IResumeService {
     try {
       const resume = await this._context.ResumeRepo.findOne({
         where: { id: resumeId },
-        relations: ['myJobFile', "candidate", "candidate.avatar","candidate.user"]
+        relations: ['myJobFile', "candidate", "candidate.avatar", "candidate.user"]
       })
       return resume
     } catch (error) {
@@ -336,7 +336,10 @@ export default class ResumeService implements IResumeService {
         .andWhere("candidate.allowSearch = :allowSearch", { allowSearch: true });
 
       if (title && title.trim() !== "") {
-        query.andWhere("resume.title ILIKE :title", { title: `%${title}%` });
+        query.andWhere(
+          "(resume.title ILIKE :title OR candidate.fullName ILIKE :title)",
+          { title: `%${title}%` }
+        );
       }
 
       if (provinceId) {
@@ -380,6 +383,80 @@ export default class ResumeService implements IResumeService {
         totalPages: Math.ceil(totalItems / limit),
       };
 
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async toggleSaveResume(resumeId: number): Promise<boolean> {
+    try {
+      const companyId = getCurrentUser()?.companyId;
+      if (!companyId) {
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Company Id not found");
+      }
+
+      const savedResume = await this._context.SavedResumeRepo.findOne({
+        where: { resumeId, companyId }
+      });
+
+      if (!savedResume) {
+        // Create new saved resume
+        const newSavedResume = this._context.SavedResumeRepo.create({
+          companyId,
+          resumeId
+        });
+        await this._context.SavedResumeRepo.save(newSavedResume);
+        return true; // Saved
+      } else {
+        // Remove saved resume
+        await this._context.SavedResumeRepo.delete(savedResume.id);
+        return false; // Unsaved
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getSavedResumes(params: ISearchResumesReqParams): Promise<IPaginationResponse<IResumeDto>> {
+    try {
+      const companyId = getCurrentUser()?.companyId;
+      if (!companyId) {
+        throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Company Id not found");
+      }
+
+      const { page = 1, limit = 10, title, candidateName } = params;
+
+      // Ensure page and limit are valid numbers
+      const validPage = Math.max(1, Number(page) || 1);
+      const validLimit = Math.max(1, Math.min(100, Number(limit) || 10));
+
+      const query = this._context.ResumeRepo.createQueryBuilder("resume")
+        .innerJoinAndSelect("resume.savedResumes", "savedResume", "savedResume.companyId = :companyId", { companyId })
+        .leftJoinAndSelect("resume.candidate", "candidate")
+        .leftJoinAndSelect("candidate.avatar", "avatar")
+        .leftJoinAndSelect("resume.myJobFile", "myJobFile")
+        .orderBy("savedResume.createdAt", "DESC");
+
+      // Add search filters
+      if (title) {
+        query.andWhere("resume.title ILIKE :title", { title: `%${title}%` });
+      }
+
+      if (candidateName) {
+        query.andWhere("candidate.fullName ILIKE :candidateName", { candidateName: `%${candidateName}%` });
+      }
+
+      const totalItems = await query.getCount();
+      const resumes = await query
+        .skip((validPage - 1) * validLimit)
+        .take(validLimit)
+        .getMany();
+
+      return {
+        items: ResumeMapper.toListResumeDto(resumes),
+        totalItems,
+        totalPages: Math.ceil(totalItems / validLimit),
+      };
     } catch (error) {
       throw error;
     }

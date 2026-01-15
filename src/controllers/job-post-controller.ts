@@ -36,6 +36,23 @@ export class JobPostController {
   }
 
   @before(inject(Auth.required))
+  @GET()
+  @route("/get-all-job-posts")
+  async getAllJobPosts(req: Request, res: Response) {
+    const { page = 1, limit = 10, search, jobPostStatus } = req.query;
+
+    const params: IGetCompanyJobPostsReqParams = {
+      page: +page,
+      limit: +limit,
+      search: search ? search.toString() : '',
+      jobPostStatus: jobPostStatus ? +jobPostStatus : undefined,
+    };
+    const response = await this._jobPostService.getAllJobPost(params);
+    res.status(200).json(response)
+  }
+
+
+  @before(inject(Auth.required))
   @PUT()
   async updateJobPost(req: Request, res: Response) {
     const data = req.body
