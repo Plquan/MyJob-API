@@ -77,7 +77,7 @@ export default class JobPostMapper {
       academicLevel: entity.academicLevel,
       genderRequirement: entity.genderRequirement,
       jobType: entity.jobType,
-      isHot: entity.isHot,
+      isHot: entity.hotExpiredAt ? new Date() < new Date(entity.hotExpiredAt) : false,
       contactPersonName: entity.contactPersonName,
       contactPersonEmail: entity.contactPersonEmail,
       contactPersonPhone: entity.contactPersonPhone,
@@ -86,6 +86,10 @@ export default class JobPostMapper {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       status: entity.status,
+      company: entity.company ? {
+        id: entity.company.id,
+        companyName: entity.company.companyName,
+      } : undefined,
     };
   }
 
@@ -146,7 +150,7 @@ export default class JobPostMapper {
       academicLevel: entity.academicLevel,
       genderRequirement: entity.genderRequirement,
       jobType: entity.jobType,
-      isHot: entity.isHot,
+      isHot: entity.hotExpiredAt ? new Date() < new Date(entity.hotExpiredAt) : false,
       contactPersonName: entity.contactPersonName,
       contactPersonEmail: entity.contactPersonEmail,
       contactPersonPhone: entity.contactPersonPhone,

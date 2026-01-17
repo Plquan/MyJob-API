@@ -15,10 +15,19 @@ export class PackageUsage {
   companyId!: number;
 
   @Column({ type: "int" })
-  candidateSearchUsed: number;
+  candidateSearchRemaining: number;
 
   @Column({ type: "int" })
-  jobPostUsed: number;
+  jobPostRemaining: number;
+  
+  @Column({ type: 'int', default: 0 })
+  jobPostDurationInDays: number;
+
+  @Column({ type: 'int', default: 0 })
+  jobHotDurationInDays: number;
+
+  @Column({ type: 'int', default: 0 })
+  highlightCompanyDurationInDays: number;
 
   @Column({ type: "timestamp", nullable: true })
   expiryDate?: Date;
@@ -27,7 +36,7 @@ export class PackageUsage {
   @JoinColumn({ name: "packageId" })
   package!: Package;
 
-  @ManyToOne(() => Company, (company) => company.packageUsages, {onDelete: "CASCADE"})
+  @ManyToOne(() => Company, (company) => company.packageUsages, { onDelete: "CASCADE" })
   @JoinColumn({ name: "companyId" })
   company!: Company;
 

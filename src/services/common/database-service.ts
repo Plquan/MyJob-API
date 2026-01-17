@@ -30,6 +30,7 @@ import { PackageUsage } from "@/entities/package-usage";
 import { CompanyImage } from "@/entities/company-image";
 import { Conversation } from "@/entities/conversation";
 import { Message } from "@/entities/message";
+import { Notification } from "@/entities/notification";
 
 class DatabaseService {
   private _dataSource: DataSource;
@@ -61,6 +62,7 @@ class DatabaseService {
   public CompanyImageRepo: Repository<CompanyImage>
   public ConversationRepo: Repository<Conversation>
   public MessageRepo: Repository<Message>
+  public NotificationRepo: Repository<Notification>
   connection: any;
 
   constructor() {
@@ -93,6 +95,7 @@ class DatabaseService {
     this.CompanyImageRepo = this._dataSource.getRepository(CompanyImage);
     this.ConversationRepo = this._dataSource.getRepository(Conversation);
     this.MessageRepo = this._dataSource.getRepository(Message);
+    this.NotificationRepo = this._dataSource.getRepository(Notification);
 
     this._dataSource
       .initialize()

@@ -342,7 +342,49 @@ export default class ResumeService implements IResumeService {
   }
 
   async searchResumes(params: ISearchResumesReqParams): Promise<IPaginationResponse<IResumeDto>> {
+    const dataSource = this._context.getDataSource();
     try {
+      const companyId = getCurrentUser()?.companyId;
+      
+      // Check if company has an active package usage (only for employers)
+      if (companyId) {
+        const packageUsage = await this._context.PackageUsageRepo.findOne({
+          where: { companyId }
+        });
+
+        if (!packageUsage) {
+          throw new HttpException(
+            StatusCodes.BAD_REQUEST,
+            EGlobalError.InvalidInput,
+            "Bạn cần mua gói để tìm kiếm ứng viên"
+          );
+        }
+
+        // Check if package is not expired
+        if (packageUsage.expiryDate && new Date() > packageUsage.expiryDate) {
+          throw new HttpException(
+            StatusCodes.BAD_REQUEST,
+            EGlobalError.InvalidInput,
+            "Gói của bạn đã hết hạn. Vui lòng mua gói mới"
+          );
+        }
+
+        // Check if candidateSearchRemaining > 0
+        if (packageUsage.candidateSearchRemaining <= 0) {
+          throw new HttpException(
+            StatusCodes.BAD_REQUEST,
+            EGlobalError.InvalidInput,
+            "Bạn đã hết lượt tìm kiếm ứng viên. Vui lòng mua gói mới"
+          );
+        }
+
+        // Decrement candidateSearchRemaining
+        await this._context.PackageUsageRepo.update(
+          { id: packageUsage.id },
+          { candidateSearchRemaining: packageUsage.candidateSearchRemaining - 1 }
+        );
+      }
+
       const { page, limit, title, provinceId, careerId, position, typeOfWorkPlace, experience, academicLevel, jobType } = params;
 
       const query = this._context.ResumeRepo.createQueryBuilder("resume")

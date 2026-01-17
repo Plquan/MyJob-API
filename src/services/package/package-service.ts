@@ -111,6 +111,19 @@ export default class PackageService implements IPackageService {
                     packageUsageData.id = existingPackageUsage.id;
                 }
                 await manager.getRepository(PackageUsage).save(packageUsageData);
+
+                // Update Company hotExpiredAt
+                const company = await this._context.CompanyRepo.findOne({
+                    where: { id: companyId }
+                });
+
+                if (company) {
+                    const hotExpiredAt = new Date();
+                    hotExpiredAt.setDate(hotExpiredAt.getDate() + existingPackage.highlightCompanyDurationInDays);
+                    company.hotExpiredAt = hotExpiredAt;
+                    await manager.getRepository('companies').save(company);
+                }
+
                 return true;
             });
         } catch (error) {

@@ -11,6 +11,8 @@ import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { FileType } from "@/common/enums/file-type/file-types";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
+import { NotificationType } from "@/entities/notification";
+import SocketService from "../common/socket-service";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
@@ -23,6 +25,7 @@ export default class JobPostService implements IJobPostService {
             const { page, limit, search, jobPostStatus } = params;
 
             const query = this._context.JobPostRepo.createQueryBuilder("job")
+                .leftJoinAndSelect("job.company", "company")
                 .leftJoin("job.jobPostActivities", "activity")
                 .loadRelationCountAndMap("job.activityCount", "job.jobPostActivities");
 
@@ -131,7 +134,7 @@ export default class JobPostService implements IJobPostService {
                     "job.salaryMax",
                     "job.provinceId",
                     "job.createdAt",
-                    "job.isHot",
+                    "job.hotExpiredAt",
                     "job.deadline"
                 ])
                 .leftJoinAndSelect("job.company", "company")
@@ -276,15 +279,67 @@ export default class JobPostService implements IJobPostService {
         }
     }
     async createJobPost(data: ICreateJobPostReq): Promise<JobPost> {
+        const dataSource = this._context.getDataSource();
         try {
             this.validateJobPost(data)
             const companyId = getCurrentUser().companyId
             if (!companyId) {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Company Id not found");
             }
-            const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId))
-            await this._context.JobPostRepo.save(newJobPost)
-            return newJobPost
+
+            // Check if company has an active package usage
+            const packageUsage = await this._context.PackageUsageRepo.findOne({
+                where: { companyId }
+            });
+
+            if (!packageUsage) {
+                throw new HttpException(
+                    StatusCodes.BAD_REQUEST,
+                    EGlobalError.InvalidInput,
+                    "Bạn cần mua gói để đăng tin tuyển dụng"
+                );
+            }
+
+            // Check if package is not expired
+            if (packageUsage.expiryDate && new Date() > packageUsage.expiryDate) {
+                throw new HttpException(
+                    StatusCodes.BAD_REQUEST,
+                    EGlobalError.InvalidInput,
+                    "Gói của bạn đã hết hạn. Vui lòng mua gói mới"
+                );
+            }
+
+            // Check if jobPostRemaining > 0
+            if (packageUsage.jobPostRemaining <= 0) {
+                throw new HttpException(
+                    StatusCodes.BAD_REQUEST,
+                    EGlobalError.InvalidInput,
+                    "Bạn đã hết lượt đăng tin. Vui lòng mua gói mới"
+                );
+            }
+
+            return await dataSource.transaction(async (manager) => {
+                // Create job post with dates
+                const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId));
+
+                // Set expiredAt based on jobPostDurationInDays
+                const expiredAt = new Date();
+                expiredAt.setDate(expiredAt.getDate() + packageUsage.jobPostDurationInDays);
+                newJobPost.expiredAt = expiredAt;
+
+                // Set hotExpiredAt based on jobHotDurationInDays
+                const hotExpiredAt = new Date();
+                hotExpiredAt.setDate(hotExpiredAt.getDate() + packageUsage.jobHotDurationInDays);
+                newJobPost.hotExpiredAt = hotExpiredAt;
+
+                await manager.save(newJobPost);
+
+                // Decrement jobPostRemaining
+                packageUsage.jobPostRemaining -= 1;
+                await manager.save(packageUsage);
+
+                return newJobPost;
+            });
         } catch (error) {
             throw error
         }
@@ -305,6 +360,65 @@ export default class JobPostService implements IJobPostService {
             throw error
         }
     }
+
+    async updateJobPostStatus(jobPostId: number, status: number): Promise<JobPost> {
+        try {
+            const jobPost = await this._context.JobPostRepo.findOne({
+                where: { id: jobPostId },
+                relations: ['company', 'company.user']
+            });
+            if (!jobPost) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Job post not found");
+            }
+
+            // Validate status
+            if (!Object.values(EJobPostStatus).includes(status)) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid status");
+            }
+
+            const oldStatus = jobPost.status;
+            jobPost.status = status;
+            await this._context.JobPostRepo.save(jobPost);
+
+            // Create notification for employer when job post is approved or rejected
+            if (oldStatus !== status && jobPost.company?.user) {
+                let notificationType: NotificationType;
+                let title: string;
+                let message: string;
+
+                if (status === EJobPostStatus.APPROVED) {
+                    notificationType = NotificationType.JOB_POST_APPROVED;
+                    title = "Tin tuyển dụng đã được duyệt";
+                    message = `Tin tuyển dụng "${jobPost.jobName}" của bạn đã được phê duyệt và hiển thị công khai.`;
+                } else if (status === EJobPostStatus.REJECTED) {
+                    notificationType = NotificationType.JOB_POST_REJECTED;
+                    title = "Tin tuyển dụng bị từ chối";
+                    message = `Tin tuyển dụng "${jobPost.jobName}" của bạn không được phê duyệt. Vui lòng kiểm tra lại nội dung.`;
+                }
+
+                if (notificationType) {
+                    const notification = this._context.NotificationRepo.create({
+                        userId: jobPost.company.user.id,
+                        type: notificationType,
+                        title,
+                        message,
+                        metadata: { jobPostId: jobPost.id, jobName: jobPost.jobName }
+                    });
+                    await this._context.NotificationRepo.save(notification);
+
+                    const io = SocketService.getIO();
+                    if (io) {
+                        io.to(`user:${jobPost.company.user.id}`).emit('notification', notification);
+                    }
+                }
+            }
+
+            return jobPost;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async getSavedJobPosts(): Promise<IJobPostDto[]> {
         try {
             const user = getCurrentUser();
@@ -326,7 +440,7 @@ export default class JobPostService implements IJobPostService {
                     "job.salaryMax",
                     "job.provinceId",
                     "job.createdAt",
-                    "job.isHot",
+                    "job.hotExpiredAt",
                     "job.deadline"
                 ])
                 .innerJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", { candidateId })

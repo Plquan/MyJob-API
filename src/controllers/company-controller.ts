@@ -69,11 +69,12 @@ export class CompanyController {
     @before(inject(Auth.optional))
     @GET()
     async getCompanies(req: Request, res: Response) {
-        const { page = 1, limit = 10, companyName } = req.query;
+        const { page = 1, limit = 10, companyName, provinceId } = req.query;
         const params: IGetCompaniesReqParams = {
             page: +page,
             limit: +limit,
             companyName: companyName?.toString(),
+            provinceId: provinceId ? +provinceId : undefined,
         };
         const response = await this._companyService.getCompanies(params)
         res.status(200).json(response)

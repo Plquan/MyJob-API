@@ -1,5 +1,6 @@
 import { EJobPostActivityStatus } from "@/common/enums/job/EJobPostActivity";
 import { IResumeDto } from "@/dtos/resume/resume-dto";
+import { IJobPostDto } from "../job-post/job-post-dto";
 
 export interface IJobPostActivityDto {
     id: number;
@@ -39,4 +40,24 @@ export interface ISendEmailToActivityRequest {
 export interface updateJobPostActivityStatusRequest {
     jobPostActivityId: number
     status: EJobPostActivityStatus
+}
+
+export interface IAppliedJobDto {
+    id: number;
+    jobPostId: number;
+    candidateId: number;
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    status: number;
+    isDeleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    jobPost: IJobPostDto;
+}
+
+export interface IGetAppliedJobsRequest {
+    page: number;
+    limit: number;
+    status?: EJobPostActivityStatus;
 }

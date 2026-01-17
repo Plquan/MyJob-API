@@ -291,7 +291,7 @@ export default class CompanyService implements ICompanyService {
     }
     async getCompanies(params: IGetCompaniesReqParams): Promise<IPaginationResponse<ICompanyWithImagesDto>> {
         try {
-            const { page, limit, companyName } = params;
+            const { page, limit, companyName, provinceId } = params;
 
             const query = this._context.CompanyRepo
                 .createQueryBuilder('company')
@@ -301,7 +301,11 @@ export default class CompanyService implements ICompanyService {
                     { types: [FileType.LOGO, FileType.COVER_IMAGE] });
 
             if (companyName && companyName.trim() !== "") {
-                query.where("company.companyName ILIKE :search", { search: `%${companyName}%` });
+                query.andWhere("company.companyName ILIKE :search", { search: `%${companyName}%` });
+            }
+
+            if (provinceId) {
+                query.andWhere("company.provinceId = :provinceId", { provinceId });
             }
 
             const totalItems = await query.getCount();
@@ -422,8 +426,6 @@ export default class CompanyService implements ICompanyService {
             const applicationsByStatus: IApplicationByStatus[] = [];
             const statusNames: Record<number, string> = {
                 [EJobPostActivityStatus.PENDING]: 'Chờ duyệt',
-                [EJobPostActivityStatus.CONTACTED]: 'Đã liên hệ',
-                [EJobPostActivityStatus.TESTED]: 'Đã test',
                 [EJobPostActivityStatus.INTERVIEWED]: 'Đã phỏng vấn',
                 [EJobPostActivityStatus.ACCEPTED]: 'Đã chấp nhận',
                 [EJobPostActivityStatus.REJECTED]: 'Đã từ chối',

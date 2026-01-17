@@ -1,9 +1,9 @@
 import Stripe from 'stripe';
 import { ENV } from '@/common/constants/env';
-import IPaymentService, { 
-    ICreateCheckoutSessionRequest, 
+import IPaymentService, {
+    ICreateCheckoutSessionRequest,
     ICreateCheckoutSessionResponse,
-    IPaymentWebhookEvent 
+    IPaymentWebhookEvent
 } from '@/interfaces/payment/payment-interface';
 import logger from '@/common/helpers/logger';
 import DatabaseService from '@/services/common/database-service';
@@ -13,6 +13,7 @@ import { EGlobalError } from '@/common/enums/error/EGlobalError';
 import { Package } from '@/entities/package';
 import { PackagePurchases } from '@/entities/package-purchases';
 import { PackageUsage } from '@/entities/package-usage';
+import { Company } from '@/entities/company';
 import PackageMapper from '@/mappers/package/package-mapper';
 
 export default class PaymentService implements IPaymentService {
@@ -23,7 +24,7 @@ export default class PaymentService implements IPaymentService {
         if (!ENV.STRIPE_SECRET_KEY) {
             throw new Error('STRIPE_SECRET_KEY is not configured in environment variables');
         }
-        
+
         this.stripe = new Stripe(ENV.STRIPE_SECRET_KEY);
         this._context = DatabaseService;
     }
@@ -64,7 +65,7 @@ export default class PaymentService implements IPaymentService {
                                 name: packageData.name,
                                 description: packageData.description || '',
                             },
-                            unit_amount: Math.round(packagePrice * 100), 
+                            unit_amount: Math.round(packagePrice * 100),
                         },
                         quantity: 1,
                     },
@@ -85,7 +86,7 @@ export default class PaymentService implements IPaymentService {
                 url: session.url || '',
             };
         } catch (error: any) {
-           throw error
+            throw error
         }
     }
 
@@ -133,8 +134,8 @@ export default class PaymentService implements IPaymentService {
             }
 
             const packageId = parseInt(session.metadata?.packageId || '0');
-            const companyId = session.metadata?.companyId 
-                ? parseInt(session.metadata.companyId) 
+            const companyId = session.metadata?.companyId
+                ? parseInt(session.metadata.companyId)
                 : null;
 
             if (!packageId) {
@@ -175,12 +176,12 @@ export default class PaymentService implements IPaymentService {
                 packagePurchase.price = Number(packageData.price);
                 packagePurchase.paymentMethod = 'stripe';
                 packagePurchase.paymentDate = new Date();
-                
+
                 // Calculate dates
                 const startDate = new Date();
                 const endDate = new Date();
                 endDate.setDate(endDate.getDate() + packageData.durationInDays);
-                
+
                 packagePurchase.startDate = startDate;
                 packagePurchase.endDate = endDate;
 
@@ -198,6 +199,18 @@ export default class PaymentService implements IPaymentService {
 
                 await manager.getRepository(PackageUsage).save(packageUsageData);
 
+                // Update Company hotExpiredAt
+                const company = await manager.getRepository(Company).findOne({
+                    where: { id: companyId }
+                });
+
+                if (company) {
+                    const hotExpiredAt = new Date();
+                    hotExpiredAt.setDate(hotExpiredAt.getDate() + packageData.highlightCompanyDurationInDays);
+                    company.hotExpiredAt = hotExpiredAt;
+                    await manager.getRepository(Company).save(company);
+                }
+
                 logger.info(`Payment successful - Created purchase record and updated package usage for session ${sessionId}, package ${packageId}, company ${companyId}`);
             });
 
@@ -210,8 +223,6 @@ export default class PaymentService implements IPaymentService {
     async handlePaymentFailed(sessionId: string): Promise<void> {
         try {
             logger.warn(`Payment failed for session ${sessionId}`);
-            // Handle payment failure logic here
-            // e.g., send notification email, log for review, etc.
         } catch (error: any) {
             throw error
         }

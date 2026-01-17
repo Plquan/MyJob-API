@@ -56,6 +56,10 @@ export interface ICompanyJobPostDto {
   createdAt: Date;
   updatedAt: Date;
   status: EJobPostStatus;
+  company?: {
+    id: number;
+    companyName: string;
+  };
 }
 
 export interface IJobPostWithImageDto {

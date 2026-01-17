@@ -206,7 +206,11 @@ export default class AuthService implements IAuthService {
           candidate: {
             avatar: true
           },
-          company: true,
+          company: {
+            packageUsages: {
+              package: true
+            }
+          },
         },
       })
 
