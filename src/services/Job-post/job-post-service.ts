@@ -11,6 +11,8 @@ import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { FileType } from "@/common/enums/file-type/file-types";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
+import { NotificationType } from "@/entities/notification";
+import SocketService from "../common/socket-service";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
@@ -319,7 +321,7 @@ export default class JobPostService implements IJobPostService {
             return await dataSource.transaction(async (manager) => {
                 // Create job post with dates
                 const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId));
-                
+
                 // Set expiredAt based on jobPostDurationInDays
                 const expiredAt = new Date();
                 expiredAt.setDate(expiredAt.getDate() + packageUsage.jobPostDurationInDays);
@@ -358,29 +360,65 @@ export default class JobPostService implements IJobPostService {
             throw error
         }
     }
-    
+
     async updateJobPostStatus(jobPostId: number, status: number): Promise<JobPost> {
         try {
             const jobPost = await this._context.JobPostRepo.findOne({
-                where: { id: jobPostId }
+                where: { id: jobPostId },
+                relations: ['company', 'company.user']
             });
             if (!jobPost) {
                 throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Job post not found");
             }
-            
+
             // Validate status
             if (!Object.values(EJobPostStatus).includes(status)) {
                 throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid status");
             }
-            
+
+            const oldStatus = jobPost.status;
             jobPost.status = status;
             await this._context.JobPostRepo.save(jobPost);
+
+            // Create notification for employer when job post is approved or rejected
+            if (oldStatus !== status && jobPost.company?.user) {
+                let notificationType: NotificationType;
+                let title: string;
+                let message: string;
+
+                if (status === EJobPostStatus.APPROVED) {
+                    notificationType = NotificationType.JOB_POST_APPROVED;
+                    title = "Tin tuyển dụng đã được duyệt";
+                    message = `Tin tuyển dụng "${jobPost.jobName}" của bạn đã được phê duyệt và hiển thị công khai.`;
+                } else if (status === EJobPostStatus.REJECTED) {
+                    notificationType = NotificationType.JOB_POST_REJECTED;
+                    title = "Tin tuyển dụng bị từ chối";
+                    message = `Tin tuyển dụng "${jobPost.jobName}" của bạn không được phê duyệt. Vui lòng kiểm tra lại nội dung.`;
+                }
+
+                if (notificationType) {
+                    const notification = this._context.NotificationRepo.create({
+                        userId: jobPost.company.user.id,
+                        type: notificationType,
+                        title,
+                        message,
+                        metadata: { jobPostId: jobPost.id, jobName: jobPost.jobName }
+                    });
+                    await this._context.NotificationRepo.save(notification);
+
+                    const io = SocketService.getIO();
+                    if (io) {
+                        io.to(`user:${jobPost.company.user.id}`).emit('notification', notification);
+                    }
+                }
+            }
+
             return jobPost;
         } catch (error) {
             throw error;
         }
     }
-    
+
     async getSavedJobPosts(): Promise<IJobPostDto[]> {
         try {
             const user = getCurrentUser();

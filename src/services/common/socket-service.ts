@@ -9,6 +9,7 @@ interface AuthSocket extends Socket {
 }
 
 export default class SocketService {
+    private static instance: SocketService;
     private io: SocketServer;
 
     constructor(httpServer: HttpServer) {
@@ -21,13 +22,24 @@ export default class SocketService {
         });
 
         this.initialize();
+        SocketService.instance = this;
+    }
+
+    // Static method to get the singleton instance
+    public static getInstance(): SocketService | null {
+        return SocketService.instance || null;
+    }
+
+    // Static method to get the io server directly
+    public static getIO(): SocketServer | null {
+        return SocketService.instance?.io || null;
     }
 
     private initialize() {
         this.io.use((socket: AuthSocket, next) => {
             try {
                 const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
-                
+
                 if (!token) {
                     return next(new Error('Authentication error: No token provided'));
                 }

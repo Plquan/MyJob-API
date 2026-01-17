@@ -60,4 +60,17 @@ export class JobPostController {
         );
         return res.status(200).json(response);
     }
+
+    @GET()
+    @route("/my-applied-jobs")
+    async getCandidateAppliedJobs(req: Request, res: Response) {
+        const { page, limit, status } = req.query;
+
+        const response = await this._jobPostActivityService.getCandidateAppliedJobs({
+            page: Number(page) || 1,
+            limit: Number(limit) || 10,
+            status: status !== undefined ? Number(status) : undefined,
+        });
+        return res.status(200).json(response);
+    }
 }

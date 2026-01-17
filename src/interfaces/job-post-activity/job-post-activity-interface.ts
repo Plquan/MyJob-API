@@ -1,5 +1,5 @@
 import { IPaginationResponse } from "../base/IPaginationBase"
-import { IApplyJobRequest, IGetJobPostActivityRequest, IJobPostActivityDto, ISendEmailToActivityRequest, updateJobPostActivityStatusRequest } from "./job-post-activity-dto"
+import { IAppliedJobDto, IApplyJobRequest, IGetAppliedJobsRequest, IGetJobPostActivityRequest, IJobPostActivityDto, ISendEmailToActivityRequest, updateJobPostActivityStatusRequest } from "./job-post-activity-dto"
 
 export default interface IJobPostActivityService {
     applyJob(request: IApplyJobRequest): Promise<boolean>
@@ -7,4 +7,5 @@ export default interface IJobPostActivityService {
     deleteJobPostActivity(jobPostActivityId: number): Promise<boolean>
     sendEmailToCandidate(jobPostActivityId: number | null, request: ISendEmailToActivityRequest): Promise<boolean>
     updateJobPostActivityStatus(request: updateJobPostActivityStatusRequest): Promise<boolean>
+    getCandidateAppliedJobs(request: IGetAppliedJobsRequest): Promise<IPaginationResponse<IAppliedJobDto>>
 }

@@ -5,9 +5,14 @@ import { HttpException } from "@/errors/http-exception";
 import IJobPostActivityService from "@/interfaces/job-post-activity/job-post-activity-interface";
 import DatabaseService from "../common/database-service";
 import { JobPostActivityMapper } from "@/mappers/job-post-activity/job-post-activity-mapper";
-import { IApplyJobRequest, IGetJobPostActivityRequest, IJobPostActivityDto, ISendEmailToActivityRequest, updateJobPostActivityStatusRequest } from "@/interfaces/job-post-activity/job-post-activity-dto";
+import { IAppliedJobDto, IApplyJobRequest, IGetAppliedJobsRequest, IGetJobPostActivityRequest, IJobPostActivityDto, ISendEmailToActivityRequest, updateJobPostActivityStatusRequest } from "@/interfaces/job-post-activity/job-post-activity-dto";
 import { IPaginationResponse } from "@/interfaces/base/IPaginationBase";
 import { EmailService } from "../common/email-service";
+import JobPostMapper from "@/mappers/job-post/job-post-mapper";
+import { FileType } from "@/common/enums/file-type/file-types";
+import { NotificationType } from "@/entities/notification";
+import { EJobPostActivityStatus } from "@/common/enums/job/EJobPostActivity";
+import SocketService from "../common/socket-service";
 
 export default class JobPostActivityService implements IJobPostActivityService {
     private readonly _context: DatabaseService
@@ -22,12 +27,59 @@ export default class JobPostActivityService implements IJobPostActivityService {
             }
             const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
                 where: { id: request.jobPostActivityId },
+                relations: ['jobPost', 'candidate', 'candidate.user']
             })
             if (!jobPostActivity) {
                 throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "jobPostActivity not found");
             }
+
+            const oldStatus = jobPostActivity.status;
             jobPostActivity.status = request.status
             await this._context.JobPostActivityRepo.save(jobPostActivity)
+
+            // Create notification for candidate when status changes (except PENDING)
+            if (oldStatus !== request.status && request.status !== EJobPostActivityStatus.PENDING && jobPostActivity.candidate?.user) {
+                let title: string;
+                let message: string;
+
+                switch (request.status) {
+                    case EJobPostActivityStatus.INTERVIEWED:
+                        title = "Bạn đã được mời phỏng vấn";
+                        message = `Hồ sơ ứng tuyển "${jobPostActivity.jobPost.jobName}" của bạn đã được chọn để phỏng vấn.`;
+                        break;
+                    case EJobPostActivityStatus.ACCEPTED:
+                        title = "Hồ sơ được chấp nhận";
+                        message = `Chúc mừng! Hồ sơ ứng tuyển "${jobPostActivity.jobPost.jobName}" của bạn đã được chấp nhận.`;
+                        break;
+                    case EJobPostActivityStatus.REJECTED:
+                        title = "Hồ sơ không được chấp nhận";
+                        message = `Rất tiếc, hồ sơ ứng tuyển "${jobPostActivity.jobPost.jobName}" của bạn chưa phù hợp lần này.`;
+                        break;
+                }
+
+                if (title && message) {
+                    const notification = this._context.NotificationRepo.create({
+                        userId: jobPostActivity.candidate.user.id,
+                        type: NotificationType.APPLICATION_STATUS_CHANGED,
+                        title,
+                        message,
+                        metadata: {
+                            jobPostActivityId: jobPostActivity.id,
+                            jobPostId: jobPostActivity.jobPostId,
+                            jobName: jobPostActivity.jobPost.jobName,
+                            status: request.status
+                        }
+                    });
+                    await this._context.NotificationRepo.save(notification);
+
+                    // Send via socket
+                    const io = SocketService.getIO();
+                    if (io) {
+                        io.to(`user:${jobPostActivity.candidate.user.id}`).emit('notification', notification);
+                    }
+                }
+            }
+
             return true
         } catch (error) {
             throw error
@@ -109,8 +161,39 @@ export default class JobPostActivityService implements IJobPostActivityService {
             if (isApplied) {
                 throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "job applied")
             }
+
+            // Get job post with company info
+            const jobPost = await this._context.JobPostRepo.findOne({
+                where: { id: request.jobPostId },
+                relations: ['company', 'company.user']
+            });
+
             const newJobPostActivity = JobPostActivityMapper.toJobPostActivitiyFromCreate(request, user.candidateId)
             await this._context.JobPostActivityRepo.save(newJobPostActivity);
+
+            // Create notification for employer
+            if (jobPost?.company?.user) {
+                const notification = this._context.NotificationRepo.create({
+                    userId: jobPost.company.user.id,
+                    type: NotificationType.NEW_APPLICATION,
+                    title: "Có ứng viên mới ứng tuyển",
+                    message: `${request.fullName} đã ứng tuyển vào vị trí "${jobPost.jobName}".`,
+                    metadata: {
+                        jobPostActivityId: newJobPostActivity.id,
+                        jobPostId: request.jobPostId,
+                        candidateName: request.fullName,
+                        jobName: jobPost.jobName
+                    }
+                });
+                await this._context.NotificationRepo.save(notification);
+
+                // Send via socket
+                const io = SocketService.getIO();
+                if (io) {
+                    io.to(`user:${jobPost.company.user.id}`).emit('notification', notification);
+                }
+            }
+
             return true
         } catch (error) {
             throw error
@@ -167,6 +250,62 @@ export default class JobPostActivityService implements IJobPostActivityService {
             }
 
             return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getCandidateAppliedJobs(request: IGetAppliedJobsRequest): Promise<IPaginationResponse<IAppliedJobDto>> {
+        try {
+            const user = getCurrentUser();
+            if (!user || !user.candidateId) {
+                throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Candidate not found");
+            }
+
+            const { page, limit, status } = request;
+
+            // Query builder - lấy cả những record đã bị soft delete
+            const qb = this._context.JobPostActivityRepo
+                .createQueryBuilder('activity')
+                .leftJoinAndSelect('activity.jobPost', 'jobPost')
+                .leftJoinAndSelect('jobPost.company', 'company')
+                .leftJoinAndSelect('company.companyImages', 'companyImage')
+                .leftJoinAndSelect('companyImage.image', 'image', 'image.fileType = :fileType AND image.deletedAt IS NULL', { fileType: FileType.LOGO })
+                .where('activity.candidateId = :candidateId', { candidateId: user.candidateId });
+
+            // Filter by status if provided
+            if (status !== undefined) {
+                qb.andWhere('activity.status = :status', { status });
+            }
+
+            const totalItems = await qb.getCount();
+
+            const activities = await qb
+                .orderBy('activity.createdAt', 'DESC')
+                .skip((page - 1) * limit)
+                .take(limit)
+                .getMany();
+
+            // Map to DTO
+            const items: IAppliedJobDto[] = activities.map(activity => ({
+                id: activity.id,
+                jobPostId: activity.jobPostId,
+                candidateId: activity.candidateId,
+                fullName: activity.fullName,
+                email: activity.email,
+                phone: activity.phone,
+                status: activity.status,
+                isDeleted: activity.isDeleted,
+                createdAt: activity.createdAt,
+                updatedAt: activity.updatedAt,
+                jobPost: JobPostMapper.toJobPosDto(activity.jobPost, user.candidateId)
+            }));
+
+            return {
+                items,
+                totalItems,
+                totalPages: Math.ceil(totalItems / limit),
+            };
         } catch (error) {
             throw error;
         }

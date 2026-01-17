@@ -426,8 +426,6 @@ export default class CompanyService implements ICompanyService {
             const applicationsByStatus: IApplicationByStatus[] = [];
             const statusNames: Record<number, string> = {
                 [EJobPostActivityStatus.PENDING]: 'Chờ duyệt',
-                [EJobPostActivityStatus.CONTACTED]: 'Đã liên hệ',
-                [EJobPostActivityStatus.TESTED]: 'Đã test',
                 [EJobPostActivityStatus.INTERVIEWED]: 'Đã phỏng vấn',
                 [EJobPostActivityStatus.ACCEPTED]: 'Đã chấp nhận',
                 [EJobPostActivityStatus.REJECTED]: 'Đã từ chối',
