@@ -28,8 +28,11 @@ export default class PackageMapper {
     const usage = new PackageUsage();
     usage.packageId = entity.id;
     usage.companyId = companyId;
-    usage.candidateSearchUsed = 0;
-    usage.jobPostUsed = 0;
+    usage.candidateSearchRemaining = entity.candidateSearchLimit;
+    usage.jobPostRemaining = entity.jobPostLimit;
+    usage.jobPostDurationInDays = entity.jobPostDurationInDays;
+    usage.jobHotDurationInDays = entity.jobHotDurationInDays;
+    usage.highlightCompanyDurationInDays = entity.highlightCompanyDurationInDays;
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + entity.durationInDays);
     usage.expiryDate = expiryDate;

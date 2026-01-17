@@ -132,7 +132,7 @@ export default class JobPostService implements IJobPostService {
                     "job.salaryMax",
                     "job.provinceId",
                     "job.createdAt",
-                    "job.isHot",
+                    "job.hotExpiredAt",
                     "job.deadline"
                 ])
                 .leftJoinAndSelect("job.company", "company")
@@ -277,15 +277,67 @@ export default class JobPostService implements IJobPostService {
         }
     }
     async createJobPost(data: ICreateJobPostReq): Promise<JobPost> {
+        const dataSource = this._context.getDataSource();
         try {
             this.validateJobPost(data)
             const companyId = getCurrentUser().companyId
             if (!companyId) {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Company Id not found");
             }
-            const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId))
-            await this._context.JobPostRepo.save(newJobPost)
-            return newJobPost
+
+            // Check if company has an active package usage
+            const packageUsage = await this._context.PackageUsageRepo.findOne({
+                where: { companyId }
+            });
+
+            if (!packageUsage) {
+                throw new HttpException(
+                    StatusCodes.BAD_REQUEST,
+                    EGlobalError.InvalidInput,
+                    "Bạn cần mua gói để đăng tin tuyển dụng"
+                );
+            }
+
+            // Check if package is not expired
+            if (packageUsage.expiryDate && new Date() > packageUsage.expiryDate) {
+                throw new HttpException(
+                    StatusCodes.BAD_REQUEST,
+                    EGlobalError.InvalidInput,
+                    "Gói của bạn đã hết hạn. Vui lòng mua gói mới"
+                );
+            }
+
+            // Check if jobPostRemaining > 0
+            if (packageUsage.jobPostRemaining <= 0) {
+                throw new HttpException(
+                    StatusCodes.BAD_REQUEST,
+                    EGlobalError.InvalidInput,
+                    "Bạn đã hết lượt đăng tin. Vui lòng mua gói mới"
+                );
+            }
+
+            return await dataSource.transaction(async (manager) => {
+                // Create job post with dates
+                const newJobPost = this._context.JobPostRepo.create(JobPostMapper.toCreateJobPostEntity(data, companyId));
+                
+                // Set expiredAt based on jobPostDurationInDays
+                const expiredAt = new Date();
+                expiredAt.setDate(expiredAt.getDate() + packageUsage.jobPostDurationInDays);
+                newJobPost.expiredAt = expiredAt;
+
+                // Set hotExpiredAt based on jobHotDurationInDays
+                const hotExpiredAt = new Date();
+                hotExpiredAt.setDate(hotExpiredAt.getDate() + packageUsage.jobHotDurationInDays);
+                newJobPost.hotExpiredAt = hotExpiredAt;
+
+                await manager.save(newJobPost);
+
+                // Decrement jobPostRemaining
+                packageUsage.jobPostRemaining -= 1;
+                await manager.save(packageUsage);
+
+                return newJobPost;
+            });
         } catch (error) {
             throw error
         }
@@ -350,7 +402,7 @@ export default class JobPostService implements IJobPostService {
                     "job.salaryMax",
                     "job.provinceId",
                     "job.createdAt",
-                    "job.isHot",
+                    "job.hotExpiredAt",
                     "job.deadline"
                 ])
                 .innerJoinAndSelect("job.savedJobPosts", "savedJobPost", "savedJobPost.candidateId = :candidateId", { candidateId })

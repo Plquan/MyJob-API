@@ -15,10 +15,13 @@ export class PackageUsage {
   companyId!: number;
 
   @Column({ type: "int" })
-  candidateSearchUsed: number;
+  candidateSearchRemaining: number;
 
   @Column({ type: "int" })
-  jobPostUsed: number;
+  jobPostRemaining: number;
+  
+  @Column({ type: 'int', default: 0 })
+  jobPostDurationInDays: number;
 
   @Column({ type: 'int', default: 0 })
   jobHotDurationInDays: number;

@@ -13,6 +13,7 @@ import { EGlobalError } from '@/common/enums/error/EGlobalError';
 import { Package } from '@/entities/package';
 import { PackagePurchases } from '@/entities/package-purchases';
 import { PackageUsage } from '@/entities/package-usage';
+import { Company } from '@/entities/company';
 import PackageMapper from '@/mappers/package/package-mapper';
 
 export default class PaymentService implements IPaymentService {
@@ -197,6 +198,18 @@ export default class PaymentService implements IPaymentService {
                 }
 
                 await manager.getRepository(PackageUsage).save(packageUsageData);
+
+                // Update Company hotExpiredAt
+                const company = await manager.getRepository(Company).findOne({
+                    where: { id: companyId }
+                });
+
+                if (company) {
+                    const hotExpiredAt = new Date();
+                    hotExpiredAt.setDate(hotExpiredAt.getDate() + packageData.highlightCompanyDurationInDays);
+                    company.hotExpiredAt = hotExpiredAt;
+                    await manager.getRepository(Company).save(company);
+                }
 
                 logger.info(`Payment successful - Created purchase record and updated package usage for session ${sessionId}, package ${packageId}, company ${companyId}`);
             });

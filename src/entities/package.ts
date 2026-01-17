@@ -19,10 +19,13 @@ export class Package {
 
   @Column({ type: 'int' })
   durationInDays: number;
+  
+  @Column({ type: 'int', default: 0 })
+  jobPostDurationInDays: number;
 
   @Column({ type: 'int', default: 0 })
   jobHotDurationInDays: number;
-  
+
   @Column({ type: 'int', default: 0 })
   highlightCompanyDurationInDays: number;
 

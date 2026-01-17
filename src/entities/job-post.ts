@@ -74,8 +74,11 @@ export class JobPost {
   @Column({ type: 'enum', enum: EGender,default: EGender.OTHER})
   genderRequirement!: EGender;
 
-  @Column({ type: 'boolean', default: false })
-  isHot!: boolean;
+  @Column({ type: 'timestamp', nullable: true })
+  hotExpiredAt?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  expiredAt?: Date;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   contactPersonName?: string;

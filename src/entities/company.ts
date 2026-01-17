@@ -58,6 +58,9 @@ export class Company {
     @Column({ type: 'varchar', length: 100 })
     address!: string;
 
+    @Column({ type: 'timestamp', nullable: true })
+    hotExpiredAt?: Date;
+
     @CreateDateColumn()
     createdAt!: Date;
 
