@@ -78,16 +78,16 @@ export default class ChatService implements IChatService {
             conversation.lastMessageAt = new Date();
             await this._context.ConversationRepo.save(conversation);
 
-            // Load lại message với thông tin sender
             const messageWithSender = await this._context.MessageRepo
                 .createQueryBuilder("message")
                 .leftJoinAndSelect("message.sender", "sender")
                 .where("message.id = :id", { id: message.id })
                 .getOne();
 
-            // Emit message to all users in the conversation via Socket.io
             if (this._socketService && messageWithSender) {
                 this._socketService.emitNewMessage(conversationId, messageWithSender);
+                const recipientId = conversation.user1Id === senderId ? conversation.user2Id : conversation.user1Id;
+                this._socketService.emitMessageToUser(recipientId, messageWithSender);
             }
 
             return messageWithSender!;
@@ -111,7 +111,7 @@ export default class ChatService implements IChatService {
                 throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Conversation không tồn tại");
             }
 
-            // Lấy messages với pagination
+            // Lấy messages với pagination - ORDER BY DESC để lấy tin mới nhất trước
             const [messages, totalItems] = await this._context.MessageRepo
                 .createQueryBuilder("message")
                 .leftJoinAndSelect("message.sender", "sender")
@@ -124,8 +124,11 @@ export default class ChatService implements IChatService {
                 .take(limit)
                 .getManyAndCount();
 
+            // Reverse lại để tin nhắn cũ nhất ở đầu, mới nhất ở cuối (thứ tự hiển thị đúng)
+            const messagesInOrder = messages.reverse();
+
             return {
-                items: messages,
+                items: messagesInOrder,
                 totalItems,
                 totalPages: Math.ceil(totalItems / limit),
             };

@@ -88,9 +88,7 @@ export class ResumeController {
             typeOfWorkPlace,
             experience,
             academicLevel,
-            jobType,
-            gender,
-            maritalStatus
+            jobType
         } = req.query;
 
         const params: ISearchResumesReqParams = {
@@ -104,8 +102,6 @@ export class ResumeController {
             experience: experience ? +experience : undefined,
             academicLevel: academicLevel ? +academicLevel : undefined,
             jobType: jobType ? +jobType : undefined,
-            gender: gender ? +gender : undefined,
-            maritalStatus: maritalStatus ? +maritalStatus : undefined,
         };
 
         const response = await this._resumeService.searchResumes(params);
@@ -117,6 +113,38 @@ export class ResumeController {
     async getResumeForDownload(req: Request, res: Response) {
         const resumeId = parseInt(req.params.resumeId)
         const response = await this._resumeService.getResumeForDownload(resumeId)
+        return res.status(200).json(response)
+    }
+
+    @GET()
+    @route("/saved-resumes")
+    async getSavedResumes(req: Request, res: Response) {
+        const { page = 1, limit = 10, title, candidateName } = req.query;
+
+        const params: ISearchResumesReqParams = {
+            page: +page,
+            limit: +limit,
+            title: title?.toString(),
+            candidateName: candidateName?.toString(),
+        };
+
+        const response = await this._resumeService.getSavedResumes(params)
+        return res.status(200).json(response)
+    }
+
+    @GET()
+    @route("/get-resume-detail/:resumeId")
+    async getResumeDetail(req: Request, res: Response) {
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.getResumeDetail(resumeId)
+        return res.status(200).json(response)
+    }
+
+    @POST()
+    @route("/toggle-save-resume/:resumeId")
+    async toggleSaveResume(req: Request, res: Response) {
+        const resumeId = parseInt(req.params.resumeId)
+        const response = await this._resumeService.toggleSaveResume(resumeId)
         return res.status(200).json(response)
     }
 

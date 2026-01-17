@@ -5,6 +5,7 @@ import { Province } from "./province";
 import { CompanyImage } from "./company-image";
 import { FollowedCompany } from "./followed-company";
 import { PackageUsage } from "./package-usage";
+import { SavedResume } from "./saved-resume";
 
 @Entity('companies')
 export class Company {
@@ -85,4 +86,7 @@ export class Company {
 
     @OneToMany(() => PackageUsage, (usage) => usage.company)
     packageUsages!: PackageUsage[];
+
+    @OneToMany(() => SavedResume, savedResume => savedResume.company)
+    savedResumes!: SavedResume[];
 } 

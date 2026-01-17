@@ -97,8 +97,54 @@ export default class CompanyService implements ICompanyService {
             throw error
         }
     }
-    updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto> {
-        throw new Error("Method not implemented.");
+    async updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto> {
+        try {
+            const companyId = getCurrentUser()?.companyId;
+
+            if (!companyId) {
+                throw new HttpException(
+                    StatusCodes.UNAUTHORIZED,
+                    EAuthError.UnauthorizedAccess,
+                    "Company Id not found"
+                );
+            }
+
+            const company = await this._context.CompanyRepo.findOne({
+                where: { id: companyId }
+            });
+
+            if (!company) {
+                throw new HttpException(
+                    StatusCodes.NOT_FOUND,
+                    EGlobalError.ResourceNotFound,
+                    "Company not found"
+                );
+            }
+
+            // Merge the request data into company entity
+            this._context.CompanyRepo.merge(company, {
+                companyName: request.companyName,
+                companyEmail: request.companyEmail,
+                companyPhone: request.companyPhone,
+                taxCode: request.taxCode,
+                provinceId: request.provinceId,
+                address: request.address,
+                description: request.description,
+                websiteUrl: request.websiteUrl,
+                facebookUrl: request.facebookUrl,
+                youtubeUrl: request.youtubeUrl,
+                linkedInUrl: request.linkedInUrl,
+                since: request.since,
+                fieldOperation: request.fieldOperation,
+                employeeSize: request.employeeSize,
+            });
+
+            const updatedCompany = await this._context.CompanyRepo.save(company);
+            return CompanyMapper.toCompanyDto(updatedCompany);
+        } catch (error) {
+            logger.error('Error updating company info:', error);
+            throw error;
+        }
     }
     async uploadCompanyCoverImage(image: Express.Multer.File): Promise<IMyJobFileDto> {
         try {
@@ -246,7 +292,7 @@ export default class CompanyService implements ICompanyService {
     async getCompanies(params: IGetCompaniesReqParams): Promise<IPaginationResponse<ICompanyWithImagesDto>> {
         try {
             const { page, limit, companyName } = params;
-            
+
             const query = this._context.CompanyRepo
                 .createQueryBuilder('company')
                 .leftJoinAndSelect('company.companyImages', 'companyImage')
@@ -311,51 +357,52 @@ export default class CompanyService implements ICompanyService {
                 throw new HttpException(StatusCodes.UNAUTHORIZED, EAuthError.UnauthorizedAccess, "Bạn không có quyền truy cập");
             }
 
-            // Parse date range
+            // Parse date range for charts only
             const startDate = params?.startDate ? new Date(params.startDate) : undefined;
             const endDate = params?.endDate ? new Date(params.endDate) : undefined;
-            
+
             // Set endDate to end of day if provided
             if (endDate) {
                 endDate.setHours(23, 59, 59, 999);
             }
 
-            // Get all job post IDs for this company
+            // Get all job post IDs for this company (unfiltered)
             const jobPosts = await this._context.JobPostRepo.find({
                 where: { companyId },
                 select: ['id']
             });
             const jobPostIds = jobPosts.map(jp => jp.id);
 
-            // Build base query for job posts with date filter
+            // Build base query for job posts WITHOUT date filter (for stats)
             const jobPostQb = this._context.JobPostRepo.createQueryBuilder('jp')
                 .where('jp.companyId = :companyId', { companyId });
-            
-            if (startDate) {
-                jobPostQb.andWhere('jp.createdAt >= :startDate', { startDate });
-            }
-            if (endDate) {
-                jobPostQb.andWhere('jp.createdAt <= :endDate', { endDate });
-            }
 
-            // Get total job posts
+            // Get total job posts (unfiltered)
             const totalJobPosts = await jobPostQb.getCount();
 
-            // Get pending job posts
+            // Get pending job posts (unfiltered)
             const pendingJobPosts = await jobPostQb
                 .clone()
                 .andWhere('jp.status = :status', { status: EJobPostStatus.PENDING_APPROVAL })
                 .getCount();
 
-            // Get expired job posts
+            // Get expired job posts (unfiltered)
             const currentDate = new Date();
             const expiredJobPosts = await jobPostQb
                 .clone()
                 .andWhere('jp.deadline < :currentDate', { currentDate })
                 .getCount();
 
-            // Build base query for applications with date filter
-            const buildApplicationQuery = () => {
+            // Get total applications (unfiltered - for stats box)
+            const totalApplications = jobPostIds.length > 0
+                ? await this._context.JobPostActivityRepo.createQueryBuilder('activity')
+                    .where('activity.isDeleted = :isDeleted', { isDeleted: false })
+                    .andWhere('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
+                    .getCount()
+                : 0;
+
+            // Build application query WITH date filter (for charts only)
+            const buildApplicationQueryForCharts = () => {
                 const qb = this._context.JobPostActivityRepo.createQueryBuilder('activity')
                     .where('activity.isDeleted = :isDeleted', { isDeleted: false });
 
@@ -371,12 +418,7 @@ export default class CompanyService implements ICompanyService {
                 return qb;
             };
 
-            // Get total applications
-            const totalApplications = jobPostIds.length > 0 
-                ? await buildApplicationQuery().getCount() 
-                : 0;
-
-            // Get applications by status
+            // Get applications by status (filtered by date for chart)
             const applicationsByStatus: IApplicationByStatus[] = [];
             const statusNames: Record<number, string> = {
                 [EJobPostActivityStatus.PENDING]: 'Chờ duyệt',
@@ -390,9 +432,9 @@ export default class CompanyService implements ICompanyService {
             for (const [statusKey, statusName] of Object.entries(statusNames)) {
                 const status = parseInt(statusKey);
                 let count = 0;
-                
+
                 if (jobPostIds.length > 0) {
-                    count = await buildApplicationQuery()
+                    count = await buildApplicationQueryForCharts()
                         .andWhere('activity.status = :status', { status })
                         .getCount();
                 }
@@ -404,45 +446,89 @@ export default class CompanyService implements ICompanyService {
                 });
             }
 
-            // Get monthly applications for last 12 months
+            // Get monthly applications (filtered by date if provided)
             const applicationsMonthly: IApplicationMonthly[] = [];
             const currentYear = currentDate.getFullYear();
-            
-            for (let i = 11; i >= 0; i--) {
-                const monthDate = new Date(currentYear, currentDate.getMonth() - i, 1);
-                const monthName = monthDate.toLocaleDateString('vi-VN', { month: 'numeric', year: 'numeric' });
-                const month = monthDate.getMonth() + 1;
-                const startDate2024 = new Date(2024, month - 1, 1);
-                const endDate2024 = new Date(2024, month, 0, 23, 59, 59);
-                const startDate2023 = new Date(2023, month - 1, 1);
-                const endDate2023 = new Date(2023, month, 0, 23, 59, 59);
 
-                let count2024 = 0;
-                let count2023 = 0;
+            // If date range is provided, use it to filter monthly data
+            if (startDate || endDate) {
+                // Determine the range of months to display based on date filter
+                const filterStartDate = startDate || new Date(2023, 0, 1);
+                const filterEndDate = endDate || currentDate;
 
-                if (jobPostIds.length > 0) {
-                    count2024 = await this._context.JobPostActivityRepo
-                        .createQueryBuilder('activity')
-                        .where('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
-                        .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
-                        .andWhere('activity.createdAt >= :startDate', { startDate: startDate2024 })
-                        .andWhere('activity.createdAt <= :endDate', { endDate: endDate2024 })
-                        .getCount();
+                const startMonth = filterStartDate.getMonth();
+                const startYear = filterStartDate.getFullYear();
+                const endMonth = filterEndDate.getMonth();
+                const endYear = filterEndDate.getFullYear();
 
-                    count2023 = await this._context.JobPostActivityRepo
-                        .createQueryBuilder('activity')
-                        .where('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
-                        .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
-                        .andWhere('activity.createdAt >= :startDate', { startDate: startDate2023 })
-                        .andWhere('activity.createdAt <= :endDate', { endDate: endDate2023 })
-                        .getCount();
+                // Loop through months in the filtered range
+                for (let year = startYear; year <= endYear; year++) {
+                    const monthStart = year === startYear ? startMonth : 0;
+                    const monthEnd = year === endYear ? endMonth : 11;
+
+                    for (let month = monthStart; month <= monthEnd; month++) {
+                        const monthDate = new Date(year, month, 1);
+                        const monthName = monthDate.toLocaleDateString('vi-VN', { month: 'numeric', year: 'numeric' });
+                        const monthStartDate = new Date(year, month, 1);
+                        const monthEndDate = new Date(year, month + 1, 0, 23, 59, 59);
+
+                        let count = 0;
+
+                        if (jobPostIds.length > 0) {
+                            count = await this._context.JobPostActivityRepo
+                                .createQueryBuilder('activity')
+                                .where('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
+                                .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
+                                .andWhere('activity.createdAt >= :startDate', { startDate: monthStartDate })
+                                .andWhere('activity.createdAt <= :endDate', { endDate: monthEndDate })
+                                .getCount();
+                        }
+
+                        applicationsMonthly.push({
+                            month: monthName,
+                            year2024: year === 2024 ? count : 0,
+                            year2023: year === 2023 ? count : 0
+                        });
+                    }
                 }
+            } else {
+                // No date filter - show last 12 months with 2023/2024 comparison
+                for (let i = 11; i >= 0; i--) {
+                    const monthDate = new Date(currentYear, currentDate.getMonth() - i, 1);
+                    const monthName = monthDate.toLocaleDateString('vi-VN', { month: 'numeric', year: 'numeric' });
+                    const month = monthDate.getMonth() + 1;
+                    const startDate2024 = new Date(2024, month - 1, 1);
+                    const endDate2024 = new Date(2024, month, 0, 23, 59, 59);
+                    const startDate2023 = new Date(2023, month - 1, 1);
+                    const endDate2023 = new Date(2023, month, 0, 23, 59, 59);
 
-                applicationsMonthly.push({
-                    month: monthName,
-                    year2024: count2024,
-                    year2023: count2023
-                });
+                    let count2024 = 0;
+                    let count2023 = 0;
+
+                    if (jobPostIds.length > 0) {
+                        count2024 = await this._context.JobPostActivityRepo
+                            .createQueryBuilder('activity')
+                            .where('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
+                            .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
+                            .andWhere('activity.createdAt >= :startDate', { startDate: startDate2024 })
+                            .andWhere('activity.createdAt <= :endDate', { endDate: endDate2024 })
+                            .getCount();
+
+                        count2023 = await this._context.JobPostActivityRepo
+                            .createQueryBuilder('activity')
+                            .where('activity.jobPostId IN (:...ids)', { ids: jobPostIds })
+                            .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
+                            .andWhere('activity.createdAt >= :startDate', { startDate: startDate2023 })
+                            .andWhere('activity.createdAt <= :endDate', { endDate: endDate2023 })
+                            .getCount();
+                    }
+
+                    applicationsMonthly.push({
+                        month: monthName,
+                        year2024: count2024,
+                        year2023: count2023
+                    });
+                }
             }
 
             const statistics: ICompanyStatistics = {

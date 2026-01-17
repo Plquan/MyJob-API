@@ -9,7 +9,7 @@ import { CertificateMapper } from "../certificate/certificate-mapper";
 import MyjobFileMapper from "../myjob-file/myjob-file-mapper";
 
 export class ResumeMapper {
-    public static toResumeDto(entity: Resume): IResumeDto {
+    public static toResumeDto(entity: Resume, isSaved?: boolean): IResumeDto {
         return {
             id: entity.id,
             candidateId: entity.candidateId,
@@ -27,6 +27,7 @@ export class ResumeMapper {
             jobType: entity.jobType,
             type: entity.type,
             selected: entity.selected,
+            isSaved: isSaved,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
             myJobFile: MyjobFileMapper.toMyJobFileDto(entity.myJobFile),

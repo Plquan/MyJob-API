@@ -71,10 +71,23 @@ export default class SocketService {
         });
     }
 
-    // Emit new message to conversation
+    // Emit new message to conversation room
     public emitNewMessage(conversationId: number, message: any) {
         this.io.to(`conversation:${conversationId}`).emit('chat:new-message', message);
         logger.info(`New message emitted to conversation ${conversationId}`);
+    }
+
+    // Emit message to specific user (for notifications when user is not in conversation room)
+    public emitMessageToUser(userId: number, message: any) {
+        // Find all sockets of this user (user might have multiple tabs/devices) and emit directly
+        let emittedCount = 0;
+        this.io.sockets.sockets.forEach((socket: AuthSocket) => {
+            if (socket.userId === userId) {
+                socket.emit('chat:new-message', message);
+                emittedCount++;
+            }
+        });
+        logger.info(`New message emitted to user ${userId} (${emittedCount} socket(s))`);
     }
 
     // Get socket instance

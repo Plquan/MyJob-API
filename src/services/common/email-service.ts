@@ -9,8 +9,8 @@ export interface ISendEmailOptions {
   html?: string;
   from?: string;
   fromName?: string;
-  useTemplate?: boolean; // Có sử dụng template header/footer không
-  templateOptions?: IEmailTemplateOptions; // Options cho template
+  useTemplate?: boolean;
+  templateOptions?: IEmailTemplateOptions;
 }
 
 export class EmailService {
@@ -18,26 +18,25 @@ export class EmailService {
 
   private static initialize() {
     if (!this.transporter) {
-      // Kiểm tra config Mailtrap
-      if (!ENV.MAILTRAP_HOST || !ENV.MAILTRAP_PORT || !ENV.MAILTRAP_USER || !ENV.MAILTRAP_PASS) {
-        throw new Error('Mailtrap configuration is not complete');
+      if (!ENV.MAIL_SERVER || !ENV.MAIL_PORT || !ENV.MAIL_USERNAME || !ENV.MAIL_PASSWORD) {
+        throw new Error('Gmail SMTP configuration is not complete');
       }
 
-      // Tạo transporter cho Mailtrap
       this.transporter = nodemailer.createTransport({
-        host: ENV.MAILTRAP_HOST,
-        port: ENV.MAILTRAP_PORT,
+        host: ENV.MAIL_SERVER,
+        port: ENV.MAIL_PORT,
+        secure: false,
         auth: {
-          user: ENV.MAILTRAP_USER,
-          pass: ENV.MAILTRAP_PASS,
+          user: ENV.MAIL_USERNAME,
+          pass: ENV.MAIL_PASSWORD,
         },
+        tls: {
+          rejectUnauthorized: ENV.MAIL_ENABLE_SSL
+        }
       });
     }
   }
 
-  /**
-   * Gửi email đơn giản
-   */
   static async sendEmail(options: ISendEmailOptions): Promise<void> {
     this.initialize();
 
@@ -47,7 +46,7 @@ export class EmailService {
 
     const fromEmail = options.from || ENV.EMAIL_FROM;
     const fromName = options.fromName || ENV.EMAIL_FROM_NAME;
-    
+
     // Format "Name <email>"
     const from = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
 

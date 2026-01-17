@@ -10,7 +10,7 @@ export class JobPostController {
   constructor(JobPostService: IJobPostService) {
     this._jobPostService = JobPostService
   }
-  
+
   @before(inject(Auth.required))
   @POST()
   async createJobPost(req: Request, res: Response) {
@@ -36,6 +36,23 @@ export class JobPostController {
   }
 
   @before(inject(Auth.required))
+  @GET()
+  @route("/get-all-job-posts")
+  async getAllJobPosts(req: Request, res: Response) {
+    const { page = 1, limit = 10, search, jobPostStatus } = req.query;
+
+    const params: IGetCompanyJobPostsReqParams = {
+      page: +page,
+      limit: +limit,
+      search: search ? search.toString() : '',
+      jobPostStatus: jobPostStatus ? +jobPostStatus : undefined,
+    };
+    const response = await this._jobPostService.getAllJobPost(params);
+    res.status(200).json(response)
+  }
+
+
+  @before(inject(Auth.required))
   @PUT()
   async updateJobPost(req: Request, res: Response) {
     const data = req.body
@@ -46,11 +63,36 @@ export class JobPostController {
   @before(inject(Auth.optional))
   @GET()
   async getJobPosts(req: Request, res: Response) {
-    const { page = 1, limit = 10, jobName } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      jobName,
+      careerId,
+      provinceId,
+      position,
+      jobType,
+      experience,
+      academicLevel,
+      salaryMin,
+      salaryMax,
+      postedWithinDays,
+      companyId
+    } = req.query;
+
     const params: IGetJobPostsReqParams = {
       page: +page,
       limit: +limit,
       jobName: jobName?.toString(),
+      careerId: careerId ? +careerId : undefined,
+      provinceId: provinceId ? +provinceId : undefined,
+      position: position ? +position : undefined,
+      jobType: jobType ? +jobType : undefined,
+      experience: experience ? +experience : undefined,
+      academicLevel: academicLevel ? +academicLevel : undefined,
+      salaryMin: salaryMin ? +salaryMin : undefined,
+      salaryMax: salaryMax ? +salaryMax : undefined,
+      postedWithinDays: postedWithinDays ? +postedWithinDays : undefined,
+      companyId: companyId ? +companyId : undefined,
     };
     const response = await this._jobPostService.getJobPosts(params);
     res.status(200).json(response)
@@ -65,7 +107,7 @@ export class JobPostController {
     const response = await this._jobPostService.toggleSaveJobPost(jobPostId);
     res.status(200).json(response)
   }
-  
+
   @before(inject(Auth.required))
   @GET()
   @route("/saved-job-posts")

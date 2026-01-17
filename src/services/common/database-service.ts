@@ -1,8 +1,9 @@
-import { DataSource, Repository, QueryRunner} from "typeorm";
+import { DataSource, Repository, QueryRunner } from "typeorm";
 import logger from "@/common/helpers/logger";
 import { ENV } from "@/common/constants/env";
 import { User } from "@/entities/user";
 import { SavedJobPost } from "@/entities/saved-job-post";
+import { SavedResume } from "@/entities/saved-resume";
 import { Resume } from "@/entities/resume";
 import { Province } from "@/entities/province";
 import { Permission } from "@/entities/permission";
@@ -34,6 +35,7 @@ class DatabaseService {
   private _dataSource: DataSource;
   public UserRepo: Repository<User>;
   public SavedJobPostRepo: Repository<SavedJobPost>;
+  public SavedResumeRepo: Repository<SavedResume>;
   public ResumeRepo: Repository<Resume>;
   public ProvinceRepo: Repository<Province>;
   public PermissionRepo: Repository<Permission>;
@@ -65,6 +67,7 @@ class DatabaseService {
     this._dataSource = dataSource;
     this.UserRepo = this._dataSource.getRepository(User);
     this.SavedJobPostRepo = this._dataSource.getRepository(SavedJobPost);
+    this.SavedResumeRepo = this._dataSource.getRepository(SavedResume);
     this.ResumeRepo = this._dataSource.getRepository(Resume);
     this.ProvinceRepo = this._dataSource.getRepository(Province);
     this.PermissionRepo = this._dataSource.getRepository(Permission);

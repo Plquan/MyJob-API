@@ -18,11 +18,17 @@ export const ENV = {
 
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || 604800,
-    
-    MAILTRAP_HOST: process.env.MAILTRAP_HOST,
-    MAILTRAP_PORT: Number(process.env.MAILTRAP_PORT),
-    MAILTRAP_USER: process.env.MAILTRAP_USER ,
-    MAILTRAP_PASS: process.env.MAILTRAP_PASS ,
-    EMAIL_FROM: process.env.EMAIL_FROM,
-    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
+         
+    MAIL_SERVER: process.env.MAIL_SERVER || 'smtp.gmail.com',
+    MAIL_PORT: Number(process.env.MAIL_PORT) || 587,
+    MAIL_USERNAME: process.env.MAIL_USERNAME || '',
+    MAIL_PASSWORD: process.env.MAIL_PASSWORD || '',
+    MAIL_ENABLE_SSL: process.env.MAIL_ENABLE_SSL === 'true' || true,
+    EMAIL_FROM: process.env.EMAIL_FROM || 'senselib2025@gmail.com',
+    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'MyJob',
+
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+    STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || '',
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+    STRIPE_API_VERSION:'2025-12-15.clover'
 }

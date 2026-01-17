@@ -1,10 +1,9 @@
-import { CreateUserRequest } from "../../dtos/user/create-user-request"
-import { ICreateUser, IUserFilter, IUser } from "../../dtos/user/user-dto"
+import {IUserDto, IUserFilter } from "./user-dto"
 import { IPaginationResponse } from "../base/IPaginationBase"
 
 export default interface IUserService {
-    getAllUsers(filter:IUserFilter): Promise<IPaginationResponse<IUser>>
-    getUserById(userId: number): Promise<IUser>
-    updateUser(data:any): Promise<IUser>
+    getAllUsers(filter:IUserFilter): Promise<IPaginationResponse<IUserDto>>
+    getUserById(userId: number): Promise<IUserDto>
+    updateUser(data:any): Promise<IUserDto>
     deleteUser(userId: number): Promise<boolean>
 }

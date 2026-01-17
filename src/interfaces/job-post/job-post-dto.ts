@@ -77,13 +77,14 @@ export interface IGetJobPostsReqParams {
   jobName?: string
   careerId?: number
   provinceId?: number
+  position?: EPosition;
   jobType?: EJobType;
   experience?: EExperience;
   academicLevel?: EAcademicLevel;
-  rangeSalary?: {
-    salaryMin: number
-    salaryMax: number
-  },
+  salaryMin?: number;
+  salaryMax?: number;
+  postedWithinDays?: number;
+  companyId?: number;
 }
 
 export interface IJobPostDto {

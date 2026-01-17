@@ -1,6 +1,6 @@
 import IUserService from "@/interfaces/user/user-interface";
 import DatabaseService from "../common/database-service";
-import { IUserFilter, IUser, IUpdateUser } from "@/dtos/user/user-dto";
+import { IUserFilter, IUpdateUser, IUserDto } from "@/interfaces/user/user-dto";
 import { User } from "@/entities/user";
 import { SelectQueryBuilder } from "typeorm";
 import IRoleService from "@/interfaces/role/role-interface";
@@ -12,14 +12,12 @@ import { GroupRole } from "@/entities/group-role";
 
 export default class UserService implements IUserService {
     private readonly _context: DatabaseService
-    private readonly _roleSerive: IRoleService;
 
-    constructor(DatabaseService: DatabaseService, RoleService: IRoleService) {
+    constructor(DatabaseService: DatabaseService) {
         this._context = DatabaseService
-        this._roleSerive = RoleService;
     }
 
-    async getAllUsers(filter: IUserFilter): Promise<IPaginationResponse<IUser>> {
+    async getAllUsers(filter: IUserFilter): Promise<IPaginationResponse<IUserDto>> {
         try {
             const {
                 page = 1,
@@ -64,7 +62,7 @@ export default class UserService implements IUserService {
             const users = await query.getRawMany();
 
             return {
-                items: users as IUser[],
+                items: users,
                 totalPages,
                 totalItems
             };
@@ -73,7 +71,7 @@ export default class UserService implements IUserService {
         }
     }
 
-    async updateUser(data: IUpdateUser): Promise<IUser> {
+    async updateUser(data: IUpdateUser): Promise<IUserDto> {
         const dataSource = this._context.getDataSource();
         try {
             await dataSource.transaction(async (manager) => {
@@ -141,7 +139,7 @@ export default class UserService implements IUserService {
         return query;
     }
 
-    async getUserById(userId: number): Promise<IUser> {
+    async getUserById(userId: number): Promise<IUserDto> {
         try {
             const user = await this._context.UserRepo.createQueryBuilder("user")
                 .leftJoin("user.candidate", "candidate")
@@ -171,7 +169,7 @@ export default class UserService implements IUserService {
                 throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy người dùng");
             }
 
-            return user as IUser;
+            return user as IUserDto;
 
         } catch (error) {
             throw error;
