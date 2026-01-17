@@ -12,4 +12,5 @@ export default interface IJobPostService {
     getJobPostById(jobPostId: number): Promise<IJobPostDto>
     getSavedJobPosts(): Promise<IJobPostDto[]>
     getAllJobPost(params: IGetCompanyJobPostsReqParams): Promise<IPaginationResponse<ICompanyJobPostDto>>
+    updateJobPostStatus(jobPostId: number, status: number): Promise<JobPost>
 }

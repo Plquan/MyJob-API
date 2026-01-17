@@ -23,6 +23,7 @@ export default class JobPostService implements IJobPostService {
             const { page, limit, search, jobPostStatus } = params;
 
             const query = this._context.JobPostRepo.createQueryBuilder("job")
+                .leftJoinAndSelect("job.company", "company")
                 .leftJoin("job.jobPostActivities", "activity")
                 .loadRelationCountAndMap("job.activityCount", "job.jobPostActivities");
 
@@ -305,6 +306,29 @@ export default class JobPostService implements IJobPostService {
             throw error
         }
     }
+    
+    async updateJobPostStatus(jobPostId: number, status: number): Promise<JobPost> {
+        try {
+            const jobPost = await this._context.JobPostRepo.findOne({
+                where: { id: jobPostId }
+            });
+            if (!jobPost) {
+                throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Job post not found");
+            }
+            
+            // Validate status
+            if (!Object.values(EJobPostStatus).includes(status)) {
+                throw new HttpException(StatusCodes.BAD_REQUEST, EGlobalError.InvalidInput, "Invalid status");
+            }
+            
+            jobPost.status = status;
+            await this._context.JobPostRepo.save(jobPost);
+            return jobPost;
+        } catch (error) {
+            throw error;
+        }
+    }
+    
     async getSavedJobPosts(): Promise<IJobPostDto[]> {
         try {
             const user = getCurrentUser();

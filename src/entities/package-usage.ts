@@ -20,10 +20,10 @@ export class PackageUsage {
   @Column({ type: "int" })
   jobPostUsed: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
   jobHotDurationInDays: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
   highlightCompanyDurationInDays: number;
 
   @Column({ type: "timestamp", nullable: true })

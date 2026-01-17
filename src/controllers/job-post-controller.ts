@@ -125,4 +125,14 @@ export class JobPostController {
     res.status(200).json(response)
   }
 
+  @before(inject(Auth.required))
+  @route("/update-status/:jobPostId")
+  @PUT()
+  async updateJobPostStatus(req: Request, res: Response) {
+    const jobPostId = parseInt(req.params.jobPostId)
+    const { status } = req.body
+    const response = await this._jobPostService.updateJobPostStatus(jobPostId, status);
+    res.status(200).json(response)
+  }
+
 }

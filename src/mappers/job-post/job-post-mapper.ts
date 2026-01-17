@@ -86,6 +86,10 @@ export default class JobPostMapper {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       status: entity.status,
+      company: entity.company ? {
+        id: entity.company.id,
+        companyName: entity.company.companyName,
+      } : undefined,
     };
   }
 

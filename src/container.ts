@@ -21,6 +21,7 @@ import JobPostService from "./services/Job-post/job-post-service"
 import JobPostActivityService from "./services/job-post-activity/job-post-activity-service"
 import ChatService from "./services/chat/chat-service"
 import PaymentService from "./services/payment/payment-service"
+import StatisticsService from "./services/statistics/statistics-service"
 
 const container = createContainer({
   injectionMode: InjectionMode.CLASSIC,
@@ -49,6 +50,7 @@ container.register({
   JobPostActivityService: asClass(JobPostActivityService).scoped(),
   ChatService: asClass(ChatService).scoped(),
   PaymentService: asClass(PaymentService).scoped(),
+  StatisticsService: asClass(StatisticsService).scoped(),
 })
 container.resolve("JwtService")
 container.resolve("DatabaseService")
