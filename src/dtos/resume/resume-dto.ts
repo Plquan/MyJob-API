@@ -25,6 +25,7 @@ export interface IResumeDto {
   jobType?: EJobType;
   type: EResumeType;
   selected: boolean;
+  isSaved?: boolean;
   createdAt: Date;
   updatedAt: Date;
   myJobFile?: IMyJobFileDto;

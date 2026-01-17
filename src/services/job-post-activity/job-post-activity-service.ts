@@ -33,17 +33,6 @@ export default class JobPostActivityService implements IJobPostActivityService {
             throw error
         }
     }
-    async getJobActivityById(jobPostActivityId: number): Promise<IJobPostActivityDto> {
-        try {
-            const jobPostActivity = await this._context.JobPostActivityRepo.findOne({
-                where: { id: jobPostActivityId },
-                relations: ["resume", "resume.myJobFile", "resume.candidate", "candidate.avatar"]
-            })
-            return JobPostActivityMapper.toJobPostActivityDto(jobPostActivity)
-        } catch (error) {
-            throw error
-        }
-    }
     async deleteJobPostActivity(jobPostActivityId: number): Promise<boolean> {
         try {
             if (!jobPostActivityId) {

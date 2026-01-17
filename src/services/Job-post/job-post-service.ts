@@ -118,7 +118,8 @@ export default class JobPostService implements IJobPostService {
                 academicLevel,
                 salaryMin,
                 salaryMax,
-                postedWithinDays
+                postedWithinDays,
+                companyId
             } = params;
             const candidateId = getCurrentUser()?.candidateId;
 
@@ -181,6 +182,10 @@ export default class JobPostService implements IJobPostService {
                 const dateThreshold = new Date();
                 dateThreshold.setDate(dateThreshold.getDate() - postedWithinDays);
                 query.andWhere("job.createdAt >= :dateThreshold", { dateThreshold });
+            }
+
+            if (companyId) {
+                query.andWhere("job.companyId = :companyId", { companyId });
             }
 
             const totalItems = await query.getCount();

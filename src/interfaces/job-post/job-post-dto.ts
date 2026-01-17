@@ -84,6 +84,7 @@ export interface IGetJobPostsReqParams {
   salaryMin?: number;
   salaryMax?: number;
   postedWithinDays?: number;
+  companyId?: number;
 }
 
 export interface IJobPostDto {

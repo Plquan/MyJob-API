@@ -32,11 +32,28 @@ export default class ResumeService implements IResumeService {
 
   async getResumeDetail(resumeId: number): Promise<IResumeDto> {
     try {
+      const user = getCurrentUser();
+      const companyId = user?.companyId;
+
       const resume = await this._context.ResumeRepo.findOne({
         where: { id: resumeId },
         relations: ['myJobFile', "candidate", "candidate.avatar", "candidate.user"]
       })
-      return resume
+
+      if (!resume) {
+        throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Resume not found");
+      }
+
+      // Check if resume is saved by current employer
+      let isSaved = false;
+      if (companyId) {
+        const savedResume = await this._context.SavedResumeRepo.findOne({
+          where: { resumeId, companyId }
+        });
+        isSaved = !!savedResume;
+      }
+
+      return ResumeMapper.toResumeDto(resume, isSaved);
     } catch (error) {
       throw error
     }
@@ -417,37 +434,52 @@ export default class ResumeService implements IResumeService {
     }
   }
 
-  async getSavedResumes(params: ISearchResumesReqParams): Promise<IPaginationResponse<IResumeDto>> {
+  async getSavedResumes(
+    params: ISearchResumesReqParams
+  ): Promise<IPaginationResponse<IResumeDto>> {
     try {
       const companyId = getCurrentUser()?.companyId;
       if (!companyId) {
-        throw new HttpException(StatusCodes.UNAUTHORIZED, EGlobalError.UnauthorizedAccess, "Company Id not found");
+        throw new HttpException(
+          StatusCodes.UNAUTHORIZED,
+          EGlobalError.UnauthorizedAccess,
+          "Company Id not found"
+        );
       }
 
       const { page = 1, limit = 10, title, candidateName } = params;
 
-      // Ensure page and limit are valid numbers
       const validPage = Math.max(1, Number(page) || 1);
       const validLimit = Math.max(1, Math.min(100, Number(limit) || 10));
 
-      const query = this._context.ResumeRepo.createQueryBuilder("resume")
-        .innerJoinAndSelect("resume.savedResumes", "savedResume", "savedResume.companyId = :companyId", { companyId })
+      const baseQuery = this._context.ResumeRepo
+        .createQueryBuilder("resume")
+        .innerJoinAndSelect(
+          "resume.savedResumes",
+          "savedResume",
+          "savedResume.companyId = :companyId",
+          { companyId }
+        )
         .leftJoinAndSelect("resume.candidate", "candidate")
         .leftJoinAndSelect("candidate.avatar", "avatar")
-        .leftJoinAndSelect("resume.myJobFile", "myJobFile")
-        .orderBy("savedResume.createdAt", "DESC");
+        .leftJoinAndSelect("resume.myJobFile", "myJobFile");
 
-      // Add search filters
-      if (title) {
-        query.andWhere("resume.title ILIKE :title", { title: `%${title}%` });
+      if (candidateName?.trim()) {
+        baseQuery.andWhere("candidate.fullName ILIKE :candidateName", {
+          candidateName: `%${candidateName.trim()}%`,
+        });
       }
 
-      if (candidateName) {
-        query.andWhere("candidate.fullName ILIKE :candidateName", { candidateName: `%${candidateName}%` });
-      }
+      const totalItems = await baseQuery
+        .clone()
+        .select("COUNT(DISTINCT resume.id)", "cnt")
+        .orderBy() // 🔥 REMOVE ORDER BY
+        .getRawOne()
+        .then((r) => Number(r.cnt));
 
-      const totalItems = await query.getCount();
-      const resumes = await query
+      const resumes = await baseQuery
+        .clone()
+        .orderBy("savedResume.createdAt", "DESC")
         .skip((validPage - 1) * validLimit)
         .take(validLimit)
         .getMany();
@@ -461,4 +493,6 @@ export default class ResumeService implements IResumeService {
       throw error;
     }
   }
+
+
 }

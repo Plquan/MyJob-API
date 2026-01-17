@@ -97,8 +97,54 @@ export default class CompanyService implements ICompanyService {
             throw error
         }
     }
-    updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto> {
-        throw new Error("Method not implemented.");
+    async updateCompanyInfo(request: IUpdateCompanyRequest): Promise<ICompanyDto> {
+        try {
+            const companyId = getCurrentUser()?.companyId;
+
+            if (!companyId) {
+                throw new HttpException(
+                    StatusCodes.UNAUTHORIZED,
+                    EAuthError.UnauthorizedAccess,
+                    "Company Id not found"
+                );
+            }
+
+            const company = await this._context.CompanyRepo.findOne({
+                where: { id: companyId }
+            });
+
+            if (!company) {
+                throw new HttpException(
+                    StatusCodes.NOT_FOUND,
+                    EGlobalError.ResourceNotFound,
+                    "Company not found"
+                );
+            }
+
+            // Merge the request data into company entity
+            this._context.CompanyRepo.merge(company, {
+                companyName: request.companyName,
+                companyEmail: request.companyEmail,
+                companyPhone: request.companyPhone,
+                taxCode: request.taxCode,
+                provinceId: request.provinceId,
+                address: request.address,
+                description: request.description,
+                websiteUrl: request.websiteUrl,
+                facebookUrl: request.facebookUrl,
+                youtubeUrl: request.youtubeUrl,
+                linkedInUrl: request.linkedInUrl,
+                since: request.since,
+                fieldOperation: request.fieldOperation,
+                employeeSize: request.employeeSize,
+            });
+
+            const updatedCompany = await this._context.CompanyRepo.save(company);
+            return CompanyMapper.toCompanyDto(updatedCompany);
+        } catch (error) {
+            logger.error('Error updating company info:', error);
+            throw error;
+        }
     }
     async uploadCompanyCoverImage(image: Express.Multer.File): Promise<IMyJobFileDto> {
         try {

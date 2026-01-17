@@ -75,7 +75,8 @@ export class JobPostController {
       academicLevel,
       salaryMin,
       salaryMax,
-      postedWithinDays
+      postedWithinDays,
+      companyId
     } = req.query;
 
     const params: IGetJobPostsReqParams = {
@@ -91,6 +92,7 @@ export class JobPostController {
       salaryMin: salaryMin ? +salaryMin : undefined,
       salaryMax: salaryMax ? +salaryMax : undefined,
       postedWithinDays: postedWithinDays ? +postedWithinDays : undefined,
+      companyId: companyId ? +companyId : undefined,
     };
     const response = await this._jobPostService.getJobPosts(params);
     res.status(200).json(response)

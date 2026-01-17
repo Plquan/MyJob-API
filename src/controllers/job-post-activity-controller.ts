@@ -34,13 +34,6 @@ export class JobPostController {
         return res.status(200).json(response);
     }
 
-    @GET()
-    @route("/:jobPostActivityId")
-    async getJobPostActivityId(req: Request, res: Response) {
-        const jobPostActivityId = parseInt(req.params.jobPostActivityId)
-        const response = await this._jobPostActivityService.getJobActivityById(jobPostActivityId)
-        return res.status(200).json(response);
-    }
 
     @PUT()
     async updateJobPostActivityStatus(req: Request, res: Response) {
