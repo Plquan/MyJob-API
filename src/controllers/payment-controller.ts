@@ -1,6 +1,6 @@
 import { Auth } from "@/common/middlewares";
 import IPaymentService from "@/interfaces/payment/payment-interface";
-import { route, POST, before, inject } from "awilix-express";
+import { route, POST, GET, before, inject } from "awilix-express";
 import { Request, Response } from "express";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import logger from "@/common/helpers/logger";
@@ -101,6 +101,28 @@ export class PaymentController {
             logger.error('Webhook error:', error);
             res.status(error.statusCode || 400).json({
                 error: error.message || 'Webhook handler failed'
+            });
+        }
+    }
+
+    @before(inject(Auth.required))
+    @GET()
+    @route('/history')
+    async getPaymentHistory(req: Request, res: Response) {
+        try {
+            const currentUser = getCurrentUser();
+            if (!currentUser || !currentUser.isSuperUser) {
+                return res.status(403).json({
+                    error: 'Access denied. Admin privileges required.'
+                });
+            }
+
+            const history = await this._paymentService.getPaymentHistory();
+            res.status(200).json(history);
+        } catch (error: any) {
+            logger.error('Error getting payment history:', error);
+            res.status(error.statusCode || 500).json({
+                error: error.message || 'Failed to get payment history'
             });
         }
     }

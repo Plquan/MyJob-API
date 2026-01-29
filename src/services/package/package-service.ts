@@ -7,6 +7,7 @@ import { HttpException } from "@/errors/http-exception";
 import { getCurrentUser } from "@/common/helpers/get-current-user";
 import { Package } from "@/entities/package";
 import { PackageUsage } from "@/entities/package-usage";
+import { Company } from "@/entities/company";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
 import { EGlobalError } from "@/common/enums/error/EGlobalError";
 import { EAuthError } from "@/common/enums/error/EAuthError";
@@ -106,22 +107,58 @@ export default class PackageService implements IPackageService {
                 if (!existingPackage) {
                     throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "existing package not found");
                 }
-                const packageUsageData = PackageMapper.toCreatePackageUsage(existingPackage, companyId);
+                const newPackageUsageData = PackageMapper.toCreatePackageUsage(existingPackage, companyId);
+                
                 if (existingPackageUsage) {
-                    packageUsageData.id = existingPackageUsage.id;
+                    // Cộng dồn remaining values
+                    newPackageUsageData.id = existingPackageUsage.id;
+                    newPackageUsageData.candidateSearchRemaining = existingPackageUsage.candidateSearchRemaining + newPackageUsageData.candidateSearchRemaining;
+                    newPackageUsageData.jobPostRemaining = existingPackageUsage.jobPostRemaining + newPackageUsageData.jobPostRemaining;
+                    
+                    // Lấy expiryDate xa hơn (max giữa existing và new)
+                    if (existingPackageUsage.expiryDate && newPackageUsageData.expiryDate) {
+                        newPackageUsageData.expiryDate = existingPackageUsage.expiryDate > newPackageUsageData.expiryDate 
+                            ? existingPackageUsage.expiryDate 
+                            : newPackageUsageData.expiryDate;
+                    }
+                    
+                    // Lấy duration lớn hơn (max giữa existing và new)
+                    newPackageUsageData.jobPostDurationInDays = Math.max(
+                        existingPackageUsage.jobPostDurationInDays, 
+                        newPackageUsageData.jobPostDurationInDays
+                    );
+                    newPackageUsageData.jobHotDurationInDays = Math.max(
+                        existingPackageUsage.jobHotDurationInDays, 
+                        newPackageUsageData.jobHotDurationInDays
+                    );
+                    newPackageUsageData.highlightCompanyDurationInDays = Math.max(
+                        existingPackageUsage.highlightCompanyDurationInDays, 
+                        newPackageUsageData.highlightCompanyDurationInDays
+                    );
                 }
-                await manager.getRepository(PackageUsage).save(packageUsageData);
+                
+                await manager.getRepository(PackageUsage).save(newPackageUsageData);
 
-                // Update Company hotExpiredAt
-                const company = await this._context.CompanyRepo.findOne({
+                // Update Company hotExpiredAt - cộng dồn thời gian
+                const company = await manager.getRepository(Company).findOne({
                     where: { id: companyId }
                 });
 
                 if (company) {
-                    const hotExpiredAt = new Date();
-                    hotExpiredAt.setDate(hotExpiredAt.getDate() + existingPackage.highlightCompanyDurationInDays);
-                    company.hotExpiredAt = hotExpiredAt;
-                    await manager.getRepository('companies').save(company);
+                    const newHotExpiredAt = new Date();
+                    newHotExpiredAt.setDate(newHotExpiredAt.getDate() + existingPackage.highlightCompanyDurationInDays);
+                    
+                    // Nếu đã có hotExpiredAt và còn hạn, cộng dồn; nếu không lấy ngày mới
+                    if (company.hotExpiredAt && company.hotExpiredAt > new Date()) {
+                        // Cộng dồn thời gian từ ngày hiện tại của hotExpiredAt
+                        const additionalDays = existingPackage.highlightCompanyDurationInDays;
+                        company.hotExpiredAt.setDate(company.hotExpiredAt.getDate() + additionalDays);
+                    } else {
+                        // Nếu đã hết hạn hoặc chưa có, set ngày mới
+                        company.hotExpiredAt = newHotExpiredAt;
+                    }
+                    
+                    await manager.getRepository(Company).save(company);
                 }
 
                 return true;

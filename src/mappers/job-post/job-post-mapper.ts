@@ -65,6 +65,7 @@ export default class JobPostMapper {
       provinceId: entity.provinceId,
       jobName: entity.jobName,
       deadline: entity.deadline,
+      expiredAt: entity.expiredAt,
       quantity: entity.quantity,
       jobDescription: entity.jobDescription,
       jobRequirement: entity.jobRequirement,
@@ -130,11 +131,17 @@ export default class JobPostMapper {
       ? (entity.jobPostActivities?.length ?? 0) > 0
       : false;
 
+    // Check if job has passed deadline
+    const isExpired = entity.deadline
+      ? new Date() > new Date(entity.deadline)
+      : false;
+
     return {
       id: entity.id,
       isNew: isNew,
       isSaved: isSaved,
       isApplied: isApplied,
+      isExpired: isExpired,
       provinceId: entity.provinceId,
       jobName: entity.jobName,
       deadline: entity.deadline,

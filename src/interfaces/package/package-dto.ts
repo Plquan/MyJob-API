@@ -3,6 +3,7 @@ export interface IPackageDto {
   name: string;
   price: number;
   durationInDays: number;
+  jobPostDurationInDays: number;
   jobHotDurationInDays: number;
   highlightCompanyDurationInDays: number;
   candidateSearchLimit: number;
@@ -17,6 +18,7 @@ export interface ICreatePackageRequest {
   name: string;
   price: number;
   durationInDays: number;
+  jobPostDurationInDays?: number;
   jobHotDurationInDays?: number;
   highlightCompanyDurationInDays?: number;
   candidateSearchLimit?: number;

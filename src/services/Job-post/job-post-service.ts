@@ -13,6 +13,7 @@ import { FileType } from "@/common/enums/file-type/file-types";
 import { EJobPostStatus } from "@/common/enums/job/EJobPostStatus";
 import { NotificationType } from "@/entities/notification";
 import SocketService from "../common/socket-service";
+import { Console } from "console";
 
 export default class JobPostService implements IJobPostService {
     private readonly _context: DatabaseService
@@ -134,6 +135,7 @@ export default class JobPostService implements IJobPostService {
                     "job.salaryMax",
                     "job.provinceId",
                     "job.createdAt",
+                    "job.updatedAt",
                     "job.hotExpiredAt",
                     "job.deadline"
                 ])
@@ -191,9 +193,12 @@ export default class JobPostService implements IJobPostService {
                 query.andWhere("job.companyId = :companyId", { companyId });
             }
 
+            query.andWhere("job.expiredAt >= NOW()");
+
             const totalItems = await query.getCount();
+
             const jobPosts = await query
-                .orderBy("job.createdAt", "DESC")
+                .addOrderBy("job.updatedAt", "DESC")
                 .skip((page - 1) * limit)
                 .take(limit)
                 .getMany();
@@ -326,6 +331,10 @@ export default class JobPostService implements IJobPostService {
                 const expiredAt = new Date();
                 expiredAt.setDate(expiredAt.getDate() + packageUsage.jobPostDurationInDays);
                 newJobPost.expiredAt = expiredAt;
+
+                console.log(`expired At ${packageUsage.jobPostDurationInDays}`);
+
+                
 
                 // Set hotExpiredAt based on jobHotDurationInDays
                 const hotExpiredAt = new Date();

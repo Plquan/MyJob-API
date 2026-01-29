@@ -17,4 +17,5 @@ export default interface ICompanyService {
     toggleFollowCompany(companyId: number): Promise<boolean>
     getSavedCompanies(): Promise<ICompanyWithImagesDto[]>
     getEmployerStatistics(params?: IGetEmployerStatisticsRequest): Promise<ICompanyStatistics>
+    getFeaturedCompanies(limit?: number): Promise<ICompanyWithImagesDto[]>
 }

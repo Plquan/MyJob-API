@@ -78,11 +78,11 @@ export default class StatisticsService implements IStatisticsService {
         .getRawOne();
 
       return {
-        jobSeekers: jobSeekersCount,
-        employers: employersCount,
-        jobPosts: jobPostsCount,
-        applications: applicationsCount,
-        revenue: parseFloat(revenueResult?.total || '0'),
+        jobSeekers: jobSeekersCount || 0,
+        employers: employersCount || 0,
+        jobPosts: jobPostsCount || 0,
+        applications: applicationsCount || 0,
+        revenue: parseFloat(revenueResult?.total || '0') || 0,
       };
     } catch (error) {
       throw error;
@@ -158,7 +158,6 @@ export default class StatisticsService implements IStatisticsService {
 
       const results = await query.getRawMany();
 
-      // Map status codes to Vietnamese labels
       const statusLabels: { [key: number]: string } = {
         [EJobPostStatus.PENDING_APPROVAL]: 'Chờ duyệt',
         [EJobPostStatus.APPROVED]: 'Đã duyệt',

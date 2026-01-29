@@ -3,7 +3,8 @@ import { ENV } from '@/common/constants/env';
 import IPaymentService, {
     ICreateCheckoutSessionRequest,
     ICreateCheckoutSessionResponse,
-    IPaymentWebhookEvent
+    IPaymentWebhookEvent,
+    IPaymentHistoryDto
 } from '@/interfaces/payment/payment-interface';
 import logger from '@/common/helpers/logger';
 import DatabaseService from '@/services/common/database-service';
@@ -65,7 +66,7 @@ export default class PaymentService implements IPaymentService {
                                 name: packageData.name,
                                 description: packageData.description || '',
                             },
-                            unit_amount: Math.round(packagePrice * 100),
+                            unit_amount: Math.round(packagePrice), // VND is zero-decimal currency, no need to multiply by 100
                         },
                         quantity: 1,
                     },
@@ -225,6 +226,45 @@ export default class PaymentService implements IPaymentService {
             logger.warn(`Payment failed for session ${sessionId}`);
         } catch (error: any) {
             throw error
+        }
+    }
+
+    async getPaymentHistory(): Promise<IPaymentHistoryDto[]> {
+        const dataSource = this._context.getDataSource();
+        try {
+            const purchases = await dataSource.getRepository(PackagePurchases).find({
+                relations: ['company', 'package'],
+                order: {
+                    paymentDate: 'DESC'
+                }
+            });
+
+            return purchases.map(purchase => ({
+                id: purchase.id,
+                companyId: purchase.companyId,
+                packageId: purchase.packageId,
+                price: Number(purchase.price),
+                paymentMethod: purchase.paymentMethod,
+                paymentDate: purchase.paymentDate,
+                startDate: purchase.startDate,
+                endDate: purchase.endDate,
+                company: {
+                    id: purchase.company.id,
+                    companyName: purchase.company.companyName,
+                    companyEmail: purchase.company.companyEmail,
+                    companyPhone: purchase.company.companyPhone,
+                    taxCode: purchase.company.taxCode,
+                    address: purchase.company.address
+                },
+                package: {
+                    id: purchase.package.id,
+                    name: purchase.package.name,
+                    description: purchase.package.description
+                }
+            }));
+        } catch (error: any) {
+            logger.error('Error getting payment history:', error);
+            throw error;
         }
     }
 }

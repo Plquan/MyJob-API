@@ -19,6 +19,7 @@ export interface ICompanyDto {
   description?: string;
   employeeSize?: number;
   address: string;
+  hotExpiredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
