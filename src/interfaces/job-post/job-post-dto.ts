@@ -35,6 +35,7 @@ export interface ICompanyJobPostDto {
   provinceId: number;
   jobName: string;
   deadline?: Date;
+  expiredAt?: Date;
   quantity?: number;
   jobDescription?: string;
   jobRequirement?: string;
@@ -104,6 +105,7 @@ export interface IJobPostDto {
   isSaved: boolean
   isApplied: boolean
   isNew: boolean
+  isExpired?: boolean
   deadline?: Date;
   quantity?: number;
   jobDescription?: string;

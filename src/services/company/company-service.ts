@@ -550,4 +550,46 @@ export default class CompanyService implements ICompanyService {
         }
     }
 
+    async getFeaturedCompanies(limit: number = 12): Promise<ICompanyWithImagesDto[]> {
+        try {
+            const now = new Date();
+
+            const companies = await this._context.CompanyRepo
+                .createQueryBuilder('company')
+                .leftJoinAndSelect('company.companyImages', 'companyImage')
+                .leftJoinAndSelect('companyImage.image', 'myJobFile',
+                    "myJobFile.fileType IN (:...types) AND myJobFile.deletedAt IS NULL",
+                    { types: [FileType.LOGO, FileType.COVER_IMAGE] })
+                .where('company.hotExpiredAt IS NOT NULL')
+                .andWhere('company.hotExpiredAt > :now', { now })
+                .orderBy('company.hotExpiredAt', 'DESC')
+                .take(limit)
+                .getMany();
+
+            const candidateId = getCurrentUser()?.candidateId;
+            const followedCompanyIds = new Set<number>();
+
+            if (candidateId) {
+                const companyFollowed = await this._context.FollowedCompanyRepo.find({
+                    where: { candidateId },
+                    select: ['companyId'],
+                });
+                for (const f of companyFollowed) {
+                    followedCompanyIds.add(f.companyId);
+                }
+            }
+
+            const companyDtos = companies.map(company => {
+                const dto = CompanyMapper.toCompanyWithImagesDto(company);
+                dto.isFollowed = followedCompanyIds.has(company.id);
+                return dto;
+            });
+
+            return companyDtos;
+        } catch (error) {
+            logger.error('Error getting featured companies:', error);
+            throw error;
+        }
+    }
+
 }

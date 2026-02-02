@@ -9,6 +9,7 @@ export default class PackageMapper {
       name: entity.name,
       price: entity.price,
       durationInDays: entity.durationInDays,
+      jobPostDurationInDays: entity.jobPostDurationInDays,
       jobHotDurationInDays: entity.jobHotDurationInDays,
       highlightCompanyDurationInDays: entity.highlightCompanyDurationInDays,
       candidateSearchLimit: entity.candidateSearchLimit,

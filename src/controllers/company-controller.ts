@@ -124,4 +124,13 @@ export class CompanyController {
         res.status(200).json(response);
     }
 
+    @before(inject(Auth.optional))
+    @GET()
+    @route("/featured")
+    async getFeaturedCompanies(req: Request, res: Response) {
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 12;
+        const response = await this._companyService.getFeaturedCompanies(limit);
+        res.status(200).json(response);
+    }
+
 }

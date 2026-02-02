@@ -24,6 +24,7 @@ export class CompanyMapper {
             description: entity.description,
             employeeSize: entity.employeeSize,
             address: entity.address,
+            hotExpiredAt: entity.hotExpiredAt,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
         };

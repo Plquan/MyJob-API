@@ -2,6 +2,7 @@ import IUserService from "@/interfaces/user/user-interface";
 import DatabaseService from "../common/database-service";
 import { IUserFilter, IUpdateUser, IUserDto } from "@/interfaces/user/user-dto";
 import { User } from "@/entities/user";
+import { Candidate } from "@/entities/candidate";
 import { SelectQueryBuilder } from "typeorm";
 import IRoleService from "@/interfaces/role/role-interface";
 import { StatusCodes } from "@/common/enums/status-code/status-code.enum";
@@ -32,11 +33,12 @@ export default class UserService implements IUserService {
                 .select([
                     'user.id AS "id"',
                     'user.email AS "email"',
+                    'candidate.fullName AS "fullName"',
                     'user.isVerifyEmail AS "isVerifyEmail"',
                     'user.isActive AS "isActive"',
                     'user.isSuperUser AS "isSuperUser"',
                     'user.isStaff AS "isStaff"',
-                    'user.roleName AS "roleName"',
+                    'user.role AS "roleName"',
                     'user.createdAt AS "createdAt"',
                     'user.updatedAt AS "updatedAt"',
                     'avatar.url AS "avatar"',
@@ -44,6 +46,7 @@ export default class UserService implements IUserService {
                 ])
                 .groupBy('user.id')
                 .addGroupBy('avatar.url')
+                .addGroupBy('candidate.fullName')
 
             let countQuery = this._context.UserRepo.createQueryBuilder("user")
                 .leftJoin("user.candidate", "candidate")
@@ -77,8 +80,12 @@ export default class UserService implements IUserService {
             await dataSource.transaction(async (manager) => {
                 const userRepo = manager.getRepository(User);
                 const groupRoleRepo = manager.getRepository(GroupRole);
+                const candidateRepo = manager.getRepository(Candidate);
 
-                const user = await userRepo.findOne({ where: { id: data.id } });
+                const user = await userRepo.findOne({ 
+                    where: { id: data.id },
+                    relations: ['candidate']
+                });
 
                 if (!user) {
                     throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Người dùng không tồn tại");
@@ -86,7 +93,6 @@ export default class UserService implements IUserService {
 
                 const updateUserData = {
                     email: data.email,
-                    fullName: data.fullName,
                     isVerifyEmail: data.isVerifyEmail,
                     isActive: data.isActive,
                     isSuperUser: data.isSuperUser,
@@ -96,6 +102,12 @@ export default class UserService implements IUserService {
 
                 userRepo.merge(user, updateUserData);
                 await userRepo.save(user);
+
+                // Update fullName in candidate if exists
+                if (data.fullName && user.candidate) {
+                    candidateRepo.merge(user.candidate, { fullName: data.fullName });
+                    await candidateRepo.save(user.candidate);
+                }
 
                 await groupRoleRepo.delete({ userId: data.id });
 
@@ -119,13 +131,13 @@ export default class UserService implements IUserService {
         const { searchKey, roleName, isActive, isVerifyEmail } = filter;
 
         if (searchKey) {
-            query.andWhere('(LOWER(user.email) LIKE :searchKey OR LOWER(user.fullName) LIKE :searchKey)', {
+            query.andWhere('(LOWER(user.email) LIKE :searchKey OR LOWER(candidate.fullName) LIKE :searchKey)', {
                 searchKey: `%${searchKey.toLowerCase()}%`,
             });
         }
 
         if (roleName) {
-            query.andWhere('user.roleName = :roleName', { roleName });
+            query.andWhere('user.role = :roleName', { roleName });
         }
 
         if (isActive !== undefined) {
@@ -149,12 +161,12 @@ export default class UserService implements IUserService {
                 .select([
                     'user.id AS "id"',
                     'user.email AS "email"',
-                    'user.fullName AS "fullName"',
+                    'candidate.fullName AS "fullName"',
                     'user.isVerifyEmail AS "isVerifyEmail"',
                     'user.isActive AS "isActive"',
                     'user.isSuperUser AS "isSuperUser"',
                     'user.isStaff AS "isStaff"',
-                    'user.roleName AS "roleName"',
+                    'user.role AS "roleName"',
                     'user.createdAt AS "createdAt"',
                     'user.updatedAt AS "updatedAt"',
                     'avatar.url AS "avatar"',
@@ -163,6 +175,7 @@ export default class UserService implements IUserService {
                 .where("user.id = :id", { id: userId })
                 .groupBy('user.id')
                 .addGroupBy('avatar.url')
+                .addGroupBy('candidate.fullName')
                 .getRawOne();
 
             if (!user) {

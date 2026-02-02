@@ -121,7 +121,7 @@ export default class CandidateService implements ICandidateService {
         candidate.allowSearch = status
         await this._context.CandidateRepo.save(candidate)
 
-        return true;
+        return candidate.allowSearch;
       
      } catch (error) {
        logger.error(error?.message);
@@ -147,7 +147,6 @@ export default class CandidateService implements ICandidateService {
           throw new HttpException(StatusCodes.NOT_FOUND, EGlobalError.ResourceNotFound, "Không tìm thấy hồ sơ ứng viên");
         }
 
-        // Get total counts
         const appliedJobsCount = await this._context.JobPostActivityRepo.count({
           where: { candidateId: candidate.id, isDeleted: false }
         });
@@ -160,7 +159,6 @@ export default class CandidateService implements ICandidateService {
           where: { candidateId: candidate.id }
         });
 
-        // Get monthly activity data for the last 12 months
         const currentDate = new Date();
         const monthlyActivity: IMonthlyActivity[] = [];
 
@@ -170,7 +168,6 @@ export default class CandidateService implements ICandidateService {
           
           const monthStr = `T${monthDate.getMonth() + 1}-${monthDate.getFullYear()}`;
 
-          // Count applied jobs in this month
           const appliedInMonth = await this._context.JobPostActivityRepo.count({
             where: {
               candidateId: candidate.id,
@@ -179,7 +176,6 @@ export default class CandidateService implements ICandidateService {
             }
           });
 
-          // Count saved jobs in this month
           const savedInMonth = await this._context.SavedJobPostRepo.count({
             where: {
               candidateId: candidate.id,
@@ -187,7 +183,6 @@ export default class CandidateService implements ICandidateService {
             }
           });
 
-          // Count followed companies in this month
           const followedInMonth = await this._context.FollowedCompanyRepo.count({
             where: {
               candidateId: candidate.id,
@@ -249,7 +244,6 @@ export default class CandidateService implements ICandidateService {
           return []
         }
 
-        // Build query for recommended jobs
         const query = this._context.JobPostRepo.createQueryBuilder("job")
           .leftJoinAndSelect("job.company", "company")
           .leftJoinAndSelect("company.companyImages", "companyImage")
@@ -266,63 +260,52 @@ export default class CandidateService implements ICandidateService {
           .where("job.status = :status", { status: EJobPostStatus.APPROVED })
           .andWhere("job.deadline > :now", { now: new Date() });
 
-        // Add filters to prioritize matching jobs
+
         let params: any = { candidateId: candidate.id, status: EJobPostStatus.APPROVED, now: new Date() };
 
-        // Prioritize career match
         if (selectedResume.careerId) {
           params.careerId = selectedResume.careerId;
         }
 
-        // Prioritize province match
         if (selectedResume.provinceId) {
           params.provinceId = selectedResume.provinceId;
         }
 
         query.setParameters(params);
 
-        // Fetch more jobs than needed for scoring
         const jobPosts = await query
-          .take(limit * 5) // Fetch 5x more for scoring
+          .take(limit * 5) 
           .getMany();
 
-        // Calculate match score for each job in application
         const scoredJobs = jobPosts.map((job) => {
           let score = 0;
 
-          // Match career (highest priority - 40 points)
           if (selectedResume.careerId && job.careerId === selectedResume.careerId) {
             score += 40;
           }
 
-          // Match province (30 points)
           if (selectedResume.provinceId && job.provinceId === selectedResume.provinceId) {
             score += 30;
           }
 
-          // Match position (15 points)
           if (selectedResume.position && job.position === selectedResume.position) {
             score += 15;
           }
 
-          // Match experience level (10 points)
           if (selectedResume.experience && job.experience === selectedResume.experience) {
             score += 10;
           }
 
-          // Match job type (5 points)
           if (selectedResume.jobType && job.jobType === selectedResume.jobType) {
             score += 5;
           }
 
-          // Salary match bonus (5 points)
           if (selectedResume.salaryMin && selectedResume.salaryMax) {
             if (job.salaryMax >= selectedResume.salaryMin && job.salaryMin <= selectedResume.salaryMax) {
               score += 5;
             }
           }
 
-          // Match workplace type (3 points)
           if (selectedResume.typeOfWorkPlace && job.typeOfWorkPlace === selectedResume.typeOfWorkPlace) {
             score += 3;
           }
@@ -335,20 +318,17 @@ export default class CandidateService implements ICandidateService {
           return { job, score };
         });
 
-        // Sort by score and get top N
         const topJobs = scoredJobs
           .sort((a, b) => {
             // Sort by score first
             if (b.score !== a.score) {
               return b.score - a.score;
             }
-            // If same score, sort by date
             return new Date(b.job.createdAt).getTime() - new Date(a.job.createdAt).getTime();
           })
           .slice(0, limit)
           .map(item => item.job);
 
-        // Map to DTOs
         const recommendedJobs = topJobs.map((job) => 
           JobPostMapper.toJobPosDto(job, candidate.id)
         );
